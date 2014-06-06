@@ -1,0 +1,198 @@
+/*
+ * This file is part of Blackvoxel.
+ *
+ * Copyright 2010-2014 Laurent Thiebaut & Olivia Merle
+ *
+ * Blackvoxel is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Blackvoxel is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+#ifndef Z_ZSTRING_H
+#define Z_ZSTRING_H
+
+//#ifndef Z_ZSTRING_H
+//#  include "ZString.h"
+//#endif
+
+
+#ifndef Z_ZMEMPOOL_H
+#  include "ZMemPool.h"
+#endif
+
+#ifndef Z_ZMEMPOOL_OPTIMIZED_H
+#include "ZMemPool_Optimized.h"
+#endif
+
+
+#define ZSTRING_CONVERSIONSIZE 128
+
+class ZString
+{
+  public:
+
+    char * String;
+    ZMemSize Len;
+    ZMemSize MemLen;
+    ZMemoryPool * MemPool;
+
+  private:
+    struct{ UShort  Display_TrailZero:1;
+            UShort  Display_SignAnyway:1;
+            UShort  Base:6;
+    } Settings;
+
+
+  // Private Utility functions
+    inline ZMemSize   GetOldCStringLen(const char * Texte)   { ZMemSize Len; for (Len=0;Texte[Len];Len++); return(Len); }
+    char *            ULongToAsc(ULong Num, ZMemSize &EffectiveMemSize, ZMemSize & Len);
+    char *            LongToAsc(long Num,   ZMemSize &EffectiveMemSize, ZMemSize & Len);
+    bool inline       AtoULong(char * Txt, ZMemSize &Len, ULong &Value);
+    bool inline       AtoLong(char * Txt, ZMemSize &Len, Long &Value);
+
+    struct ZStringBaseData{ULong Base;ULong Divider;};
+    static ZStringBaseData _ZStringBaseConvert[];
+    static char * _ZStringCharTable;
+
+    static unsigned char  _ZStringLookupTable[];
+
+  public:
+
+    void SetMemPool(ZMemoryPool * MemPool) { this->MemPool = MemPool; }
+
+    inline void RaiseMem_DiscardContent( ZMemSize NewSize)
+    {
+      NewSize ++;
+      if (MemLen>0) MemPool->FreeMem(String,MemLen);
+      String = (char *)MemPool->AllocMem(NewSize,NewSize);
+      MemLen = NewSize;
+    }
+
+    inline void RaiseMem_GetOldContent( ZMemSize NewSize )
+    {
+      char * NewString;
+      ZMemSize i;
+
+      NewSize ++;
+      NewString = (char *)MemPool->AllocMem(NewSize,NewSize);
+      for(i=0;i<Len;i++) NewString[i] = String[i];
+      //String[i]=0;
+      NewString[i]=0;
+      if (MemLen) MemPool->FreeMem(String,MemLen);
+      String = NewString;
+      MemLen = NewSize;
+    }
+
+    void SetLen( ZMemSize NewSize )
+    {
+      if (NewSize >= this->MemLen) RaiseMem_GetOldContent(NewSize);
+      Len = NewSize;
+      String[Len]=0;
+    }
+
+    void Fill(char c)
+    {
+      ZMemSize i;
+
+      for (i=0;i<Len;i++) String[i]=c;
+    }
+
+    void AdjustLenToZeroTerminated()
+    {
+      ZMemSize i;
+
+      for(i=0;i<Len;i++) if (String[i]==0) {Len=i;return;}
+    }
+
+    ZString();
+
+
+    ZString( const char * SourceString );
+    ZString( const ZString & Str );
+    ZString( const float Number );
+    ZString( const ULong Number );
+    ZString( const Long Number );
+
+
+    ZString & operator = (const char * Str);
+    ZString & operator = (const ZString & Str);
+    ZString & operator = (const float Number);
+    ZString & operator = (const double Number);
+    ZString & operator = (const ULong Number);
+    ZString & operator = (const Long  Number);
+
+    bool      operator == (const char * Str);
+    bool      operator == (const ZString & Str);
+    bool      operator != (const char * Str);
+    bool      operator != (const ZString & Str);
+
+    ZString & operator << (ZString const & Str);
+    ZString & operator << (ULong const Number);
+    ZString & operator << (Long const Number);
+    ZString & operator << (bool const Boolean);
+    ZString & operator << (double const Number);
+    ZString & operator << (char const * String );
+
+    ZString & Append_pchar(char const * Str);
+    ZString & Append_ULong(ULong Number);
+    ZString & Append_char(char c);
+
+
+    ZString & AddToPath(char const * Str);
+    ZString & AddToPath(ZString const & Str);
+
+    inline ZString Path(char const * Str)    { ZString Result; Result = *this; Result.AddToPath( Str ); return(Result); }
+    inline ZString Path(ZString const & Str) { ZString Result; Result = *this; Result.AddToPath( Str ); return(Result); }
+
+    ZString Rights(ULong NumChar);
+    ZString Lefts(ULong NumChar);
+
+    void    MakeUpper();
+    void    MakeLower();
+
+    ULong   GetULong();
+    Long    GetLong();
+    double  GetDouble();
+
+    Bool    LoadFromFile(const char * FileName);
+    bool    SaveToFile  (const char * FileName);
+
+    Bool Split(char c, ZString & FirstPart);
+    void StripAll(char c);
+    void StripLeading(char c);
+
+
+    inline ZString & Clear() {if ((Len)) {Len=0;*String=0;} return(*this);}
+
+#ifdef ZENV_OS_WINDOWS
+    inline char * NewLine() { return ( (char *)"\r\n"); }
+#else
+    inline char * NewLine() { return ( (char *)"\n"); }
+#endif
+
+static inline char * GetPathSeparator()
+    {
+      #ifdef ZENV_OS_WINDOWS
+      return((char *)"\\");
+      #else
+      return((char *)"/");
+      #endif
+    }
+
+    virtual ~ZString();
+
+};
+
+
+
+
+
+#endif
