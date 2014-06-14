@@ -53,9 +53,9 @@
 // OS CONFIGURATION
 
 #ifdef __linux__
-#define ZENV_OS_LINUX
-#else
-#define ZENV_OS_WINDOWS
+#  define ZENV_OS_LINUX
+#elif _WIN32
+#  define ZENV_OS_WINDOWS
 #endif
 
 #define MulticharConst(a,b,c,d) (a + (b << 8) + (c<<16) + (d<<24))

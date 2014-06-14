@@ -28,4 +28,9 @@
 /Release/
 .cproject
 .project
+.settings
 
+# Blackvoxel output files, logs and misc.
+Log.txt
+src/sc_Squirrel3/bin/sq
+FabDatabaseOutput.sql

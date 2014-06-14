@@ -148,6 +148,26 @@ bool ZGame::Init_GraphicMode(ZLog * InitLog)
   if (Settings_Hardware->Setting_FullScreen) Flags |= SDL_FULLSCREEN;
   // else                                    Flags |= SDL_RESIZABLE;
 
+  // §§§ Todo : Write better code.
+  // Windows High DPI Quick Workaround in automatic mode.
+  // That's an emergency workaround preventing Blackvoxel to fail on high DPI screens.
+  // It could also mitigate some problems with multiple screens.
+  // Doing a better work will need some interface rework and experimentations with high DPI screens we don't have at this time.
+  // Note we use a bad way for detection as compiling also lacking windows 8 headers at this time.
+
+#ifdef ZENV_OS_WINDOWS
+  if ( (DesktopResolution.x >= 2560 && DesktopResolution.y >= 1600) &&
+       (Settings_Hardware->Setting_Resolution_h == 0 && Settings_Hardware->Setting_Resolution_v == 0))
+  {
+    // Divide resolutions by 2 because it will be upscalled by Windows 8
+    DesktopResolution.x >>= 1;
+    DesktopResolution.y >>= 1;
+
+    // Force windowed mode because full screen is broken with windows GUI scalling.
+    Flags &= ~ SDL_FULLSCREEN;
+  }
+#endif
+
   // Compute Hardware Resolution
 
   if (Settings_Hardware->Setting_Resolution_h == 0 && Settings_Hardware->Setting_Resolution_v == 0) { HardwareResolution.x = DesktopResolution.x;  HardwareResolution.y = DesktopResolution.y; }
