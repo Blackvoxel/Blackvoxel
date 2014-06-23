@@ -58,8 +58,12 @@
 #  include "z/ZString.h"
 #endif
 
-#ifndef Z_ZGENERICCANVA_H
-#  include "z/ZGenericCanva.h"
+//ifndef Z_ZGENERICCANVA_H
+//  include "z/ZGenericCanva.h"
+//endif
+
+#ifndef Z_ZGENERICCANVA2_H
+#  include "z/ZGenericCanva_2.h"
 #endif
 
 #define Z_GENESISMAP_SIZE 128
@@ -90,11 +94,11 @@ class ZWorldGenesis
     ZBitmapImage Template_3_3;
 
 
-    ZGenericByteCanva Canva_1;
-    ZGenericByteCanva Canva_2;
-    ZGenericByteCanva Canva_3_1;
-    ZGenericByteCanva Canva_3_2;
-    ZGenericByteCanva Canva_3_3;
+    ZGenericCanva<UByte> Canva_1;
+    ZGenericCanva<UByte> Canva_2;
+    ZGenericCanva<UByte> Canva_3_1;
+    ZGenericCanva<UByte> Canva_3_2;
+    ZGenericCanva<UByte> Canva_3_3;
 
     ZVoxelSector T3dTemplate_1; // Tree
     ZVoxelSector T3dTemplate_2; // Boulder 1
@@ -319,9 +323,9 @@ class ZWorldGenesis
     void GenerateRTFM(ZVoxelSector * Sector);
 
     // New generic generation functions
-    void GenerateZone_Generic_MappedTerrain(ZVoxelSector * VoxelSector, UShort TerrainVoxelType, ZGenericByteCanva * TerrainMap, Long Offset);
-    void Generate_Generic_LittleStructs(ZVoxelSector * Sector, ZVoxelSector * ObjectToPlace, ZGenericByteCanva * LocationMap, Long Offset );
-    void Generate_Generic_PlaceVoxel(ZVoxelSector * Sector, UShort VoxelType, ZGenericByteCanva * LocationMap, Long Offset, Long RelativeHeight,  bool SetActiveSector);
+    void GenerateZone_Generic_MappedTerrain(ZVoxelSector * VoxelSector, UShort TerrainVoxelType, ZGenericCanva<UByte> * TerrainMap, Long Offset);
+    void Generate_Generic_LittleStructs(ZVoxelSector * Sector, ZVoxelSector * ObjectToPlace, ZGenericCanva<UByte> * LocationMap, Long Offset );
+    void Generate_Generic_PlaceVoxel(ZVoxelSector * Sector, UShort VoxelType, ZGenericCanva<UByte> * LocationMap, Long Offset, Long RelativeHeight,  bool SetActiveSector);
 
 
 

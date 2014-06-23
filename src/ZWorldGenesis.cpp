@@ -946,7 +946,7 @@ void ZWorldGenesis::GenerateZone_AcidHills(ZVoxelSector * VoxelSector, Long Heig
 void ZWorldGenesis::GenerateZone_LavaRiver(ZVoxelSector * VoxelSector)
 {
   ZVector3L Zone, SectorStart;
-  ZGenericByteCanva RiverCanva;
+  ZGenericCanva<UByte> RiverCanva;
   Long x,y,z;
   UByte Draw;
   Long Depth;
@@ -970,7 +970,7 @@ void ZWorldGenesis::GenerateZone_LavaRiver(ZVoxelSector * VoxelSector)
   if ( ConvCN[ (ZMemSize)ZoneMap_New[Zone.x+1][Zone.z  ] ] == 7 ) RiverCanva.DrawBox(128,128-RiverSize/2,255,128+RiverSize/2,1);
   if ( ConvCN[ (ZMemSize)ZoneMap_New[Zone.x  ][Zone.z-1] ] == 7 ) RiverCanva.DrawBox(128-RiverSize/2, 0, 128+RiverSize/2, 127, 1);
   if ( ConvCN[ (ZMemSize)ZoneMap_New[Zone.x  ][Zone.z+1] ] == 7 ) RiverCanva.DrawBox(128-RiverSize/2, 128, 128+RiverSize/2, 255, 1);
-  RiverCanva.DrawCircleFilled(127.5,127.5,((double)RiverSize) / 2.0, 1);
+  RiverCanva.DrawCircleFilled(128,128,((double)RiverSize) / 2.0, 1,1.0);
 
   //RiverCanva.DebugDump();
   for (x=0;x<ZVOXELBLOCSIZE_X;x++)
@@ -987,11 +987,9 @@ void ZWorldGenesis::GenerateZone_LavaRiver(ZVoxelSector * VoxelSector)
         {
           if (Depth<(-RiverDepth)) VoxelType = 52;
         }
-        else if (Depth<0)                VoxelType = 3;
+        else if (Depth<0)          VoxelType = 3;
         VoxelSector->SetCube(x,y,z, VoxelType);
-
       }
-
     }
 
   }
@@ -2018,7 +2016,7 @@ void ZWorldGenesis::GenerateZone_DustField(ZVoxelSector * VoxelSector, Long Sect
 
 }
 
-void ZWorldGenesis::GenerateZone_Generic_MappedTerrain(ZVoxelSector * VoxelSector, UShort TerrainVoxelType, ZGenericByteCanva * TerrainMap, Long Offset)
+void ZWorldGenesis::GenerateZone_Generic_MappedTerrain(ZVoxelSector * VoxelSector, UShort TerrainVoxelType, ZGenericCanva<UByte> * TerrainMap, Long Offset)
 {
   Long x,y,z, Voxel_y, Deep;
   Long Sector_y;
@@ -2055,7 +2053,7 @@ void ZWorldGenesis::GenerateZone_Generic_MappedTerrain(ZVoxelSector * VoxelSecto
     }
 }
 
-void ZWorldGenesis::Generate_Generic_LittleStructs(ZVoxelSector * Sector, ZVoxelSector * ObjectToPlace, ZGenericByteCanva * LocationMap, Long Offset )
+void ZWorldGenesis::Generate_Generic_LittleStructs(ZVoxelSector * Sector, ZVoxelSector * ObjectToPlace, ZGenericCanva<UByte> * LocationMap, Long Offset )
 {
   Long x,z, xs,ys,zs, GenerationRadius;
   ZLightSpeedRandom Random;
@@ -2117,7 +2115,7 @@ void ZWorldGenesis::Generate_Generic_LittleStructs(ZVoxelSector * Sector, ZVoxel
    }
 }
 
-void ZWorldGenesis::Generate_Generic_PlaceVoxel(ZVoxelSector * Sector, UShort VoxelType, ZGenericByteCanva * LocationMap, Long Offset, Long RelativeHeight,  bool SetActiveSector)
+void ZWorldGenesis::Generate_Generic_PlaceVoxel(ZVoxelSector * Sector, UShort VoxelType, ZGenericCanva<UByte> * LocationMap, Long Offset, Long RelativeHeight,  bool SetActiveSector)
 {
   Long x,z, xs,ys,zs, GenerationRadius;
   ZLightSpeedRandom Random;
@@ -2328,7 +2326,7 @@ bool ZWorldGenesis::LoadTemplateImages()
 
 void ZWorldGenesis::ZoneMap_ChangeSize(const char ** Table, Long TableWidth, Long TableHeight, const char * TableDecl, Long NewTableWidth, Long NewTableHeight, UByte EmptyZonesValue, const char * OutputFile)
 {
-  ZGenericByteCanva Cv1, Cv2;
+  ZGenericCanva<UByte> Cv1, Cv2;
   ZString As;
   ZStream_File Stream;
 
@@ -2346,7 +2344,7 @@ void ZWorldGenesis::ZoneMap_ChangeSize(const char ** Table, Long TableWidth, Lon
 
 void ZWorldGenesis::ZoneMap_Shift(const char ** Table, Long TableWidth, Long TableHeight, const char * TableDecl, Long Ring, Long Shift, const char * OutputFile, UByte IncThreshold, UByte IncAdd)
 {
-   ZGenericByteCanva Cv1, * pCv2;
+   ZGenericCanva<UByte> Cv1, * pCv2;
    ZString As;
    ZStream_File Stream;
 

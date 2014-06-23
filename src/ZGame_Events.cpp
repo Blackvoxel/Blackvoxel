@@ -581,7 +581,7 @@ void ZGame_Events::Process_StillEvents()
       Actor->Action_PrevBuildingMaterial();
       Keyboard_Matrix[SDLK_KP_MINUS] = 0;
     }
-    if ( Keyboard_Matrix[SDLK_t] && COMPILEOPTION_DEBUGFACILITY )        { ZInventory::Entry * Entry = Actor->Inventory->GetSlotRef(Actor->Inventory->GetActualItemSlotNum()); Entry->VoxelType = Actor->BuildingMaterial; Entry->Quantity = 8192*10000; }
+    if ( Keyboard_Matrix[SDLK_t] && COMPILEOPTION_DEBUGFACILITY )        { ZInventory::Entry * Entry = Actor->Inventory->GetSlotRef(Actor->Inventory->GetActualItemSlotNum()); Entry->VoxelType = Actor->BuildingMaterial; Entry->Quantity = 8192*1; }
     if ( Keyboard_Matrix[SDLK_F1] )   { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); }
     if ( Keyboard_Matrix[SDLK_F2] )   { SDL_WM_GrabInput(SDL_GRAB_ON); SDL_ShowCursor(SDL_DISABLE); }
     if ( Keyboard_Matrix[SDLK_F3] && COMPILEOPTION_DEBUGFACILITY )   { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_DISABLE); }

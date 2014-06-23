@@ -31,7 +31,18 @@
 #  include "ZVoxelExtension_Programmable.h"
 #endif
 
+#ifndef Z_ZGENERICCANVA2_H
+#  include "ZGenericCanva_2.h"
+#endif
+
 extern ZGame * Ge;
+
+ZVoxelExtension_Programmable::~ZVoxelExtension_Programmable()
+{
+  ULong i;
+
+  for (i=0;i<ImageTable_Size;i++) if (ImageTable[i]) delete ImageTable[i];
+}
 
 void ZVoxelExtension_Programmable::CompileAndRunScript(ULong ContextInfo, ULong ScriptToRun)
 {

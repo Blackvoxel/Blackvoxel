@@ -47,6 +47,10 @@
 #  include "ZTextureManager.h"
 #endif
 
+#ifndef Z_ZGENERICCANVA2_H
+#  include "ZGenericCanva_2.h"
+#endif
+
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -1330,6 +1334,486 @@ SQInteger function_GetFontPixel(HSQUIRRELVM v)
   return(1);
 }
 
+SQInteger function_Image_New(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger ImageNum, Width, Height;
+  ZGenericCanva<ULong> * Image;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<4) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 2"); //throws an exception
+  if (sq_gettype(v,4) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 3"); //throws an exception
+  sq_getinteger(v,2, &ImageNum);
+  sq_getinteger(v,3, &Width);
+  sq_getinteger(v,4, &Height);
+
+  // Input Validation
+
+  if ( (ImageNum < 0 || ImageNum >= 64)
+       || (Width < 1)
+       || (Height < 1)  ) { sq_pushbool(v,SQFalse); return(1); }
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+
+  // Delete existing image
+
+  Image = S->Extension->ImageTable[ImageNum];
+  if (Image) { delete Image; S->Extension->ImageTable[ImageNum] = 0;}
+
+  // Create the new image
+
+  Image = new ZGenericCanva<ULong>(Width,Height); if (!Image) { sq_pushbool(v,SQFalse); return(1); }
+  Image->Clear(0);
+  S->Extension->ImageTable[ImageNum] = Image;
+
+  // Return Success
+
+  sq_pushbool(v,SQTrue);
+  return(1);
+}
+
+SQInteger function_Image_Exists(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger ImageNum;
+  ZGenericCanva<ULong> * Image;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &ImageNum);
+
+  // Input Validation
+
+  if (ImageNum < 0 || ImageNum >= 64) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Retrieve the image
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  Image = S->Extension->ImageTable[ImageNum];
+
+
+  // Return Success
+
+  sq_pushbool(v, (Image) ? SQTrue : SQFalse );
+  return(1);
+}
+
+SQInteger function_Image_GetPixel(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger ImageNum, x, y, RetVal;
+  ZGenericCanva<ULong> * Image;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<4) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 2"); //throws an exception
+  if (sq_gettype(v,4) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 3"); //throws an exception
+  sq_getinteger(v,2, &ImageNum);
+  sq_getinteger(v,3, &x);
+  sq_getinteger(v,4, &y);
+
+  // Input validation
+
+  if ( ImageNum < 0 || ImageNum >= 64) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Get Working image
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  Image = S->Extension->ImageTable[ImageNum]; if (!Image) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Get Pixel Information
+
+  RetVal = Image->GetPoint_Secure(x,y);
+
+  // Return result
+
+  sq_pushinteger(v,RetVal);
+  return(1);
+}
+
+SQInteger function_Image_SetPixel(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger ImageNum, x, y, Color;
+  ZGenericCanva<ULong> * Image;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<5) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 2"); //throws an exception
+  if (sq_gettype(v,4) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 3"); //throws an exception
+  if (sq_gettype(v,5) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 4"); //throws an exception
+  sq_getinteger(v,2, &ImageNum);
+  sq_getinteger(v,3, &x);
+  sq_getinteger(v,4, &y);
+  sq_getinteger(v,5, &Color);
+
+  // Input validation
+
+  if ( (ImageNum < 0 || ImageNum >= 64) || (x < 0) || (y < 0)  ) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Get Working image
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  Image = S->Extension->ImageTable[ImageNum]; if (!Image) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Set Pixel Information
+
+  Image->SetPoint_Secure(x,y,Color);
+
+  // Return result
+
+  sq_pushbool(v,SQTrue);
+  return(1);
+}
+
+SQInteger function_Image_Line(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger ImageNum, sx, sy, ex, ey, Color;
+  ZGenericCanva<ULong> * Image;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<7) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 2"); //throws an exception
+  if (sq_gettype(v,4) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 3"); //throws an exception
+  if (sq_gettype(v,5) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 4"); //throws an exception
+  if (sq_gettype(v,6) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 5"); //throws an exception
+  if (sq_gettype(v,7) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 6"); //throws an exception
+  sq_getinteger(v,2, &ImageNum);
+  sq_getinteger(v,3, &sx);
+  sq_getinteger(v,4, &sy);
+  sq_getinteger(v,5, &ex);
+  sq_getinteger(v,6, &ey);
+  sq_getinteger(v,7, &Color);
+
+  // Input validation
+
+  if ( (ImageNum < 0 || ImageNum >= 64) ) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Get Working image
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  Image = S->Extension->ImageTable[ImageNum]; if (!Image) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Set Pixel Information
+
+  ZLineCoords Lc;
+  Lc.Start.x = sx; Lc.Start.y = sy; Lc.End.x = ex; Lc.End.y = ey;
+
+  /*
+  Image->Polygon_Start();
+  Image->Polygon_Segment(&Lc);
+  Image->Polygon_Render(Color);
+  */
+  Image->Line(&Lc, Color);
+
+
+  // Return result
+
+  sq_pushbool(v,SQTrue);
+  return(1);
+}
+
+SQInteger function_Image_Clear(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger ImageNum, Color;
+  ZGenericCanva<ULong> * Image;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<3) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 2"); //throws an exception
+  sq_getinteger(v,2, &ImageNum);
+  sq_getinteger(v,3, &Color);
+
+  // Input validation
+
+  if ( (ImageNum < 0 || ImageNum >= 64) ) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Get Working image
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  Image = S->Extension->ImageTable[ImageNum]; if (!Image) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Clear Image
+
+  Image->Clear(Color);
+
+  // Return result
+
+  sq_pushbool(v,SQTrue);
+  return(1);
+}
+
+SQInteger function_Image_Polygon_Start(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger ImageNum;
+  ZGenericCanva<ULong> * Image;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &ImageNum);
+
+  // Input validation
+
+  if ( (ImageNum < 0 || ImageNum >= 64) ) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Get Working image
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  Image = S->Extension->ImageTable[ImageNum]; if (!Image) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Init Poligon Drawing
+
+  Image->Polygon_Start();
+
+  // Return result
+
+  sq_pushbool(v,SQTrue);
+  return(1);
+}
+
+SQInteger function_Image_Polygon_Segment(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger ImageNum, sx, sy, ex, ey;
+  ZGenericCanva<ULong> * Image;
+  ZLineCoords Lc;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 2"); //throws an exception
+  if (sq_gettype(v,4) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 3"); //throws an exception
+  if (sq_gettype(v,5) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 4"); //throws an exception
+  if (sq_gettype(v,6) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 5"); //throws an exception
+  sq_getinteger(v,2, &ImageNum);
+  sq_getinteger(v,3, &sx);
+  sq_getinteger(v,4, &sy);
+  sq_getinteger(v,5, &ex);
+  sq_getinteger(v,6, &ey);
+
+  // Input validation
+
+  if ( (ImageNum < 0 || ImageNum >= 64) ) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Get Working image
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  Image = S->Extension->ImageTable[ImageNum]; if (!Image) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Draw Polygon segment
+
+  Lc.Start.x = sx;
+  Lc.Start.y = sy;
+  Lc.End.x = ex;
+  Lc.End.y = ey;
+  Image->Polygon_Segment(&Lc);
+
+  // Return result
+
+  sq_pushbool(v,SQTrue);
+  return(1);
+}
+
+SQInteger function_Image_Polygon_Render(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger ImageNum, Color;
+  ZGenericCanva<ULong> * Image;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 2"); //throws an exception
+  sq_getinteger(v,2, &ImageNum);
+  sq_getinteger(v,3, &Color);
+
+  // Input validation
+
+  if ( (ImageNum < 0 || ImageNum >= 64) ) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Get Working image
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  Image = S->Extension->ImageTable[ImageNum]; if (!Image) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Draw Polygon segment
+
+  Image->Polygon_Render(Color);
+
+  // Return result
+
+  sq_pushbool(v,SQTrue);
+  return(1);
+}
+
+SQInteger function_Image_Circle_Filled(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger ImageNum, Color, Intval;
+  double   x,y, Radius;
+  ZGenericCanva<ULong> * Image;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 2"); //throws an exception
+  if (sq_gettype(v,4) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 3"); //throws an exception
+  if (sq_gettype(v,5) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 4"); //throws an exception
+  if (sq_gettype(v,6) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 5"); //throws an exception
+  sq_getinteger(v,2, &ImageNum);
+  sq_getinteger(v,3, &Intval); x = Intval; x+=0.5;
+  sq_getinteger(v,4, &Intval); y = Intval; y+=0.5;
+  sq_getinteger(v,5, &Intval); Radius = Intval;
+  sq_getinteger(v,6, &Color);
+
+  // Input validation
+
+  if ( (ImageNum < 0 || ImageNum >= 64) ) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Get Working image
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  Image = S->Extension->ImageTable[ImageNum]; if (!Image) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Draw Polygon segment
+
+  Image->DrawCircleFilled(x,y,Radius,Color,1.0);
+
+  // Return result
+
+  sq_pushbool(v,SQTrue);
+  return(1);
+}
+
+SQInteger function_Image_DrawBox(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger ImageNum, sx, sy, ex, ey, Color;
+  ZGenericCanva<ULong> * Image;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 2"); //throws an exception
+  if (sq_gettype(v,4) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 3"); //throws an exception
+  if (sq_gettype(v,5) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 4"); //throws an exception
+  if (sq_gettype(v,6) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 5"); //throws an exception
+  if (sq_gettype(v,7) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 6"); //throws an exception
+  sq_getinteger(v,2, &ImageNum);
+  sq_getinteger(v,3, &sx);
+  sq_getinteger(v,4, &sy);
+  sq_getinteger(v,5, &ex);
+  sq_getinteger(v,6, &ey);
+  sq_getinteger(v,7, &Color);
+
+  // Input validation
+
+  if ( (ImageNum < 0 || ImageNum >= 64) ) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Get Working image
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  Image = S->Extension->ImageTable[ImageNum]; if (!Image) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Draw Polygon segment
+
+  Image->DrawBox(sx,sy,ex,ey,Color);
+
+  // Return result
+
+  sq_pushbool(v,SQTrue);
+  return(1);
+}
+
+SQInteger function_Image_Load(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  const SQChar * Filename;
+  SQInteger ImageNum;
+  ZGenericCanva<ULong> * Image;
+  ZBitmapImage Bitmap;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  if (sq_gettype(v,3) != OT_STRING) return sq_throwerror(v,"invalid parameter type for argument 2"); //throws an exception
+  sq_getinteger(v,2, &ImageNum);
+  sq_getstring(v,3, &Filename);
+
+  // Input validation
+
+  if ( (ImageNum < 0 || ImageNum >= 64) ) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Get Working image
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  Image = S->Extension->ImageTable[ImageNum];
+
+  // Load File
+
+  if (!Bitmap.LoadBMP(Filename)) { sq_pushbool(v,SQFalse); return(1); }
+  if (Bitmap.Width < 1 || Bitmap.Height < 1) return sq_throwerror(v,"Invalid image size in Image_Load function"); //throws an exception
+  if (Bitmap.BitsPerPixel!= 32 && Bitmap.BitsPerPixel) return sq_throwerror(v,"Invalid image color format in Image_Load function"); //throws an exception
+
+  // Delete existing image
+
+  if (Image) { delete Image; S->Extension->ImageTable[ImageNum] = 0;}
+
+  // Create the new image
+
+  Image = new ZGenericCanva<ULong>(Bitmap.Width,Bitmap.Height); if (!Image) { sq_pushbool(v,SQFalse); return(1); }
+  Image->GetFromBitmap(&Bitmap,false,0);
+  S->Extension->ImageTable[ImageNum] = Image;
+
+  // Return Success
+
+  sq_pushbool(v,SQTrue);
+  return(1);
+}
+
+SQInteger function_GetKey(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger Keycode;
+  ZString Nm;
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount < 2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &Keycode);
+
+  // Get the context pointer
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+
+  // Return the key state
+
+  sq_pushbool(v, S->GameEnv->EventManager.Is_KeyPressed(Keycode, false) ? SQTrue : SQFalse );
+  return(1);
+}
+
+
 SQInteger print_args(HSQUIRRELVM v)
 {
     SQInteger nargs = sq_gettop(v); //number of arguments
@@ -1457,6 +1941,24 @@ bool ZScripting_Squirrel3::Init()
   sq_getuserpointer(S->v,-1, &p);
 */
 
+  // 1.36 extension
+
+  RegisterSquirrelFunction(S, function_Image_New,      "Image_New");
+  RegisterSquirrelFunction(S, function_Image_Clear,    "Image_Clear");
+  RegisterSquirrelFunction(S, function_Image_Exists,   "Image_Exists");
+  RegisterSquirrelFunction(S, function_Image_GetPixel, "Image_GetPixel");
+  RegisterSquirrelFunction(S, function_Image_SetPixel, "Image_SetPixel");
+  RegisterSquirrelFunction(S, function_Image_Line,     "Image_Line");
+  RegisterSquirrelFunction(S, function_Image_Polygon_Start,  "Image_Polygon_Start");
+  RegisterSquirrelFunction(S, function_Image_Polygon_Segment,"Image_Polygon_Segment");
+  RegisterSquirrelFunction(S, function_Image_Polygon_Render, "Image_Polygon_Render");
+  RegisterSquirrelFunction(S, function_Image_Circle_Filled,  "Image_Circle_Filled");
+  RegisterSquirrelFunction(S, function_Image_DrawBox,        "Image_DrawBox");
+  RegisterSquirrelFunction(S, function_Image_Load,           "Image_Load");
+  RegisterSquirrelFunction(S, function_GetKey,               "GetKey");
+
+
+
   // 1.34 extension
 
   RegisterSquirrelFunction(S, function_GetFontPixel, "GetFontPixel");
@@ -1472,8 +1974,6 @@ bool ZScripting_Squirrel3::Init()
   RegisterSquirrelFunction(S, function_voxel_getinfo, "Voxel_GetInfo");
   RegisterSquirrelFunction(S, function_voxel_setinfo, "Voxel_SetInfo");
   RegisterSquirrelFunction(S, function_voxel_getinfodoc, "Voxel_GetInfoDoc");
-
-
 
   // 1.22 Extension
   RegisterSquirrelFunction(S, function_PlaceVoxel3D, "PlaceVoxel3D");

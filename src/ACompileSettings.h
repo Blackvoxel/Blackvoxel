@@ -32,7 +32,7 @@
 
 // Options à inclure : -mfpmath=sse -msse2
 
-#define DEVELOPPEMENT_FORCE_DEV 0 // Force dev will force generating a dev version.
+#define DEVELOPPEMENT_FORCE_DEV 1 // Force dev will force generating a dev version.
 
 // Dev options forced ?
 
@@ -96,7 +96,7 @@
 #  define COMPILEOPTION_FNX_SOUNDS_1 1
 #  define COMPILEOPTION_LOWRESTEXTURING 0
 #  define COMPILEOPTION_VERBOSELOGS 0
-#  define COMPILEOPTION_SQUIRRELUNSAFE 0
+#  define COMPILEOPTION_SQUIRRELUNSAFE 1
 #  define COMPILEOPTION_SAVEONLYMODIFIED 1
 #else
 #  define COMPILEOPTION_FABDATABASEOUTPUT 0

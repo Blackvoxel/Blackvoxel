@@ -1110,7 +1110,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                           }
 
 
-                  case 98:  // Saver
+                  case 98:  // Voxel Materializer
                           IsActiveVoxels = true;
                           {
                             ZVoxelSector * St[8];

@@ -39,11 +39,12 @@
 #endif
 
 class ZGame;
+template <typename Type> class ZGenericCanva;
 
 class ZVoxelExtension_Programmable : public ZVoxelExtension
 {
   public:
-  enum {Storage_NumSlots = 20};
+  enum {Storage_NumSlots = 20, ImageTable_Size = 64};
   enum {CONTEXT_NEWVOXEL, CONTEXT_LOADING, CONTEXT_PROGRAMCHANGE};
 
 
@@ -55,6 +56,10 @@ class ZVoxelExtension_Programmable : public ZVoxelExtension
   public:
   ULong ScriptNum;
   ZString ProgramText;
+
+  ULong  ImageInUse;
+  ZGenericCanva<ULong> * ImageTable[ImageTable_Size];
+
 
   ZScripting_Squirrel3 Script_Engine;
 
@@ -71,16 +76,20 @@ class ZVoxelExtension_Programmable : public ZVoxelExtension
     ScriptNum = 0;
     RobotLevel = 3;
     RobotSerialNumber = 0;
+
+    ImageInUse = 0;
+    for (i=0;i<ImageTable_Size;i++) ImageTable[i] = 0;
+
   }
+
+  virtual ~ZVoxelExtension_Programmable();
 
   void Cleanup()
   {
     Script_Engine.Cleanup();
   }
 
-  virtual ~ZVoxelExtension_Programmable()
-  {
-  }
+
 
   virtual ULong GetExtensionID()
   {
