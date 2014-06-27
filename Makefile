@@ -12,7 +12,7 @@ OBJ= $(SRC:src/%.cpp=obj/%.o)
 ifeq ($(OS),Windows_NT)
   CPU_BITS=32
   CFLAGS+= -O3 -c -fmessage-length=0 -march=i686
-  LDFLAGS= -s -Xlinker --large-address-aware -L"src/sc_Squirrel3/lib" -lmingw32 -lSDLmain -lSDL -llibglew32 -lglu32 -lopengl32 -llibglut -lsquirrel -lsqstdlib
+  LDFLAGS= -s -Xlinker --large-address-aware -mwindows -L"src/sc_Squirrel3/lib" -lmingw32 -lSDLmain -lSDL -llibglew32 -lglu32 -lopengl32 -llibglut -lsquirrel -lsqstdlib
 else
   # Unix like operating systems
   CPU_BITS= $(shell getconf LONG_BIT)

@@ -32,7 +32,7 @@
 
 // Options à inclure : -mfpmath=sse -msse2
 
-#define DEVELOPPEMENT_FORCE_DEV 1 // Force dev will force generating a dev version.
+#define DEVELOPPEMENT_FORCE_DEV 0 // Force dev will force generating a dev version.
 
 // Dev options forced ?
 

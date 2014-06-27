@@ -144,6 +144,11 @@
 #  include "z/ZGenericCanva.h"
 #endif
 
+#ifndef Z_ZOS_SPECIFIC_VARIOUS_H
+#  include "ZOs_Specific_Various.h"
+#endif
+
+
 ZGame * Ge;
 double FrameTime;
 
@@ -155,6 +160,12 @@ int main(int argc, char *argv[])
 {
   ULong Result;
   bool StartGame;
+
+  // Windows Terminal Fix
+
+  #ifdef ZENV_OS_WINDOWS
+    Windows_DisplayConsole();
+  #endif
 
   // Start
 
