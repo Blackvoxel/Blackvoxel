@@ -226,6 +226,7 @@ class ZGame
              Time_GameElapsedTime = 0;
              VFov = 63.597825649;
              Machine_Serial = 1;
+             Stop_Programmable_Robots = false;
    }
   ~ZGame() { UniverseNum = 0; }
 
@@ -253,6 +254,7 @@ class ZGame
   bool Enable_MVI;           // Enable or disable massive voxel interraction and animation processing.
   bool Enable_LoadNewSector; // Enable new sector loading and rendering. Disable Locks to only loaded sectors.
   bool Enable_NewSectorRendering; // Enable to make display lists for new incoming sectors.
+  bool Stop_Programmable_Robots; // This flag signal to user programmable robots to stop running as soon as possible.
 
 
   // Game Loop continue flag

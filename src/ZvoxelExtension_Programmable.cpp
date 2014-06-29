@@ -61,6 +61,7 @@ void ZVoxelExtension_Programmable::CompileAndRunScript(ULong ContextInfo, ULong 
   Script_Engine.SetExtension(this);
   if (Script_Engine.IsCompiledOk())
   {
+    IsAllowedToRun = true;
     switch(ContextInfo)
     {
       case CONTEXT_LOADING:       break;
@@ -88,6 +89,7 @@ void ZVoxelExtension_Programmable::CompileAndRunScript(ULong ContextInfo, ULong 
 void ZVoxelExtension_Programmable::StopProgram()
 {
   Script_Engine.StopProgram();
+  IsAllowedToRun = false;
 }
 
 bool ZVoxelExtension_Programmable::IsRunningProgram()

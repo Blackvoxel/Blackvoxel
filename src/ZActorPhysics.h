@@ -91,6 +91,7 @@ class ZActor
     ZInventory * Inventory;
 
     UShort BuildingMaterial;
+    UShort LearningModePage;
 
     // Game Time
 

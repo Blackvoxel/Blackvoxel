@@ -231,7 +231,7 @@ bool ZGame::Init_TextureManager(ZLog * InitLog)
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/button_1_5.bmp");             Result = TextureManager.LoadBMPTexture(Path.String,10,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(13,ZLog::FAIL, Err); return(false); }
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_2_2.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,11,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(14,ZLog::FAIL, Err); return(false); }
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_3_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,12,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(15,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/contribute_1_0.bmp");         Result = TextureManager.LoadBMPTexture(Path.String,13,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(15,ZLog::FAIL, Err); return(false); }
+  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/contribute_1_1.bmp");         Result = TextureManager.LoadBMPTexture(Path.String,13,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(15,ZLog::FAIL, Err); return(false); }
 
   Initialized_TextureManager = true;
   InitLog->Log(2, ZLog::INFO, "Ended Ok : Texture Manager Init");

@@ -64,6 +64,9 @@ ZActor::ZActor()
   DeathChronometer = 0.0;
   GameEnv = 0;
 
+  Time_TotalGameTime = 0;
+  Time_ElapsedTimeSinceLastRespawn = 0;
+  LearningModePage = 0;
 
 }
 

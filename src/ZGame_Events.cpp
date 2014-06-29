@@ -108,6 +108,90 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                     }
                   }
                   break;
+
+    // J and K keys are used in school mode for getting "content pages".
+
+    case SDLK_j:
+    case SDLK_k:
+                  {
+                    ULong SlotNum = 20;
+                    ZInventory * Inv = Actor->Inventory;
+                    if (KeySym==SDLK_k) Actor->LearningModePage ++;
+                    else                {if((Actor->LearningModePage--)==0) Actor->LearningModePage = 2; }
+
+                    switch (Actor->LearningModePage)
+                    {
+                      default: Actor->LearningModePage = 0;
+                              // Robots and co...
+                      case 0: Inv->SetSlot(SlotNum++, 108, 8192);
+                              Inv->SetSlot(SlotNum++, 49 , 8192);
+                              Inv->SetSlot(SlotNum++, 214, 8192);
+                              Inv->SetSlot(SlotNum++, 216, 8192);
+                              Inv->SetSlot(SlotNum++, 208, 8192);
+                              Inv->SetSlot(SlotNum++, 103, 8192);
+                              Inv->SetSlot(SlotNum++, 104, 8192);
+                              Inv->SetSlot(SlotNum++, 105, 8192);
+                              Inv->SetSlot(SlotNum++, 106, 8192);
+                              Inv->SetSlot(SlotNum++,  94, 8192);
+
+                              Inv->SetSlot(SlotNum++, 95, 8192);
+                              Inv->SetSlot(SlotNum++, 88, 8192);
+                              Inv->SetSlot(SlotNum++, 87, 8192);
+                              Inv->SetSlot(SlotNum++, 92, 8192);
+                              Inv->SetSlot(SlotNum++,198, 8192);
+                              Inv->SetSlot(SlotNum++,204, 8192);
+                              Inv->SetSlot(SlotNum++,209, 8192);
+                              Inv->SetSlot(SlotNum++,205, 8192);
+                              Inv->SetSlot(SlotNum++,206, 8192);
+                              Inv->SetSlot(SlotNum++,199, 8192);
+                              break;
+                      case 1:
+
+                              Inv->SetSlot(SlotNum++, 90, 8192);
+                              Inv->SetSlot(SlotNum++,99 , 8192);
+                              Inv->SetSlot(SlotNum++,100, 8192);
+                              Inv->SetSlot(SlotNum++,101, 8192);
+                              Inv->SetSlot(SlotNum++,102, 8192);
+                              Inv->SetSlot(SlotNum++,77 , 16);
+                              Inv->SetSlot(SlotNum++,78 , 16);
+
+                              while(SlotNum<40) Inv->SetSlot(SlotNum++, 0, 0);
+                              break;
+                      case 2: Inv->SetSlot(SlotNum++, 1, 8192);
+                              Inv->SetSlot(SlotNum++, 2, 8192);
+                              Inv->SetSlot(SlotNum++, 3, 8192);
+                              Inv->SetSlot(SlotNum++, 4, 8192);
+                              Inv->SetSlot(SlotNum++, 5, 8192);
+                              Inv->SetSlot(SlotNum++, 6, 8192);
+                              Inv->SetSlot(SlotNum++, 7, 8192);
+                              Inv->SetSlot(SlotNum++, 8, 8192);
+                              Inv->SetSlot(SlotNum++, 9, 8192);
+                              Inv->SetSlot(SlotNum++,10, 8192);
+                              while(SlotNum<40) Inv->SetSlot(SlotNum++, 0, 0);
+                              break;
+                    }
+                    break;
+
+                  }
+
+    // Programmable robot kill switch...
+
+    case SDLK_u:  GameEnv->Stop_Programmable_Robots = true; break;
+
+    // THE "FEAR KEY" : Always the best way to destroy your world...
+
+    case SDLK_F10:
+                  if ( Keyboard_Matrix[SDLK_LSHIFT])
+                  {
+                    if (!GameEnv->GameEventSequencer->SlotIsEventAttached(1))
+                    {
+                      GameEnv->GameWindow_Advertising->Advertise("YOU PRESSED THE FEAR KEY", ZGameWindow_Advertising::VISIBILITY_HIGH,0,3000,3000);
+                      GameEnv->GameWindow_Advertising->Advertise("SOME VOXELS WILL COME IN 1 MINUTES", ZGameWindow_Advertising::VISIBILITY_MEDIUM,0,3000,3000);
+                      GameEnv->GameWindow_Advertising->Advertise("THEY MIGHT APPRECIATE YOU", ZGameWindow_Advertising::VISIBILITY_MEDIUM,0,3000,3000);
+                      GameEnv->GameEventSequencer->AddEvent(60000,20000,1,false,0);
+                    }
+                  }
+                  break;
   }
   return(true);
 }
@@ -126,6 +210,7 @@ Bool ZGame_Events::KeyUp( UShort KeySym )
     case SDLK_b:  { Mouse_Matrix[3] = false; Actor->Action_MouseButtonRelease(2); break; }
     case SDLK_x:  { Mouse_Matrix[4] = false; Actor->Action_MouseButtonRelease(3); break; }
     case SDLK_n:  { Mouse_Matrix[5] = false; Actor->Action_MouseButtonRelease(4); break; }
+    case SDLK_u:  { GameEnv->Stop_Programmable_Robots = false; break; }
 
   }
   return(true);
@@ -210,10 +295,10 @@ void ZGame_Events::Process_StillEvents()
     //if ( Keyboard_Matrix[SDLK_a] )                                     { Actor->Action_GoUp(GameEnv->Time_GameLoop  * 1.5); }
     if ( Keyboard_Matrix[SDLK_h] && COMPILEOPTION_DEBUGFACILITY )        { Actor->Action_GoFastForward(500.0); }
     if ( Keyboard_Matrix[SDLK_DELETE] && !COMPILEOPTION_DEBUGFACILITY ) { Actor->LifePoints = 0.0; }
-    if ( Keyboard_Matrix[SDLK_KP0] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(0);}
+    if ( Keyboard_Matrix[SDLK_KP0] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))       { Actor->Action_SetActorMode(0);}
     if ( Keyboard_Matrix[SDLK_KP1] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(1);}
     if ( Keyboard_Matrix[SDLK_KP2] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(2);}
-    if ( Keyboard_Matrix[SDLK_KP3] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(3);}
+    if ( Keyboard_Matrix[SDLK_KP3] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))       { Actor->Action_SetActorMode(3);}
     if ( Keyboard_Matrix[SDLK_KP4] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(4);}
     if ( Keyboard_Matrix[SDLK_KP5] && COMPILEOPTION_DEBUGFACILITY)
     {
@@ -293,7 +378,7 @@ void ZGame_Events::Process_StillEvents()
 
 
 
-    if ( Keyboard_Matrix[SDLK_j] && COMPILEOPTION_DEBUGFACILITY)
+    if ( Keyboard_Matrix[SDLK_j] && COMPILEOPTION_DEBUGFACILITY && false)
     {
       Keyboard_Matrix[SDLK_j] = 0;
 
@@ -384,7 +469,7 @@ void ZGame_Events::Process_StillEvents()
       }
     }
 
-    if ( Keyboard_Matrix[SDLK_k] && COMPILEOPTION_DEBUGFACILITY)
+    if ( Keyboard_Matrix[SDLK_k] && COMPILEOPTION_DEBUGFACILITY && false)
     {
       Keyboard_Matrix[SDLK_k] = 0;
 
@@ -596,11 +681,13 @@ void ZGame_Events::Process_StillEvents()
       z = GameEnv->PhysicEngine->GetSelectedActor()->PointedVoxel.PointedVoxel.z;
 
       GameEnv->PointList.AddPosition( x,y,z );
-      printf("----------------------------------------------------------------------------------------------\n");
-      printf("Pointed Voxel : %d,%d,%d : %d\n", x, y, z, GameEnv->World->GetVoxel(x,y,z) );
+      printf("-----------------Highlighted Voxel Analysis-------------\n");
+      printf("Voxel Location : %d,%d,%d\n", x, y, z);
+      printf("VoxelType : %d\n",GameEnv->World->GetVoxel(x,y,z) );
       VoxelLocation Loc;
       if (GameEnv->World->GetVoxelLocation(&Loc, x,y,z))
       {
+        printf("Voxel Name : %s\n", GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset] ]->VoxelTypeName.String);
         GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset] ]->GetBlockInformations( &Loc, Infos );
         printf("Sector Location : %d,%d,%d\n", Loc.Sector->Pos_x , Loc.Sector->Pos_y, Loc.Sector->Pos_z);
         printf("Zone Coords : %d,%d\n",(((Loc.Sector->Pos_x) >> 4) + 32 +1 ), (((Loc.Sector->Pos_z) >> 4) + 32 +1 ));
@@ -711,17 +798,7 @@ void ZGame_Events::Process_StillEvents()
       printf("Pos (%ld,%ld,%ld) Sector (%ld,%ld,%ld) Zone (%ld,%ld,%ld)\n",(UNum)Position.x,(UNum)Position.y,(UNum)Position.z,(UNum)Sector.x,(UNum)Sector.y,(UNum)Sector.z,(UNum)Zone.x,(UNum)Zone.y,(UNum)Zone.z);
     }
     if ( Keyboard_Matrix[SDLK_ESCAPE] )  { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); GameEnv->Game_Run = false; }
-    if ( Keyboard_Matrix[SDLK_F10])
-    {
-      if (!GameEnv->GameEventSequencer->SlotIsEventAttached(1))
-      {
-        GameEnv->GameWindow_Advertising->Advertise("YOU PRESSED THE FEAR KEY", ZGameWindow_Advertising::VISIBILITY_HIGH,0,3000,3000);
-        GameEnv->GameWindow_Advertising->Advertise("SOME VOXELS WILL COME IN 1 MINUTES", ZGameWindow_Advertising::VISIBILITY_MEDIUM,0,3000,3000);
-        GameEnv->GameWindow_Advertising->Advertise("THEY MIGHT APPRECIATE YOU", ZGameWindow_Advertising::VISIBILITY_MEDIUM,0,3000,3000);
-        GameEnv->GameEventSequencer->AddEvent(60000,20000,1,false,0);
-      }
-      Keyboard_Matrix[SDLK_F10] = 0;
-    }
+
     if ( Keyboard_Matrix[SDLK_F11] )
     {
       printf("Sectors in Memory:%lu ", (UNum)GameEnv->World->Info_GetSectorsInMemory()); //World.Info_PrintHashStats();

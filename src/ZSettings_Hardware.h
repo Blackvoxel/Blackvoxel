@@ -75,6 +75,10 @@ class ZSettings_Hardware
     double Opt_SectCFactor; // Sector Rendering Culling Factor.
     double PixelAspectRatio;
 
+    // Options for special gaming modes
+
+    bool Experimental_LearningMode;
+
     ZSettings_Hardware()
     {
       Setting_Resolution_h = 0;
@@ -91,8 +95,8 @@ class ZSettings_Hardware
       Setting_Key_MoveBackward = 's';
       Setting_Key_MoveLeft = 'a';
       Setting_Key_MoveRight= 'd';
-      Setting_Key_MoveUp   = 'q';
-      Setting_Key_MoveDown = 'z';
+      Setting_Key_MoveUp   = 'a';
+      Setting_Key_MoveDown = 'w';
       Setting_Key_Jump = ' ';
       Setting_Key_Inventory = 'i';
 
@@ -100,6 +104,7 @@ class ZSettings_Hardware
       RenderingDistance_Vertical = 3;
       Opt_SectCFactor = 1.0;
       PixelAspectRatio = 1.0;
+      Experimental_LearningMode = false;
     }
 
     bool Load();

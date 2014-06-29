@@ -105,6 +105,7 @@ bool ZSettings_Hardware::Load()
           if (PixelAspectRatio < 0.5) PixelAspectRatio = 0.5;
           if (PixelAspectRatio > 3.0) PixelAspectRatio = 3.0;
         }
+        if (Token=="Experimental_LearningMode") { Experimental_LearningMode = (Line.GetULong() > 0) ? true : false; }
 
       }
     }
@@ -123,28 +124,30 @@ bool ZSettings_Hardware::Save()
   }
   FileName.AddToPath("Settings_Hardware.dat");
 
-  Out << "Setting_Resolution_h      = " << Setting_Resolution_h                   << Out.NewLine();
-  Out << "Setting_Resolution_v      = " << Setting_Resolution_v                   << Out.NewLine();
-  Out << "Setting_FullScreen        = " << (Setting_FullScreen ? 1u:0u )          << Out.NewLine();
-  Out << "Setting_ViewPort_Offset_x = " << Setting_ViewPort_Offset_x              << Out.NewLine();
-  Out << "Setting_ViewPort_Offset_y = " << Setting_ViewPort_Offset_y              << Out.NewLine();
-  Out << "Setting_ViewPort_Size_x   = " << Setting_ViewPort_Size_x                << Out.NewLine();
-  Out << "Setting_ViewPort_Size_y   = " << Setting_ViewPort_Size_y                << Out.NewLine();
-  Out << "Setting_Sound_Enabled     = " << (Setting_SoundEnabled ? 1u:0u)         << Out.NewLine();
-  Out << "Setting_Sound_Volume      = " << Setting_SoundVolume                    << Out.NewLine();
-  Out << "Setting_Mouse_Factor      = " << Setting_MouseFactor                    << Out.NewLine();
-  Out << "Setting_Key_MoveForward   = " << (ULong)Setting_Key_MoveForward         << Out.NewLine();
-  Out << "Setting_Key_MoveBackward  = " << (ULong)Setting_Key_MoveBackward        << Out.NewLine();
-  Out << "Setting_Key_MoveLeft      = " << (ULong)Setting_Key_MoveLeft            << Out.NewLine();
-  Out << "Setting_Key_MoveRight     = " << (ULong)Setting_Key_MoveRight           << Out.NewLine();
-  Out << "Setting_Key_MoveUp        = " << (ULong)Setting_Key_MoveUp              << Out.NewLine();
-  Out << "Setting_Key_MoveDown      = " << (ULong)Setting_Key_MoveDown            << Out.NewLine();
-  Out << "Setting_Key_Jump          = " << (ULong)Setting_Key_Jump                << Out.NewLine();
-  Out << "Setting_Key_Inventory     = " << (ULong)Setting_Key_Inventory           << Out.NewLine();
+  Out << "Setting_Resolution_h         = " << Setting_Resolution_h                   << Out.NewLine();
+  Out << "Setting_Resolution_v         = " << Setting_Resolution_v                   << Out.NewLine();
+  Out << "Setting_FullScreen           = " << (Setting_FullScreen ? 1u:0u )          << Out.NewLine();
+  Out << "Setting_ViewPort_Offset_x    = " << Setting_ViewPort_Offset_x              << Out.NewLine();
+  Out << "Setting_ViewPort_Offset_y    = " << Setting_ViewPort_Offset_y              << Out.NewLine();
+  Out << "Setting_ViewPort_Size_x      = " << Setting_ViewPort_Size_x                << Out.NewLine();
+  Out << "Setting_ViewPort_Size_y      = " << Setting_ViewPort_Size_y                << Out.NewLine();
+  Out << "Setting_Sound_Enabled        = " << (Setting_SoundEnabled ? 1u:0u)         << Out.NewLine();
+  Out << "Setting_Sound_Volume         = " << Setting_SoundVolume                    << Out.NewLine();
+  Out << "Setting_Mouse_Factor         = " << Setting_MouseFactor                    << Out.NewLine();
+  Out << "Setting_Key_MoveForward      = " << (ULong)Setting_Key_MoveForward         << Out.NewLine();
+  Out << "Setting_Key_MoveBackward     = " << (ULong)Setting_Key_MoveBackward        << Out.NewLine();
+  Out << "Setting_Key_MoveLeft         = " << (ULong)Setting_Key_MoveLeft            << Out.NewLine();
+  Out << "Setting_Key_MoveRight        = " << (ULong)Setting_Key_MoveRight           << Out.NewLine();
+  Out << "Setting_Key_MoveUp           = " << (ULong)Setting_Key_MoveUp              << Out.NewLine();
+  Out << "Setting_Key_MoveDown         = " << (ULong)Setting_Key_MoveDown            << Out.NewLine();
+  Out << "Setting_Key_Jump             = " << (ULong)Setting_Key_Jump                << Out.NewLine();
+  Out << "Setting_Key_Inventory        = " << (ULong)Setting_Key_Inventory           << Out.NewLine();
   Out << "RenderingDistance_Horizontal = " << (ULong)RenderingDistance_Horizontal << Out.NewLine();
-  Out << "RenderingDistance_Vertical = " << (ULong)RenderingDistance_Vertical     << Out.NewLine();
-  Out << "Opt_SectCFactor = " << Opt_SectCFactor << Out.NewLine();
-  Out << "PixelAspectRatio= " << PixelAspectRatio << Out.NewLine();
+  Out << "RenderingDistance_Vertical   = " << (ULong)RenderingDistance_Vertical     << Out.NewLine();
+  Out << "Opt_SectCFactor              = " << Opt_SectCFactor << Out.NewLine();
+  Out << "PixelAspectRatio             = " << PixelAspectRatio << Out.NewLine();
+  Out << "Experimental_LearningMode    = " << (Experimental_LearningMode ? 1u:0u)    << Out.NewLine();
+
 
   return( Out.SaveToFile(FileName.String) );
 }

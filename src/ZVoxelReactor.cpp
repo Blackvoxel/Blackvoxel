@@ -1608,7 +1608,13 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             Ext = (ZVoxelExtension_Programmable *)Sector->OtherInfos[MainOffset];
                             Ext->SetVoxelPosition(&VoxelCoords);
                             Ext->SetGameEnv(GameEnv);
-                            if (Ext->IsCompiledOk()) Ext->Script_Engine.RunScript((char *)"Voxel_Step", true, ZScripting_Squirrel3::RUNCONTEXT_NORMALSTEP);
+                            if (Ext->IsCompiledOk() & Ext->IsAllowedToRun)
+                            {
+                              // If "stop robots" key is pressed, stop the robot."...
+                              if (GameEnv->Stop_Programmable_Robots) { printf("Robot %d stopped on user request signal.\n",Ext->RobotSerialNumber); Ext->Script_Engine.RunScript((char *)"Voxel_Unload", true, ZScripting_Squirrel3::RUNCONTEXT_PROGRAMCHANGE); Ext->IsAllowedToRun = false;}
+                              // Main robot program...
+                              Ext->Script_Engine.RunScript((char *)"Voxel_Step", true, ZScripting_Squirrel3::RUNCONTEXT_NORMALSTEP);
+                            }
                             break;
                           }
                    case 113: // Voxel Displacer

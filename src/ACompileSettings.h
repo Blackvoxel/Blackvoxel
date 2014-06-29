@@ -32,7 +32,7 @@
 
 // Options à inclure : -mfpmath=sse -msse2
 
-#define DEVELOPPEMENT_FORCE_DEV 0 // Force dev will force generating a dev version.
+#define DEVELOPPEMENT_FORCE_DEV 0 // If you are making development, set it to 1
 
 // Dev options forced ?
 
@@ -41,9 +41,8 @@
   #define DEVELOPPEMENT_ON 1
 #endif
 
-
 #ifndef DEVELOPPEMENT_ON
-  #define DEVELOPPEMENT_ON 1 // If you are making development, set it to 1
+  #define DEVELOPPEMENT_ON 1
 #endif
 
 #ifndef COMPILEOPTION_DEMO
