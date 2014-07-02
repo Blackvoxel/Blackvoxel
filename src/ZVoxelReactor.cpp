@@ -1131,7 +1131,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                               {
                                 Opposite = BlocOpposite[i];
                                 cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz];St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ];
-                                if (VoxelTypeManager->VoxelTable[*Vp[Opposite]]->Is_PlayerCanPassThrough)
+                                if (*Vp[Opposite]==0)
                                 {
                                   VInfo.Sector = St[i];
                                   VInfo.Offset = SecondaryOffset[i];
@@ -1153,9 +1153,12 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                     {
                                        VInfo.Sector = St[i];
                                        VInfo.Offset = SecondaryOffset[i];
-                                       if (1==VoxelTypeManager->VoxelTable[ *Vp[i] ]->Interface_PushBlock_Pull(&VInfo, &VoxelType3 , 1 ))
+                                       if (1==VoxelTypeManager->VoxelTable[ *Vp[i] ]->Interface_PushBlock_PullTest(&VInfo, &VoxelType3 , 1 )) // Test if we can pull a voxel and which type.
                                        {
-                                         VoxelTypeManager->VoxelTable[VoxelType2]->Interface_PushBlock_Push(&VInfo2, VoxelType3, 1);
+                                         if (1==VoxelTypeManager->VoxelTable[VoxelType2]->Interface_PushBlock_Push(&VInfo2, VoxelType3, 1)) // Push it.
+                                         {
+                                           VoxelTypeManager->VoxelTable[ *Vp[i] ]->Interface_PushBlock_Pull(&VInfo, &VoxelType3 , 1 );      // If pushed ok, then pull it.
+                                         }
                                        }
                                     }
                                   }

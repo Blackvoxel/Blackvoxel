@@ -58,6 +58,7 @@ class ZVoxelType_Storage : public ZVoxelType
 
     virtual ULong  Interface_PushBlock_Push( VoxelLocation * DestLocation, UShort VoxelType, ULong Count );
     virtual ULong  Interface_PushBlock_Pull( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
+    virtual ULong  Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
 
 
 };

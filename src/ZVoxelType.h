@@ -167,7 +167,10 @@ class ZVoxelType
 
     virtual bool  Interface_StoreBlock_Store( UShort VoxelType, ULong Count ) { return(false); }
     virtual ULong Interface_PushBlock_Push( VoxelLocation * DestLocation,  UShort  VoxelType, ULong Count ) { return(0); }
+    virtual ULong Interface_PushBlock_PushTest( VoxelLocation * DestLocation,  UShort  VoxelType, ULong Count ) {return(Count);}
     virtual ULong Interface_PushBlock_Pull( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count ) { return(0);}
+    virtual ULong Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count ) { return(0);}
+
     virtual bool  Interface_GetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * Out) { return(false); }
     virtual bool  Interface_GetInfoDoc(ULong InfoNum, ULong DocType, ZVar * Out) { return(false); }
     virtual bool  Interface_SetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * In)  { return(false); }

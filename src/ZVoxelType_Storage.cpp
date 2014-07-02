@@ -62,7 +62,6 @@ ULong ZVoxelType_Storage::Interface_PushBlock_Push( VoxelLocation * DestLocation
 }
 
 
-
 ULong ZVoxelType_Storage::Interface_PushBlock_Pull( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
   ZVoxelExtension_Storage * Ext_Storage;
@@ -75,6 +74,24 @@ ULong ZVoxelType_Storage::Interface_PushBlock_Pull( VoxelLocation * DestLocation
     if (SlotNum== (ULong)(-1)) return(0);
 
     return(Ext_Storage->UnstoreBlocks(SlotNum,Count, VoxelType));
+  }
+
+  return(0);
+}
+
+ULong ZVoxelType_Storage::Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+{
+  ZVoxelExtension_Storage * Ext_Storage;
+  ULong SlotNum;
+  Ext_Storage = (ZVoxelExtension_Storage *)DestLocation->Sector->OtherInfos[DestLocation->Offset];
+
+  if (Ext_Storage)
+  {
+    SlotNum = Ext_Storage->FindFirstUsedBlock();
+    if (SlotNum == (ULong)(-1)) return(0);
+
+    *VoxelType = Ext_Storage->VoxelType[SlotNum];
+    return( (Ext_Storage->VoxelQuantity[SlotNum] > Count) ? Count : Ext_Storage->VoxelQuantity[SlotNum] );
   }
 
   return(0);

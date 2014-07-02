@@ -120,3 +120,20 @@ ULong ZVoxelType_Programmable::Interface_PushBlock_Pull( VoxelLocation * DestLoc
   return(0);
 }
 
+ULong ZVoxelType_Programmable::Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+{
+  ZVoxelExtension_Programmable * Ext_Storage;
+  ULong SlotNum;
+  Ext_Storage = (ZVoxelExtension_Programmable *)DestLocation->Sector->OtherInfos[DestLocation->Offset];
+
+  if (Ext_Storage)
+  {
+    SlotNum = Ext_Storage->FindFirstUsedBlock();
+    if (SlotNum== (ULong)(-1)) return(0);
+
+    *VoxelType = Ext_Storage->VoxelType[SlotNum];
+    return( (Ext_Storage->VoxelQuantity[SlotNum] > Count) ? Count : Ext_Storage->VoxelQuantity[SlotNum] );
+  }
+
+  return(0);
+}

@@ -94,5 +94,22 @@ ULong ZVoxelType_MiningRobot_xr1::Interface_PushBlock_Pull( VoxelLocation * Dest
   return(0);
 }
 
+ULong ZVoxelType_MiningRobot_xr1::Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+{
+  ZVoxelExtension_MiningRobot_xr1 * Ext_Storage;
+  ULong SlotNum;
+  Ext_Storage = (ZVoxelExtension_MiningRobot_xr1 *)DestLocation->Sector->OtherInfos[DestLocation->Offset];
+
+  if (Ext_Storage)
+  {
+    SlotNum = Ext_Storage->FindFirstUsedBlock();
+    if (SlotNum == (ULong)(-1)) return(0);
+
+    *VoxelType = Ext_Storage->VoxelType[SlotNum];
+    return( (Ext_Storage->VoxelQuantity[SlotNum] > Count) ? Count : Ext_Storage->VoxelQuantity[SlotNum] );
+  }
+
+  return(0);
+}
 
 

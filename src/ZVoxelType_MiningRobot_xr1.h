@@ -53,7 +53,8 @@ class ZVoxelType_MiningRobot_xr1 : public ZVoxelType
     virtual ZVoxelExtension * CreateVoxelExtension(bool IsLoadingPhase = true);
     virtual void  GetBlockInformations(VoxelLocation * DestLocation, ZString & Infos);
 
-    virtual ULong  Interface_PushBlock_Pull( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
+    virtual ULong  Interface_PushBlock_Pull    ( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
+    virtual ULong  Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
 
 };
 

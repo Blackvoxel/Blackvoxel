@@ -92,6 +92,56 @@ ULong ZVoxelType_LightTransmitter::Interface_PushBlock_Push( VoxelLocation * Des
   return(PlacedCount);
 }
 
+ULong ZVoxelType_LightTransmitter::Interface_PushBlock_PushTest( VoxelLocation * DestLocation, UShort VoxelType, ULong Count )
+{
+  ZVector3L Location, CommingDirection;
+  ZTransmitterContext Context;
+
+  Location.y = (DestLocation->Sector->Pos_y << ZVOXELBLOCSHIFT_Y) + (DestLocation->Offset & (ZVOXELBLOCMASK_Y)) ;
+  Location.x = (DestLocation->Sector->Pos_x << ZVOXELBLOCSHIFT_X) + ((DestLocation->Offset & (ZVOXELBLOCMASK_X << ZVOXELBLOCSHIFT_Y)) >> ZVOXELBLOCSHIFT_Y);
+  Location.z = (DestLocation->Sector->Pos_z << ZVOXELBLOCSHIFT_Z) + ((DestLocation->Offset & (ZVOXELBLOCMASK_Z << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X ) )) >> (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X ));
+
+  // MANUAL_BREAKPOINT;
+/*
+  Location.x = (DestLocation->Sector->Pos_x << ZVOXELBLOCSHIFT_X) + ( DestLocation->Offset & ZVOXELBLOCMASK_X);
+  Location.y = (DestLocation->Sector->Pos_y << ZVOXELBLOCSHIFT_Y) + ((DestLocation->Offset & (ZVOXELBLOCMASK_Y << ZVOXELBLOCSHIFT_Y)) >> ZVOXELBLOCSHIFT_Y) ;
+  Location.z = (DestLocation->Sector->Pos_z << ZVOXELBLOCSHIFT_Z) + ((DestLocation->Offset & (ZVOXELBLOCMASK_Z << ZVOXELBLOCSHIFT_Z)) >> ZVOXELBLOCSHIFT_Z);
+*/
+  CommingDirection = 0;
+  // printf("-----------Start Searching endpoints--------------\n");
+  LightTransmitter_FindEndPoints(&Location, &CommingDirection, &Context);
+  // printf("-----------End Searching endpoints : %ld--------------\n", Context.EndPointTable.GetCount());
+
+  ZMemSize nElements,i,j;
+  ZVector3L * Element, NewPos;
+  VoxelLocation NewLocation;
+  UShort Voxel;
+  ULong ChoosenElement, PlacedCount;
+
+  PlacedCount = 0;
+  nElements = Context.EndPointTable.GetCount();
+  for (i=0; i<nElements; i++)
+  {
+    ChoosenElement = GameEnv->Random.GetNumber() % (nElements);
+    Element = Context.EndPointTable.GetElement(ChoosenElement);
+    for (j=0;j<6;j++)
+    {
+      NewPos.x = Element->x + nbp6[j].x; NewPos.y = Element->y + nbp6[j].y; NewPos.z = Element->z + nbp6[j].z;
+      Voxel = GameEnv->World->GetVoxel(NewPos.x,NewPos.y,NewPos.z);
+
+      if (GameEnv->VoxelTypeManager.VoxelTable[Voxel]->Is_Interface_PushBlock)
+      {
+
+        GameEnv->World->GetVoxelLocation( &NewLocation,NewPos.x, NewPos.y ,NewPos.z );
+        PlacedCount += GameEnv->VoxelTypeManager.VoxelTable[Voxel]->Interface_PushBlock_PushTest(&NewLocation, VoxelType, Count);
+        if ( (Count - PlacedCount) == 0 ) return(PlacedCount);
+      }
+    }
+  }
+  return(PlacedCount);
+}
+
+
 void ZVoxelType_LightTransmitter::LightTransmitter_FindEndPoints(ZVector3L * Location, ZVector3L * CommingDirection, ZTransmitterContext * Context )
 {
   UShort VoxelType;
