@@ -1211,9 +1211,12 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_PlayerCanPassThrough)
                               {
+                                World->ExchangeVoxels(Vx,Vy+1,Vz,Vx,Vy+1,Vz+1,ZVoxelSector::CHANGE_CRITICAL, true);
+                                /*
                                 World->MoveVoxel(Vx,Vy+1,Vz,Vx,Vy+1,Vz+1,0,ZVoxelSector::CHANGE_CRITICAL);
                                 St[0]->ModifTracker.Set(SecondaryOffset[0]);
                                 St[1]->ModifTracker.Set(SecondaryOffset[1]);
+                                */
                               }
                             }
                             break;
@@ -1248,9 +1251,12 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_PlayerCanPassThrough)
                               {
+                                World->ExchangeVoxels(Vx,Vy+1,Vz,Vx,Vy+1,Vz-1,ZVoxelSector::CHANGE_CRITICAL, true);
+/*
                                 World->MoveVoxel(Vx,Vy+1,Vz,Vx,Vy+1,Vz-1,0,ZVoxelSector::CHANGE_CRITICAL);
                                 St[0]->ModifTracker.Set(SecondaryOffset[0]);
                                 St[1]->ModifTracker.Set(SecondaryOffset[1]);
+*/
                               }
                             }
                             break;
@@ -1285,9 +1291,12 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_PlayerCanPassThrough)
                               {
+                                World->ExchangeVoxels(Vx,Vy+1,Vz,Vx-1,Vy+1,Vz,ZVoxelSector::CHANGE_CRITICAL, true);
+/*
                                 World->MoveVoxel(Vx,Vy+1,Vz,Vx-1,Vy+1,Vz,0,ZVoxelSector::CHANGE_CRITICAL);
                                 St[0]->ModifTracker.Set(SecondaryOffset[0]);
                                 St[1]->ModifTracker.Set(SecondaryOffset[1]);
+*/
                               }
                             }
                             break;
@@ -1322,9 +1331,11 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                               if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_PlayerCanPassThrough)
                               {
+                                World->ExchangeVoxels(Vx,Vy+1,Vz,Vx+1,Vy+1,Vz,ZVoxelSector::CHANGE_CRITICAL, true);
+/*
                                 World->MoveVoxel(Vx,Vy+1,Vz,Vx+1,Vy+1,Vz,0,ZVoxelSector::CHANGE_CRITICAL);
                                 St[0]->ModifTracker.Set(SecondaryOffset[0]);
-                                St[1]->ModifTracker.Set(SecondaryOffset[1]);
+                                St[1]->ModifTracker.Set(SecondaryOffset[1]); */
                               }
                             }
                             break;
