@@ -109,7 +109,7 @@
 #endif
 
 #ifndef Z_ZSCREEN_OPTIONS_MOUSE_H
-#  include "ZScreen_Options_Mouse.h"
+#  include "ZScreen_Options_Gameplay.h"
 #endif
 
 #ifndef Z_ZSCREEN_OPTIONS_KEYMAP_H
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
                                                   {
                                                     case ZScreen_ChooseOption::CHOICE_DISPLAY:  { ZScreen_Options_Display Screen_Options_Display; Screen_Options_Display.ProcessScreen(&GameEnv); break; }
                                                     case ZScreen_ChooseOption::CHOICE_SOUND:    { ZScreen_Options_Sound Screen_Options_Sound;     Screen_Options_Sound.ProcessScreen(&GameEnv);   break; }
-                                                    case ZScreen_ChooseOption::CHOICE_MOUSE:    { ZScreen_Options_Mouse Screen_Options_Mouse;     Screen_Options_Mouse.ProcessScreen(&GameEnv);   break; }
+                                                    case ZScreen_ChooseOption::CHOICE_MOUSE:    { ZScreen_Options_Game Screen_Options_Mouse;     Screen_Options_Mouse.ProcessScreen(&GameEnv);   break; }
                                                     case ZScreen_ChooseOption::CHOICE_KEYMAP:  { ZScreen_Options_Keymap Screen_Options_Keymap;    Screen_Options_Keymap.ProcessScreen(&GameEnv);  break; }
                                                   }
                                                 } while (Screen_ChooseOption.ResultCode != ZScreen_ChooseOption::CHOICE_QUIT);

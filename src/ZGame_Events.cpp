@@ -114,6 +114,7 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
     case SDLK_j:
     case SDLK_k:
                   {
+                    if (!GameEnv->Settings_Hardware->Experimental_LearningMode) break;
                     ULong SlotNum = 20;
                     ZInventory * Inv = Actor->Inventory;
                     if (KeySym==SDLK_k) Actor->LearningModePage ++;
@@ -146,12 +147,13 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                               Inv->SetSlot(SlotNum++,199, 8192);
                               break;
                       case 1:
-
                               Inv->SetSlot(SlotNum++, 90, 8192);
                               Inv->SetSlot(SlotNum++,99 , 8192);
                               Inv->SetSlot(SlotNum++,100, 8192);
                               Inv->SetSlot(SlotNum++,101, 8192);
                               Inv->SetSlot(SlotNum++,102, 8192);
+                              Inv->SetSlot(SlotNum++,97,  8192);
+                              Inv->SetSlot(SlotNum++,98,  8192);
                               Inv->SetSlot(SlotNum++,77 , 16);
                               Inv->SetSlot(SlotNum++,78 , 16);
 
@@ -288,8 +290,8 @@ void ZGame_Events::Process_StillEvents()
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveRight] )     { Actor->Action_GoRightStraff(); }
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveForward] )   { Actor->Action_GoForward(); }
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveBackward] )  { Actor->Action_GoBackward(); }
-    if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveUp]   && COMPILEOPTION_DEBUGFACILITY)      { Actor->Action_GoUp(); }
-    if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveDown] && COMPILEOPTION_DEBUGFACILITY)      { Actor->Action_GoDown(); }
+    if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveUp]   && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))      { Actor->Action_GoUp(); }
+    if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveDown] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))      { Actor->Action_GoDown(); }
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_Jump])           { Actor->Action_Jump();}
     if ( Keyboard_Matrix[SDLK_e])                                        { Actor->Action_GetInOutOfVehicle();}
     //if ( Keyboard_Matrix[SDLK_a] )                                     { Actor->Action_GoUp(GameEnv->Time_GameLoop  * 1.5); }

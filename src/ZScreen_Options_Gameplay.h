@@ -23,11 +23,11 @@
  *      Author: laurent
  */
 
-#ifndef Z_ZSCREEN_OPTIONS_MOUSE_H
-#define Z_ZSCREEN_OPTIONS_MOUSE_H
+#ifndef Z_ZSCREEN_OPTIONS_GAMEPLAY_H
+#define Z_ZSCREEN_OPTIONS_GAMEPLAY_H
 
-//#ifndef Z_ZSCREEN_OPTIONS_MOUSE_H
-//#  include "ZScreen_Options_Mouse.h"
+//#ifndef Z_ZSCREEN_OPTIONS_GAMEPLAY_H
+//#  include "ZScreen_Options_Gameplay.h"
 //#endif
 
 #ifndef Z_ZGUI_H
@@ -58,7 +58,7 @@
 #  include "ZGame.h"
 #endif
 
-class ZScreen_Options_Mouse : public ZScreen
+class ZScreen_Options_Game : public ZScreen
 {
   protected:
 

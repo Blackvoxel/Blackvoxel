@@ -56,7 +56,7 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
     Pos.y += Size.y + GameEnv->ScreenResolution.y * 0.10f;
     Pos.y += 32.0f + 16.0f;
 
-  ULong NumLines = 6;
+  ULong NumLines = 8;
   ZFrame_KeyChooser KeyChooser[NumLines];
   ZFrame_FontFrame  KeyTitle[NumLines];
   ZVector2f         Position[NumLines];
@@ -67,8 +67,10 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
   Title[1] = "MOVE BACKWARD";  Value[1] = &GameEnv->Settings_Hardware->Setting_Key_MoveBackward;
   Title[2] = "MOVE LEFT";      Value[2] = &GameEnv->Settings_Hardware->Setting_Key_MoveLeft;
   Title[3] = "MOVE RIGHT";     Value[3] = &GameEnv->Settings_Hardware->Setting_Key_MoveRight;
-  Title[4] = "JUMP";           Value[4] = &GameEnv->Settings_Hardware->Setting_Key_Jump;
-  Title[5] = "INVENTORY";      Value[5] = &GameEnv->Settings_Hardware->Setting_Key_Inventory;
+  Title[4] = "MOVE UP";        Value[4] = &GameEnv->Settings_Hardware->Setting_Key_MoveUp;
+  Title[5] = "MOVE DOWN";      Value[5] = &GameEnv->Settings_Hardware->Setting_Key_MoveDown;
+  Title[6] = "JUMP";           Value[6] = &GameEnv->Settings_Hardware->Setting_Key_Jump;
+  Title[7] = "INVENTORY";      Value[7] = &GameEnv->Settings_Hardware->Setting_Key_Inventory;
 
   float MaxTitleWidth = 0.0;
   for(i=0;i<NumLines;i++)

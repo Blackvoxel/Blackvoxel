@@ -239,7 +239,8 @@ ULong ZScreen_Options_Display::ProcessScreen(ZGame * GameEnv)
     Frame_FullScreen.SetSize(32.0f,32.0f);
     Frame_FullScreen.SetState(GameEnv->Settings_Hardware->Setting_FullScreen);
     GameEnv->GuiManager.AddFrame(&Frame_FullScreen);
-    Pos.y += 32.0f + + GameEnv->ScreenResolution.y * 0.20f;
+    Pos.y += 32.0f + GameEnv->ScreenResolution.y * 0.20f;
+    Pos.x = 0.0f;
 
   ZFrame_FontFrame WarningText;
     WarningText.SetStyle(GameEnv->TileSetStyles->GetStyle(3));

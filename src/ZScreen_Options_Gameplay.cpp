@@ -23,10 +23,10 @@
  *      Author: laurent
  */
 
-#include "ZScreen_Options_Mouse.h"
+#include "ZScreen_Options_Gameplay.h"
 #include <GL/glew.h>
 
-ULong ZScreen_Options_Mouse::ProcessScreen(ZGame * GameEnv)
+ULong ZScreen_Options_Game::ProcessScreen(ZGame * GameEnv)
 {
   ZVector2f Size;
   ZVector2f Pos;
@@ -41,7 +41,7 @@ ULong ZScreen_Options_Mouse::ProcessScreen(ZGame * GameEnv)
   // Frames on screen
 
   ZFrame_FontFrame Frame_MainTitle;
-    Frame_MainTitle.SetDisplayText((char *)"MOUSE SETTINGS");
+    Frame_MainTitle.SetDisplayText((char *)"GAMEPLAY SETTINGS");
     Frame_MainTitle.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_MainTitle.GetTextDisplaySize(&Size);
     Frame_MainTitle.SetPosition(GameEnv->ScreenResolution.x / 2.0f - Size.x / 2.0f , Pos.y );
@@ -70,7 +70,25 @@ ULong ZScreen_Options_Mouse::ProcessScreen(ZGame * GameEnv)
     Frame_MouseFactor.GetTextDisplaySize(&Size);
     Frame_MouseFactor.SetSize(Size.x + 1.0f, Size.y);
     GameEnv->GuiManager.AddFrame(&Frame_MouseFactor);
+    Pos.y += 32.0f + GameEnv->ScreenResolution.y * 0.05f;
+    Pos.x = 0.0;
+
+  ZFrame_FontFrame Frame_TitleLearningMode;
+    Frame_TitleLearningMode.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
+    Frame_TitleLearningMode.SetDisplayText("SCHOOL MODE ");
+    Frame_TitleLearningMode.GetTextDisplaySize(&Size);
+    Frame_TitleLearningMode.SetPosition(Pos.x, Pos.y);
+    Frame_TitleLearningMode.SetSize(Size.x + 1.0f, Size.y);
+    GameEnv->GuiManager.AddFrame(&Frame_TitleLearningMode);
+    Pos.x += Size.x;
+  ZFrame_CheckBox Frame_CheckboxLearningMode;
+    Frame_CheckboxLearningMode.SetGUITileset(GameEnv->GuiTileset);
+    Frame_CheckboxLearningMode.SetPosition(Pos.x , Pos.y);
+    Frame_CheckboxLearningMode.SetSize(32.0f,32.0f);
+    Frame_CheckboxLearningMode.SetState(GameEnv->Settings_Hardware->Experimental_LearningMode);
+    GameEnv->GuiManager.AddFrame(&Frame_CheckboxLearningMode);
     Pos.y += 32.0f + GameEnv->ScreenResolution.y * 0.20f;
+    Pos.x = 0.0f;
 
   ZFrame_FontFrame Frame_Save;
     Frame_Save.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
@@ -91,6 +109,12 @@ ULong ZScreen_Options_Mouse::ProcessScreen(ZGame * GameEnv)
       if (Frame_MouseFactor.Is_ChoiceChanged())
       {
         GameEnv->Settings_Hardware->Setting_MouseFactor = Frame_MouseFactor.GetValue();
+      }
+
+      if (Frame_CheckboxLearningMode.Is_StateChanged())
+      {
+        if (Frame_CheckboxLearningMode.GetState())  { GameEnv->Settings_Hardware->Experimental_LearningMode = true;  }
+        else                                        { GameEnv->Settings_Hardware->Experimental_LearningMode = false; }
       }
 
       if (Frame_Save.Is_MouseClick()) { Loop = false; }

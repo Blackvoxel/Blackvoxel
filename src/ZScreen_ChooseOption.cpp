@@ -89,7 +89,7 @@ ULong ZScreen_ChooseOption::ProcessScreen(ZGame * GameEnv)
           GameEnv->GuiManager.AddFrame(&Frame_3);
 
         ZFrame_FontFrame FontFrame_3;
-          FontFrame_3.SetDisplayText("MOUSE");
+          FontFrame_3.SetDisplayText("GAMEPLAY");
           FontFrame_3.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
           FontFrame_3.GetTextDisplaySize(&Size);
           FontFrame_3.SetPosition( FrameSize.x / 2.0f - Size.x /2.0f, FrameSize.y / 2.0f - Size.y / 2.0f );
