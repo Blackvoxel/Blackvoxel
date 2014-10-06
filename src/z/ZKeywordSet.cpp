@@ -59,7 +59,7 @@ bool ZFastKeyWordSet::AddKeyTable(ZKeyWordTable * KeyTable)
   return(true);
 }
 
-bool ZFastKeyWordSet::AddKeyWord(char * KeyWord,ULong AssociatedValue)
+bool ZFastKeyWordSet::AddKeyWord(const char * KeyWord,ULong AssociatedValue)
 {
   KeyEntry * Kp;
   KeyEntry * Key;

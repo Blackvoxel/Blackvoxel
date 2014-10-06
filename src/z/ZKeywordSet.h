@@ -56,7 +56,7 @@ class ZKeyWordSet
 {
   public:
     virtual bool AddKeyTable(ZKeyWordTable * KeyTable)=0;
-    virtual bool AddKeyWord(char * KeyWord,ULong AssociatedValue) =0;
+    virtual bool AddKeyWord(const char * KeyWord,ULong AssociatedValue) =0;
     virtual ULong SearchKey(char ** File) = 0;
     virtual ~ZKeyWordSet() {};
 };
@@ -81,7 +81,7 @@ class ZFastKeyWordSet : public ZKeyWordSet
     ZCharFilter Filter;
     bool Init();
     bool AddKeyTable(ZKeyWordTable * KeyTable);
-    bool AddKeyWord(char * KeyWord,ULong AssociatedValue);
+    bool AddKeyWord(const char * KeyWord,ULong AssociatedValue);
     ULong SearchKey(char ** File);
     ZFastKeyWordSet() {KeyTable = 0;if (!(KeyTable = NewKeyTable())) throw;}
     ~ZFastKeyWordSet() {DestroyKeyTable();}
