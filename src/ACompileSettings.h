@@ -32,7 +32,7 @@
 
 // Options à inclure : -mfpmath=sse -msse2
 
-#define DEVELOPPEMENT_FORCE_DEV 1 // If you are making development, set it to 1
+#define DEVELOPPEMENT_FORCE_DEV 0 // If you are making development, set it to 1
 
 // Dev options forced ?
 

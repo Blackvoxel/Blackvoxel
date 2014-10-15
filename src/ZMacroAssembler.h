@@ -73,9 +73,32 @@ class ZMacroAssembler
 
          KW_SZ_BYTE,
          KW_SZ_WORD,
-         KW_SZ_LONG
+         KW_SZ_LONG,
+
+         KW_REG_R0,
+         KW_REG_R1,
+         KW_REG_R2,
+         KW_REG_R3,
+         KW_REG_R4,
+         KW_REG_R5,
+         KW_REG_R6,
+         KW_REG_R7,
+         KW_REG_R8,
+         KW_REG_R9,
+         KW_REG_R10,
+         KW_REG_R11,
+         KW_REG_R12,
+         KW_REG_R13,
+         KW_REG_R14,
+         KW_REG_R15,
+
+
+         KW_PNK_SHARP,
+         KW_PNK_VIRG,
+         KW_PNK_OPENPARENT,
+         KW_PNK_CLOSEPARENT
        };
-  enum { ERROR_EXPECTEDOPERANDSIZE, ERROR_EXPECTEDOPERAND };
+  enum { ERROR_EXPECTEDOPERANDSIZE, ERROR_EXPECTEDOPERAND, ERROR_EXPECTEDEXPRESSION, ERROR_EXPECTEDINTEGERVALUE, ERROR_EXPECTEDREGISTER, ERROR_EXPECTEDVIRGULE, ERROR_EXPECTEDCLOSEPARENT, ERROR_UNEPECTEDSTATMENT };
 
 
   void RegisterKeywords(ZKeyWordSet * Ks)
@@ -101,9 +124,30 @@ class ZMacroAssembler
     Ks->AddKeyWord("cmp",        KW_OP_CMP     );
     Ks->AddKeyWord("jmp",        KW_OP_JMP     );
     Ks->AddKeyWord("bra",        KW_OP_BRA     );
-    Ks->AddKeyWord(".b",         KW_SZ_BYTE     );
-    Ks->AddKeyWord(".w",         KW_SZ_WORD     );
-    Ks->AddKeyWord(".l",         KW_SZ_LONG     );
+    Ks->AddKeyWord(".b",         KW_SZ_BYTE    );
+    Ks->AddKeyWord(".w",         KW_SZ_WORD    );
+    Ks->AddKeyWord(".l",         KW_SZ_LONG    );
+    Ks->AddKeyWord("#",          KW_PNK_SHARP  );
+    Ks->AddKeyWord(",",          KW_PNK_VIRG   );
+    Ks->AddKeyWord("(",          KW_PNK_OPENPARENT);
+    Ks->AddKeyWord(")",          KW_PNK_CLOSEPARENT);
+    Ks->AddKeyWord("r0",         KW_REG_R0     );
+    Ks->AddKeyWord("r1",         KW_REG_R1     );
+    Ks->AddKeyWord("r2",         KW_REG_R2     );
+    Ks->AddKeyWord("r3",         KW_REG_R3     );
+    Ks->AddKeyWord("r4",         KW_REG_R4     );
+    Ks->AddKeyWord("r5",         KW_REG_R5     );
+    Ks->AddKeyWord("r6",         KW_REG_R6     );
+    Ks->AddKeyWord("r7",         KW_REG_R7     );
+    Ks->AddKeyWord("r8",         KW_REG_R8     );
+    Ks->AddKeyWord("r9",         KW_REG_R9     );
+    Ks->AddKeyWord("r10",        KW_REG_R10    );
+    Ks->AddKeyWord("r11",        KW_REG_R11    );
+    Ks->AddKeyWord("r12",        KW_REG_R12    );
+    Ks->AddKeyWord("r13",        KW_REG_R13    );
+    Ks->AddKeyWord("r14",        KW_REG_R14    );
+    Ks->AddKeyWord("r15",        KW_REG_R15    );
+
 
     // Ks->AddKeyWord("")
   }
@@ -114,10 +158,30 @@ class ZMacroAssembler
      switch (MessageNum)
      {
        case ERROR_EXPECTEDOPERANDSIZE: As = "Expected operand size : '.b', '.w' or '.l')."; break;
-       case ERROR_EXPECTEDOPERAND:      As = "Valid operand expected : '.b', '.w' or '.l')."; break;
+       case ERROR_EXPECTEDOPERAND:     As = "Valid operand expected : '.b', '.w' or '.l')."; break;
+       case ERROR_EXPECTEDEXPRESSION:  As = "Expression is expected."; break;
+       case ERROR_EXPECTEDINTEGERVALUE:As = "Integer value expected."; break;
+       case ERROR_EXPECTEDREGISTER:    As = "Registre attendu."; break;
+       case ERROR_EXPECTEDVIRGULE:     As = "',' separator expected."; break;
+       case ERROR_EXPECTEDCLOSEPARENT: As = "')' expected."; break;
+       case ERROR_UNEPECTEDSTATMENT:    As = "Unexpected statment"; break;
        default: As = "Unkown Error."; break;
      }
   }
+
+  void BinaryOut_Byte(UByte Code, AssemblyData * Asd)
+  {
+
+  }
+  void BinaryOut_Word(UShort Code, AssemblyData * Asd)
+  {
+
+  }
+  void BinaryOut_Long(ULong Code, AssemblyData * Asd)
+  {
+
+  }
+
 
   bool inline AssembleSection_OperandSize(AssemblyData * Asd, ZParser_Token & Token)
   {
@@ -132,18 +196,146 @@ class ZMacroAssembler
     }
   }
 
+  bool inline GetIdentifierValue(ZString & IdentifierName, ULong & Value)
+  {
+    Value = 0;
+    return(true);
+  }
+
+  bool inline GetExpression(AssemblyData * Asd, ULong ExpressionValue)
+  {
+    ZParser_Token Token;
+    ULong Value;
+
+    Asd->Parser.GetToken(Token);
+
+    switch(Token.TokenType)
+    {
+      case ZParser_Token::TK_IDENTIFIER: GetIdentifierValue(Token.AlphaValue, Value); break;
+
+      case ZParser_Token::TK_CONST:      if (Token.ConstType!= ZParser_Token::CT_INTEGER) { ThrowError(Asd, &Token, ERROR_EXPECTEDINTEGERVALUE); return(false); }
+                                         break;
+
+      default: ThrowError(Asd, &Token, ERROR_EXPECTEDEXPRESSION); return(false); break;
+    }
+    return(true);
+  }
+
   bool inline AssembleSection_Token_Move(AssemblyData * Asd)
   {
-    ZParser_Token Token_Size, Token_Arg;
+    ZParser_Token Token_Size, Token_Arg, Token_Register,Token_Register2, Token_Separator;
     ZParser_State Pos;
+    ULong ImmediateValue;
+    UByte RegisterNumber, RegisterNumber2;
 
     if (!AssembleSection_OperandSize(Asd,Token_Size)) return(false);
 
     Asd->Parser.SavePos(Pos);
-    Asd->Parser.GetToken(Token_Arg);
-    if (Token_Arg.TokenType != ZParser_Token::TK_KEYWORD) {ThrowError(Asd, &Token_Arg, ERROR_EXPECTEDOPERAND); return(false);}
+    Asd->Parser.GetToken(Token_Arg); if (Token_Arg.TokenType != ZParser_Token::TK_KEYWORD) {ThrowError(Asd, &Token_Arg, ERROR_EXPECTEDOPERAND); return(false);}
+    switch(Token_Arg.KeyWordId)
+    {
+      case KW_PNK_SHARP: if (!GetExpression(Asd, ImmediateValue)) return(false);
+                         Asd->Parser.GetToken(Token_Register); if (Token_Register.TokenType != ZParser_Token::TK_KEYWORD) {ThrowError(Asd, &Token_Register, ERROR_EXPECTEDREGISTER); return(false);}
+                         if (Token_Register.KeyWordId <= KW_REG_R0 || Token_Register.KeyWordId <= KW_REG_R15) {ThrowError(Asd, &Token_Register, ERROR_EXPECTEDREGISTER); return(false); }
+                         RegisterNumber = KW_REG_R15 - KW_REG_R0;
+                         switch(Token_Size.KeyWordId)
+                         {
+                           case KW_SZ_BYTE: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_IMM_B, Asd );
+                                            BinaryOut_Byte(RegisterNumber, Asd);
+                                            BinaryOut_Byte(ImmediateValue, Asd);
+                                            break;
+                           case KW_SZ_WORD: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_IMM_W, Asd );
+                                            BinaryOut_Byte(RegisterNumber, Asd);
+                                            BinaryOut_Word(ImmediateValue, Asd);
+                                            break;
+                           case KW_SZ_LONG: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_IMM_L, Asd );
+                                            BinaryOut_Byte(RegisterNumber, Asd);
+                                            BinaryOut_Long(ImmediateValue, Asd);
+                                            break;
+                         }
+                         break;
 
+       case KW_REG_R0:
+       case KW_REG_R1:
+       case KW_REG_R2:
+       case KW_REG_R3:
+       case KW_REG_R4:
+       case KW_REG_R5:
+       case KW_REG_R6:
+       case KW_REG_R7:
+       case KW_REG_R8:
+       case KW_REG_R9:
+       case KW_REG_R10:
+       case KW_REG_R11:
+       case KW_REG_R12:
+       case KW_REG_R13:
+       case KW_REG_R14:
+       case KW_REG_R15:  RegisterNumber = Token_Arg.KeyWordId - KW_REG_R0;
+                         Asd->Parser.GetToken(Token_Separator); if (Token_Separator.TokenType != ZParser_Token::TK_KEYWORD || Token_Separator.KeyWordId != KW_PNK_VIRG) {ThrowError(Asd, &Token_Register, ERROR_EXPECTEDVIRGULE); return(false);}
+                         Asd->Parser.GetToken(Token_Register2); if (Token_Register2.TokenType != ZParser_Token::TK_KEYWORD) {ThrowError(Asd, &Token_Register, ERROR_UNEPECTEDSTATMENT); return(false);}
+                         if (Token_Register2.KeyWordId == KW_PNK_OPENPARENT)
+                         {
+                           Asd->Parser.GetToken(Token_Register2); if (Token_Register2.TokenType != ZParser_Token::TK_KEYWORD) {ThrowError(Asd, &Token_Register2, ERROR_UNEPECTEDSTATMENT); return(false);}
+                           if (Token_Register2.KeyWordId < KW_REG_R0 || Token_Register2.KeyWordId > KW_REG_R15) {ThrowError(Asd, &Token_Register2, ERROR_EXPECTEDREGISTER); return(false); }
+                           RegisterNumber2 = Token_Register2.KeyWordId - KW_REG_R0;
+                           Asd->Parser.GetToken(Token_Separator); if (Token_Separator.TokenType != ZParser_Token::TK_KEYWORD || Token_Separator.KeyWordId != KW_PNK_CLOSEPARENT) {ThrowError(Asd, &Token_Register, ERROR_EXPECTEDCLOSEPARENT); return(false);}
+                           switch(Token_Size.KeyWordId)
+                           {
+                             case KW_SZ_BYTE: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_IND_B, Asd);
+                                              BinaryOut_Byte(RegisterNumber2 || RegisterNumber << 4, Asd);
+                                              break;
+                             case KW_SZ_WORD: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_IND_W, Asd);
+                                              BinaryOut_Byte(RegisterNumber2 || RegisterNumber << 4, Asd);
+                                              break;
+                             case KW_SZ_LONG: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_IND_L, Asd);
+                                              BinaryOut_Byte(RegisterNumber2 || RegisterNumber << 4, Asd);
+                                              break;
+                           }
+                         }
+                         else if (Token_Register2.KeyWordId >= KW_REG_R0 && Token_Register2.KeyWordId <= KW_REG_R15)
+                         {
+                           RegisterNumber2 = Token_Register2.KeyWordId - KW_REG_R0;
+                           switch(Token_Size.KeyWordId)
+                           {
+                             case KW_SZ_BYTE: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_REG_B, Asd);
+                                              BinaryOut_Byte(RegisterNumber2 || RegisterNumber << 4, Asd);
+                                              break;
+                             case KW_SZ_WORD: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_REG_B, Asd);
+                                              BinaryOut_Byte(RegisterNumber2 || RegisterNumber << 4, Asd);
+                                              break;
+                             case KW_SZ_LONG: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_REG_B, Asd);
+                                              BinaryOut_Byte(RegisterNumber2 || RegisterNumber << 4, Asd);
+                                              break;
+                           }
+                         }
+                         else {ThrowError(Asd, &Token_Register, ERROR_UNEPECTEDSTATMENT); return(false);}
+                         break;
 
+      case KW_PNK_OPENPARENT:
+                         if (Token_Register.KeyWordId < KW_REG_R0 || Token_Register.KeyWordId > KW_REG_R15) {ThrowError(Asd, &Token_Register, ERROR_EXPECTEDREGISTER); return(false); }
+                         RegisterNumber = Token_Register.KeyWordId - KW_REG_R0;
+                         Asd->Parser.GetToken(Token_Separator); if (Token_Separator.TokenType != ZParser_Token::TK_KEYWORD || Token_Separator.KeyWordId != KW_PNK_CLOSEPARENT) {ThrowError(Asd, &Token_Register, ERROR_EXPECTEDCLOSEPARENT); return(false);}
+                         Asd->Parser.GetToken(Token_Separator); if (Token_Separator.TokenType != ZParser_Token::TK_KEYWORD || Token_Separator.KeyWordId != KW_PNK_VIRG) {ThrowError(Asd, &Token_Register, ERROR_EXPECTEDVIRGULE); return(false);}
+                         Asd->Parser.GetToken(Token_Register2); if (Token_Register2.TokenType != ZParser_Token::TK_KEYWORD) {ThrowError(Asd, &Token_Register2, ERROR_UNEPECTEDSTATMENT); return(false);}
+                         if (Token_Register2.KeyWordId < KW_REG_R0 || Token_Register2.KeyWordId > KW_REG_R15) {ThrowError(Asd, &Token_Register2, ERROR_EXPECTEDREGISTER); return(false); }
+                         RegisterNumber2 = Token_Register2.KeyWordId - KW_REG_R0;
+                         switch(Token_Size.KeyWordId)
+                         {
+                           case KW_SZ_BYTE: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_IND_B, Asd);
+                                            BinaryOut_Byte(RegisterNumber2 || RegisterNumber << 4, Asd);
+                                            break;
+                           case KW_SZ_WORD: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_IND_W, Asd);
+                                            BinaryOut_Byte(RegisterNumber2 || RegisterNumber << 4, Asd);
+                                            break;
+                           case KW_SZ_LONG: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_IND_L, Asd);
+                                            BinaryOut_Byte(RegisterNumber2 || RegisterNumber << 4, Asd);
+                                            break;
+                         }
+                         break;
+
+      default: ThrowError(Asd, &Token_Arg, ERROR_EXPECTEDOPERAND); return(false);
+
+    }
 
     return(true);
   }

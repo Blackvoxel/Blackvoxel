@@ -183,6 +183,16 @@ class BlackCPU
     return(optable[Address]);
   }
 
+  inline void WriteMemory_8(ULong Address, UByte Data)
+  {
+    return;
+  }
+
+  inline void WriteMemory_16(ULong Address, UShort Data)
+  {
+    return;
+  }
+
   inline void WriteMemory_32(ULong Address, ULong Data)
   {
     return;
@@ -221,12 +231,123 @@ class BlackCPU
   );
   */
 
-  enum {OPCODE_BREAK = 0,
-        OPCODE_MOVE_B,
+  enum {
 
-        OPCODE_MOVE_W = OPCODE_MOVE_B + 64,
-        OPCODE_MOVE_L = OPCODE_MOVE_B + 128
+        // Byte forms (or unique opcode).
+
+        OPCODE_BREAK = 0,
+        OPCODE_MOVE_IMM_B,
+        OPCODE_MOVE_IND_REG_B,
+        OPCODE_MOVE_REG_IND_B,
+        OPCODE_MOVE_REG_REG_B,
+        OPCODE_MOVEX_IMM_SB,
+        OPCODE_MOVEX_IMM_UB,
+        OPCODE_PUSHREGS,
+        OPCODE_POPREGS,
+        OPCODE_ADD_B,
+        OPCODE_SUB_B,
+        OPCODE_AND_B,
+        OPCODE_OR_B,
+        OPCODE_XOR_B,
+        OPCODE_ASL_B,
+        OPCODE_ASR_B,
+        OPCODE_LSL_B,
+        OPCODE_LSR_B,
+        OPCODE_ROL_B,
+        OPCODE_ROR_B,
+        OPCODE_UMUL_B,
+        OPCODE_SMUL_B,
+        OPCODE_CMP_B,
+        OPCODE_JMP_IND,
+        OPCODE_BRANCH_BRA,
+        OPCODE_BRANCH_BCC,
+        OPCODE_BRANCH_BVC,
+        OPCODE_BRANCH_BLO_S,
+        OPCODE_JSR_IND,
+        OPCODE_RTS,
+        OPCODE_RTI,
+        OPCODE_EXT_BW,
+
+
+
+        // Word forms (or sometime opcode variations).
+
+        OPCODE_MOVE_IMM_W     = OPCODE_MOVE_IMM_B         + 64,
+        OPCODE_MOVE_IND_REG_W = OPCODE_MOVE_IND_REG_B     + 64,
+        OPCODE_MOVE_REG_IND_W = OPCODE_MOVE_REG_IND_B     + 64,
+        OPCODE_MOVE_REG_REG_W = OPCODE_MOVE_REG_REG_B     + 64,
+        OPCODE_MOVEX_IMM_SW   = OPCODE_MOVEX_IMM_SB       + 64,
+        OPCODE_MOVEX_IMM_UW   = OPCODE_MOVEX_IMM_UB       + 64,
+        // OPCODE_PUSHREGS
+        // OPCODE_POPREGS
+        OPCODE_ADD_W          = OPCODE_ADD_B              + 64,
+        OPCODE_SUB_W          = OPCODE_SUB_B              + 64,
+        OPCODE_AND_W          = OPCODE_AND_B              + 64,
+        OPCODE_OR_W           = OPCODE_OR_B               + 64,
+        OPCODE_XOR_W          = OPCODE_XOR_B              + 64,
+        OPCODE_ASL_W          = OPCODE_ASL_B              + 64,
+        OPCODE_ASR_W          = OPCODE_ASR_B              + 64,
+        OPCODE_LSL_W          = OPCODE_LSL_B              + 64,
+        OPCODE_LSR_W          = OPCODE_LSR_B              + 64,
+        OPCODE_ROL_W          = OPCODE_ROL_B              + 64,
+        OPCODE_ROR_W          = OPCODE_ROR_B              + 64,
+        OPCODE_UMUL_W         = OPCODE_UMUL_B             + 64,
+        OPCODE_SMUL_W         = OPCODE_SMUL_B             + 64,
+        OPCODE_CMP_W          = OPCODE_CMP_B              + 64,
+        //OPCODE_JMP_IND
+        OPCODE_BRANCH_BEQ     = OPCODE_BRANCH_BRA         + 64,
+        OPCODE_BRANCH_BMI     = OPCODE_BRANCH_BCC         + 64,
+        OPCODE_BRANCH_BHI_U   = OPCODE_BRANCH_BVC         + 64,
+        OPCODE_BRANCH_BHI_S   = OPCODE_BRANCH_BLO_S       + 64,
+        //OPCODE_JSR_IND
+        //OPCODE_RTS
+        //OPCODE_RTI
+        OPCODE_EXT_BL         = OPCODE_EXT_BW             + 64,
+
+        // Long forms (or sometime opcode variations).
+
+        OPCODE_MOVE_IMM_L     = OPCODE_MOVE_IMM_B         + 128,
+        OPCODE_MOVE_IND_REG_L = OPCODE_MOVE_IND_REG_B     + 128,
+        OPCODE_MOVE_REG_IND_L = OPCODE_MOVE_REG_IND_B     + 128,
+        OPCODE_MOVE_REG_REG_L = OPCODE_MOVE_REG_REG_B     + 128,
+        OPCODE_MOVEX_IMM_SL   = OPCODE_MOVEX_IMM_SB       + 128,
+        OPCODE_MOVEX_IMM_UL   = OPCODE_MOVEX_IMM_UB       + 128,
+        // OPCODE_PUSHREGS
+        // OPCODE_POPREGS
+        OPCODE_ADD_L          = OPCODE_ADD_B              + 128,
+        OPCODE_SUB_L          = OPCODE_SUB_B              + 128,
+        OPCODE_AND_L          = OPCODE_AND_B              + 128,
+        OPCODE_OR_L           = OPCODE_OR_B               + 128,
+        OPCODE_XOR_L          = OPCODE_XOR_B              + 128,
+        OPCODE_ASL_L          = OPCODE_ASL_B              + 128,
+        OPCODE_ASR_L          = OPCODE_ASR_B              + 128,
+        OPCODE_LSL_L          = OPCODE_LSL_B              + 128,
+        OPCODE_LSR_L          = OPCODE_LSR_B              + 128,
+        OPCODE_ROL_L          = OPCODE_ROL_B              + 128,
+        OPCODE_ROR_L          = OPCODE_ROR_B              + 128,
+        OPCODE_UMUL_L         = OPCODE_UMUL_B             + 128,
+        OPCODE_SMUL_L         = OPCODE_SMUL_B             + 128,
+        OPCODE_CMP_L          = OPCODE_CMP_B              + 128,
+        //OPCODE_JMP_IND
+        OPCODE_BRANCH_BNE     = OPCODE_BRANCH_BRA         + 128,
+        OPCODE_BRANCH_BPL     = OPCODE_BRANCH_BCC         + 128,
+        OPCODE_BRANCH_BLE_U   = OPCODE_BRANCH_BVC         + 128,
+        OPCODE_BRANCH_BLE_S   = OPCODE_BRANCH_BLO_S       + 128,
+        //OPCODE_JSR_IND
+        //OPCODE_RTS
+        //OPCODE_RTI
+        OPCODE_EXT_WL         = OPCODE_EXT_BW             + 128,
+
+        // 2xLong form (or sometime opcode variation)
+        OPCODE_BRANCH_BCS     = OPCODE_BRANCH_BRA         + 192,
+        OPCODE_BRANCH_BVS     = OPCODE_BRANCH_BCC         + 192,
+        OPCODE_BRANCH_BHE_S   = OPCODE_BRANCH_BVC         + 192,
+        OPCODE_BRANCH_BXX     = OPCODE_BRANCH_BLO_S       + 192,
+
+        // End opcode
+        OPCODE_END = 255
   };
+
   void Execute(ULong CycleCount)
   {
     ULong ElapsedCycles;
@@ -247,7 +368,12 @@ class BlackCPU
       switch(Opcode)
       {
         case OPCODE_BREAK:         // break
-        case 1|SZ_08:   // move.b #imm,reg
+
+
+
+// ---------------- MOVE
+
+        case OPCODE_MOVE_IMM_B:   // move.b #imm,reg
                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                         Op2 = FetchOperand_8(ProgramCounter); ProgramCounter+=2; // Immediate value
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
@@ -271,7 +397,7 @@ class BlackCPU
 #endif
                         break;
 
-        case 1|SZ_16:  // move.w #imm,reg
+        case OPCODE_MOVE_IMM_W:  // move.w #imm,reg
                         Op1 = FetchOperand_8(ProgramCounter++) & 0x0f; // Register
                         Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Immediate value
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
@@ -295,7 +421,7 @@ class BlackCPU
 #endif
                         break;
 
-        case 1|SZ_32:   // move.l #imm,reg
+        case OPCODE_MOVE_IMM_L:   // move.l #imm,reg
                         Op1 = FetchOperand_8(ProgramCounter++) & 0x0f; // Register
                         Op2 = FetchOperand_32(ProgramCounter); ProgramCounter+=4;  // Immediate value
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
@@ -318,7 +444,177 @@ class BlackCPU
                         );
 #endif
                    break;
-        case 2|SZ_08:    // movex.sb #imm,reg
+
+        case OPCODE_MOVE_IND_REG_B:   // move.b (reg),reg
+          Op1 = FetchOperand_8(ProgramCounter++); // Register
+#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
+           Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte = ReadMemory_8(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
+                            ,Status );
+#else
+           asm
+           (
+             "movb %3,%%al;"
+             "movb %%al,%0;"
+             "testb %%al,%%al;"
+             "lahf;"
+             "rcrl $1,%1;"
+             "rcrl $15,%%eax;"
+             "rcrl $1,%1;"
+             "rcrl $1,%%eax;"
+             "rcll $2,%1;"
+             : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
+             : "1" (Status), "q" (ReadMemory_8(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest))
+             : "%eax"
+           );
+#endif
+   break;
+        case OPCODE_MOVE_IND_REG_W:   // move.w (reg),reg
+                        Op1 = FetchOperand_8(ProgramCounter++); // Register
+#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
+                        Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord = ReadMemory_16(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
+                                          ,Status );
+#else
+                        asm
+                        (
+                          "movw %w3,%%ax;"
+                          "movw %%ax,%w0;"
+                          "testw %%ax,%%ax;"
+                          "lahf;"
+                          "rcrl $1,%1;"
+                          "rcrl $15,%%eax;"
+                          "rcrl $1,%1;"
+                          "rcrl $1,%%eax;"
+                          "rcll $2,%1;"
+                          : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
+                          : "1" (Status), "q" (ReadMemory_16(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest))
+                          : "%eax"
+                        );
+#endif
+                        break;
+
+        case OPCODE_MOVE_IND_REG_L:   // move.l (reg),reg
+                        Op1 = FetchOperand_8(ProgramCounter++); // Register
+#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
+                        Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong = ReadMemory_32(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
+                                           ,Status );
+#else
+                        asm
+                        (
+                          "movl %3,%%eax;"
+                          "movl %%eax,%0;"
+                          "testl %%eax,%%eax;"
+                          "lahf;"
+                          "rcrl $1,%1;"
+                          "rcrl $15,%%eax;"
+                          "rcrl $1,%1;"
+                          "rcrl $1,%%eax;"
+                          "rcll $2,%1;"
+                          : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
+                          : "1" (Status), "q" (ReadMemory_32(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest))
+                          : "%eax"
+                        );
+#endif
+                        break;
+
+        case OPCODE_MOVE_REG_IND_B:   // move.b reg,(reg)
+                        Op1 = FetchOperand_8(ProgramCounter++); // Register
+#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
+                        WriteMemory_8(GeneralRegister[Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_UByte);
+                        Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)>>4].Reg_UByte ,Status );
+#else
+#endif
+                        break;
+
+        case OPCODE_MOVE_REG_IND_W:   // move.w reg,(reg)
+                        Op1 = FetchOperand_8(ProgramCounter++); // Register
+#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
+                        WriteMemory_8(GeneralRegister[Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_UWord);
+                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)>>4].Reg_UWord ,Status );
+#else
+#endif
+                        break;
+
+        case OPCODE_MOVE_REG_IND_L:   // move.b reg,(reg)
+                        Op1 = FetchOperand_8(ProgramCounter++); // Register
+#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
+                        WriteMemory_8(GeneralRegister[Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_ULong);
+                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest ,Status );
+#else
+#endif
+                        break;
+
+
+
+        case OPCODE_MOVE_REG_REG_B:   // move.b reg,reg
+                        Op1 = FetchOperand_8(ProgramCounter++); // Register
+#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
+                        Status_Test_ZN_8( GeneralRegister[Op1&0x0f].Reg_UByte = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
+                                          ,Status );
+#else
+                        GeneralRegister[Op1&0x0f].Reg_UByte = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
+                        asm
+                        (
+                          "testb %b2,%b2;"
+                          "lahf;"
+                          "rcrl $1,%0;"
+                          "rcrl $15,%%eax;"
+                          "rcrl $1,%0;"
+                          "rcrl $1,%%eax;"
+                          "rcll $2,%0;"
+                          : "=q" (Status)
+                          : "0" (Status), "r" (GeneralRegister[(Op1&0xf0)>>4])
+                          : "%eax"
+                        );
+#endif
+                        break;
+
+        case OPCODE_MOVE_REG_REG_W:   // move.w reg,reg
+                        Op1 = FetchOperand_8(ProgramCounter++); // Register
+#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
+                        Status_Test_ZN_16( GeneralRegister[Op1&0x0f].Reg_UWord = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
+                                          ,Status );
+#else
+                        GeneralRegister[Op1&0x0f].Reg_UWord = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord;
+                        asm
+                        (
+                          "testw %w2,%w2;"
+                          "lahf;"
+                          "rcrl $1,%0;"
+                          "rcrl $15,%%eax;"
+                          "rcrl $1,%0;"
+                          "rcrl $1,%%eax;"
+                          "rcll $2,%0;"
+                          : "=q" (Status)
+                          : "0" (Status), "r" (GeneralRegister[(Op1&0xf0)>>4])
+                          : "%eax"
+                        );
+#endif
+                        break;
+
+        case OPCODE_MOVE_REG_REG_L:   // move.l reg,reg
+                        Op1 = FetchOperand_8(ProgramCounter++); // Register
+#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
+                        Status_Test_ZN_32( GeneralRegister[Op1&0x0f].Reg_ULong = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
+                                           ,Status );
+#else
+                        GeneralRegister[Op1&0x0f].Reg_ULong = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong;
+                        asm
+                        (
+                          "testl %2,%2;"
+                          "lahf;"
+                          "rcrl $1,%0;"
+                          "rcrl $15,%%eax;"
+                          "rcrl $1,%0;"
+                          "rcrl $1,%%eax;"
+                          "rcll $2,%0;"
+                          : "=q" (Status)
+                          : "0" (Status), "r" (GeneralRegister[(Op1&0xf0)>>4])
+                          : "%eax"
+                        );
+#endif
+                        break;
+
+        case OPCODE_MOVEX_IMM_SB:    // movex.sb #imm,reg
                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                         Op2 = FetchOperand_8(ProgramCounter++);  // Immediate value
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
@@ -342,7 +638,7 @@ class BlackCPU
                         );
 #endif
                         break;
-        case 2|SZ_16:   // movex.sw #imm,reg
+        case OPCODE_MOVEX_IMM_SW:   // movex.sw #imm,reg
                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                         Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Immediate value
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
@@ -367,10 +663,10 @@ class BlackCPU
 #endif
                         break;
 
-        case 2|SZ_32:   // movex.l #imm,reg
+        case OPCODE_MOVEX_IMM_SL:   // movex.l #imm,reg
                         // does nothing. Reserved for future extension
 
-        case 3|SZ_08:   // movex.ub #imm,reg
+        case OPCODE_MOVEX_IMM_UB:   // movex.ub #imm,reg
                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                         Op2 = FetchOperand_8(ProgramCounter++);  // Immediate value
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
@@ -395,7 +691,7 @@ class BlackCPU
 #endif
                         break;
 
-         case 3|SZ_16:  // movex.uw #imm,reg
+         case OPCODE_MOVEX_IMM_UW:  // movex.uw #imm,reg
                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                         Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Immediate value
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
@@ -420,147 +716,9 @@ class BlackCPU
 #endif
                         break;
 
-        case 4|SZ_08:   // move.b (reg),reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte = ReadMemory_8(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
-                                         ,Status );
-#else
-                        asm
-                        (
-                          "movb %3,%%al;"
-                          "movb %%al,%0;"
-                          "testb %%al,%%al;"
-                          "lahf;"
-                          "rcrl $1,%1;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%1;"
-                          : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
-                          : "1" (Status), "q" (ReadMemory_8(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest))
-                          : "%eax"
-                        );
-#endif
-                break;
-        case 4|SZ_16:   // move.w (reg),reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord = ReadMemory_16(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
-                                          ,Status );
-#else
-                        asm
-                        (
-                          "movw %w3,%%ax;"
-                          "movw %%ax,%w0;"
-                          "testw %%ax,%%ax;"
-                          "lahf;"
-                          "rcrl $1,%1;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%1;"
-                          : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
-                          : "1" (Status), "q" (ReadMemory_16(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest))
-                          : "%eax"
-                        );
-#endif
-                        break;
 
-        case 4|SZ_32:   // move.l (reg),reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong = ReadMemory_32(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
-                                           ,Status );
-#else
-                        asm
-                        (
-                          "movl %3,%%eax;"
-                          "movl %%eax,%0;"
-                          "testl %%eax,%%eax;"
-                          "lahf;"
-                          "rcrl $1,%1;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%1;"
-                          : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
-                          : "1" (Status), "q" (ReadMemory_32(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest))
-                          : "%eax"
-                        );
-#endif
-                        break;
 
-        case 5|SZ_08:   // move.b reg,reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        Status_Test_ZN_8( GeneralRegister[Op1&0x0f].Reg_UByte = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
-                                          ,Status );
-#else
-                        GeneralRegister[Op1&0x0f].Reg_UByte = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
-                        asm
-                        (
-                          "testb %b2,%b2;"
-                          "lahf;"
-                          "rcrl $1,%0;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%0;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%0;"
-                          : "=q" (Status)
-                          : "0" (Status), "r" (GeneralRegister[(Op1&0xf0)>>4])
-                          : "%eax"
-                        );
-#endif
-                        break;
-
-        case 5|SZ_16:   // move.w reg,reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        Status_Test_ZN_16( GeneralRegister[Op1&0x0f].Reg_UWord = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
-                                          ,Status );
-#else
-                        GeneralRegister[Op1&0x0f].Reg_UWord = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord;
-                        asm
-                        (
-                          "testw %w2,%w2;"
-                          "lahf;"
-                          "rcrl $1,%0;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%0;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%0;"
-                          : "=q" (Status)
-                          : "0" (Status), "r" (GeneralRegister[(Op1&0xf0)>>4])
-                          : "%eax"
-                        );
-#endif
-                        break;
-
-        case 5|SZ_32:   // move.l reg,reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        Status_Test_ZN_32( GeneralRegister[Op1&0x0f].Reg_ULong = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
-                                           ,Status );
-#else
-                        GeneralRegister[Op1&0x0f].Reg_ULong = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong;
-                        asm
-                        (
-                          "testl %2,%2;"
-                          "lahf;"
-                          "rcrl $1,%0;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%0;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%0;"
-                          : "=q" (Status)
-                          : "0" (Status), "r" (GeneralRegister[(Op1&0xf0)>>4])
-                          : "%eax"
-                        );
-#endif
-                        break;
-
-        case 6:         // pushregs R0-R14(reg)
+        case OPCODE_PUSHREGS:         // pushregs R0-R14(reg)
                         {
                           Op1 = FetchOperand_16(ProgramCounter++); // Register
                           for(i=0;i<15;i++)
@@ -571,7 +729,7 @@ class BlackCPU
                         }
                         break;
 
-        case 7:         // popregs R0-R15
+        case OPCODE_POPREGS:         // popregs R0-R15
                         Op1 = FetchOperand_16(ProgramCounter++); // Register
                         for(i=14;i<15;i--)
                         {
@@ -580,7 +738,7 @@ class BlackCPU
                         }
                         break;
 
-        case 8|SZ_08:   // add.b reg,reg (No carry)
+        case OPCODE_ADD_B:   // add.b reg,reg (No carry)
                         Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                         {
@@ -615,7 +773,7 @@ class BlackCPU
 #endif
                         break;
 
-        case 8|SZ_16:   // add.b reg,reg (No carry)
+        case OPCODE_ADD_W:   // add.w reg,reg (No carry)
                         Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                         {
@@ -650,7 +808,7 @@ class BlackCPU
 #endif
                         break;
 
-        case 8|SZ_32:   // add.b reg,reg (No carry)
+        case OPCODE_ADD_L:   // add.l reg,reg (No carry)
                         Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                         {
@@ -685,7 +843,7 @@ class BlackCPU
 #endif
                         break;
 
-        case 9|SZ_08:   // sub.b reg,reg (No carry)
+        case OPCODE_SUB_B:   // sub.b reg,reg (No carry)
                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                         {
                           register UByte D1,D2,D3;
@@ -719,7 +877,7 @@ class BlackCPU
                         );
 #endif
                 break;
-        case 9|SZ_16: // sub.w reg,reg (No carry)
+        case OPCODE_SUB_W: // sub.w reg,reg (No carry)
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
 #else
@@ -743,7 +901,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 9|SZ_32: // sub.l reg,reg (No carry)
+        case OPCODE_SUB_L: // sub.l reg,reg (No carry)
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
 #else
@@ -767,7 +925,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 10|SZ_08: // and.b reg,reg
+        case OPCODE_AND_B: // and.b reg,reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte &= GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
@@ -788,7 +946,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 10|SZ_16: // and.w reg,reg
+        case OPCODE_AND_W: // and.w reg,reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord &= GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
@@ -809,7 +967,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 10|SZ_32: // and.l reg,reg
+        case OPCODE_AND_L: // and.l reg,reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong &= GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
@@ -830,7 +988,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 11|SZ_08: // or.b  reg,reg
+        case OPCODE_OR_B: // or.b  reg,reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte |= GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
@@ -851,7 +1009,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 11|SZ_16: // or.w  reg,reg
+        case OPCODE_OR_W: // or.w  reg,reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord |= GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
@@ -872,7 +1030,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 11|SZ_32: // or.l  reg,reg
+        case OPCODE_OR_L: // or.l  reg,reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong |= GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
@@ -893,7 +1051,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 12|SZ_08: // xor.b reg.reg
+        case OPCODE_XOR_B: // xor.b reg.reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte ^= GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
@@ -914,7 +1072,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 12|SZ_16: // xor.w reg.reg
+        case OPCODE_XOR_W: // xor.w reg.reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord ^= GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
@@ -935,7 +1093,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 12|SZ_32: // xor.l reg.reg
+        case OPCODE_XOR_L: // xor.l reg.reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_ULong ^= GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
@@ -956,7 +1114,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 13|SZ_08: // asl.b reg,reg
+        case OPCODE_ASL_B: // asl.b reg,reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
@@ -981,7 +1139,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 13|SZ_16: // asl.w reg,reg
+        case OPCODE_ASL_W: // asl.w reg,reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
@@ -1006,7 +1164,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 13|SZ_32: // asl.l reg,reg
+        case OPCODE_ASL_L: // asl.l reg,reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
@@ -1031,7 +1189,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 14|SZ_08: // asr.b reg,reg
+        case OPCODE_ASR_B: // asr.b reg,reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
 
@@ -1054,7 +1212,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 14|SZ_16: // asr.w reg,reg
+        case OPCODE_ASR_W: // asr.w reg,reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
@@ -1079,7 +1237,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 14|SZ_32: // asr.l reg,reg
+        case OPCODE_ASR_L: // asr.l reg,reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                 Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
@@ -1104,7 +1262,7 @@ class BlackCPU
                 );
 #endif
                 break;
-        case 15|SZ_08:// lsl.b reg,reg
+        case OPCODE_LSL_B:// lsl.b reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
           Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
@@ -1130,7 +1288,7 @@ class BlackCPU
 #endif
           break;
 
-        case 15|SZ_16:// lsl.w reg,reg
+        case OPCODE_LSL_W:// lsl.w reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
           Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
@@ -1155,7 +1313,7 @@ class BlackCPU
           );
 #endif
           break;
-        case 15|SZ_32:// lsl.l reg,reg
+        case OPCODE_LSL_L:// lsl.l reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
           Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
@@ -1180,7 +1338,7 @@ class BlackCPU
           );
 #endif
           break;
-        case 16|SZ_08:// lsr.b reg,reg
+        case OPCODE_LSR_B:// lsr.b reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
           Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
@@ -1205,7 +1363,7 @@ class BlackCPU
           );
 #endif
           break;
-        case 16|SZ_16:// lsr.w reg,reg
+        case OPCODE_LSR_W:// lsr.w reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
           Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
@@ -1230,7 +1388,7 @@ class BlackCPU
           );
 #endif
           break;
-        case 16|SZ_32:// lsr.l reg,reg
+        case OPCODE_LSR_L:// lsr.l reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
           Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
@@ -1255,7 +1413,7 @@ class BlackCPU
           );
 #endif
           break;
-        case 17|SZ_08:// rol.b reg,reg
+        case OPCODE_ROL_B:// rol.b reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
           {
@@ -1269,7 +1427,7 @@ class BlackCPU
 #endif
           break;
 
-        case 17|SZ_16:// rol.w reg,reg
+        case OPCODE_ROL_W:// rol.w reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
           {
@@ -1282,7 +1440,7 @@ class BlackCPU
 #else
 #endif
           break;
-        case 17|SZ_32:// rol.l reg,reg
+        case OPCODE_ROL_L:// rol.l reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
           {
@@ -1297,7 +1455,7 @@ class BlackCPU
           break;
 
 
-        case 18|SZ_08:// ror.b reg,reg
+        case OPCODE_ROR_B:// ror.b reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
           {
@@ -1310,7 +1468,7 @@ class BlackCPU
 #else
 #endif
           break;
-        case 18|SZ_16:// ror.b reg,reg
+        case OPCODE_ROR_W:// ror.b reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
           {
@@ -1323,7 +1481,7 @@ class BlackCPU
 #else
 #endif
           break;
-        case 18|SZ_32:// ror.b reg,reg
+        case OPCODE_ROR_L:// ror.b reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
           {
@@ -1336,7 +1494,7 @@ class BlackCPU
 #else
 #endif
           break;
-        case 19|SZ_08:// umul.b reg,reg
+        case OPCODE_UMUL_B:// umul.b reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
             GeneralRegister[(Op1&0xf0)].Reg_UWord = (GeneralRegister[(Op1&0xf0)].Reg_UByte) * (GeneralRegister[Op1&0xf].Reg_UByte);
@@ -1345,7 +1503,7 @@ class BlackCPU
 #else
 #endif
           break;
-        case 19|SZ_16:// umul.w reg,reg
+        case OPCODE_UMUL_W:// umul.w reg,reg
             Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
             GeneralRegister[(Op1&0xf0)].Reg_ULong = (GeneralRegister[(Op1&0xf0)].Reg_UWord) * (GeneralRegister[Op1&0xf].Reg_UWord);
@@ -1354,7 +1512,7 @@ class BlackCPU
 #else
 #endif
           break;
-        case 19|SZ_32:// umul.l reg,reg
+        case OPCODE_UMUL_L:// umul.l reg,reg
                  Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                  {
@@ -1370,7 +1528,7 @@ class BlackCPU
           break;
 
 
-        case 20|SZ_08:// smul.b reg,reg
+        case OPCODE_SMUL_B:// smul.b reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
             GeneralRegister[(Op1&0xf0)].Reg_SWord = (GeneralRegister[(Op1&0xf0)].Reg_SByte) * (GeneralRegister[Op1&0xf].Reg_SByte);
@@ -1379,7 +1537,7 @@ class BlackCPU
 #else
 #endif
           break;
-        case 20|SZ_16:// smul.w reg,reg
+        case OPCODE_SMUL_W:// smul.w reg,reg
             Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
             GeneralRegister[(Op1&0xf0)].Reg_SLong = (GeneralRegister[(Op1&0xf0)].Reg_SWord) * (GeneralRegister[Op1&0xf].Reg_SWord);
@@ -1388,7 +1546,7 @@ class BlackCPU
 #else
 #endif
           break;
-        case 20|SZ_32:// smul.l reg,reg
+        case OPCODE_SMUL_L:// smul.l reg,reg
                  Op1 = FetchOperand_8(ProgramCounter++); // Register
 #if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
                  {
@@ -1403,7 +1561,7 @@ class BlackCPU
 #endif
           break;
 
-        case 21|SZ_08:// cmp.b reg,reg
+        case OPCODE_CMP_B:// cmp.b reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
           {
             register UByte D1,D2,D3;
@@ -1419,7 +1577,7 @@ class BlackCPU
 #else
 #endif
           break;
-        case 21|SZ_16:// cmp.w reg,reg
+        case OPCODE_CMP_W:// cmp.w reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
           {
             register UShort D1,D2,D3;
@@ -1435,7 +1593,7 @@ class BlackCPU
 #else
 #endif
           break;
-        case 21|SZ_32:// cmp.l reg,reg
+        case OPCODE_CMP_L:// cmp.l reg,reg
           Op1 = FetchOperand_8(ProgramCounter++); // Register
           {
             register ULong D1,D2,D3;
@@ -1451,98 +1609,98 @@ class BlackCPU
 #else
 #endif
           break;
-        case 22:// jmp (reg)
+        case OPCODE_JMP_IND:// jmp (reg)
           Op1 = FetchOperand_8(ProgramCounter++); // Register
           ProgramCounter = GeneralRegister[Op1&0xf].Reg_ULargest;
           break;
-        case 23:// bra #imm
+        case OPCODE_BRANCH_BRA:// bra #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           break;
-        case 23|64 :// beq #imm
+        case OPCODE_BRANCH_BEQ :// beq #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if (Status.Flags.ZeroFlag) ProgramCounter += Op1;
           break;
-        case 23|128 :// bne #imm
+        case OPCODE_BRANCH_BNE :// bne #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if (!Status.Flags.ZeroFlag) ProgramCounter += Op1;
           break;
-        case 23|192 : // bcs #imm bhe.u #imm
+        case OPCODE_BRANCH_BCS : // bcs #imm bhe.u #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if (Status.Flags.CarryFlag) ProgramCounter += Op1;
           break;
-        case 24|000 : // bcc #imm blo.u #imm
+        case OPCODE_BRANCH_BCC : // bcc #imm blo.u #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if (!Status.Flags.CarryFlag) ProgramCounter += Op1;
           break;
-        case 24|064 : // bmi #imm
+        case OPCODE_BRANCH_BMI : // bmi #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if (Status.Flags.NegativeFlag) ProgramCounter += Op1;
           break;
-        case 24|128 : // bpl #imm
+        case OPCODE_BRANCH_BPL : // bpl #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if (!Status.Flags.NegativeFlag) ProgramCounter += Op1;
           break;
-        case 24|192 : // bvs #imm
+        case OPCODE_BRANCH_BVS : // bvs #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if (Status.Flags.OverflowFlag) ProgramCounter += Op1;
           break;
-        case 25|000 : // bvc #imm
+        case OPCODE_BRANCH_BVC : // bvc #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if (!Status.Flags.OverflowFlag) ProgramCounter += Op1;
           break;
-        case 25|64 : // bhi.u #imm
+        case OPCODE_BRANCH_BHI_U : // bhi.u #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if (Status.Flags.CarryFlag && (!Status.Flags.ZeroFlag)) ProgramCounter += Op1;
           break;
-        case 25|128 : // ble.u #imm
+        case OPCODE_BRANCH_BLE_U : // ble.u #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if (Status.Flags.CarryFlag && (!Status.Flags.ZeroFlag)) ProgramCounter += Op1;
           break;
-        case 25|192 : // bhe.s #imm
+        case OPCODE_BRANCH_BHE_S : // bhe.s #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if (Status.Flags.NegativeFlag == Status.Flags.OverflowFlag) ProgramCounter += Op1;
           break;
-        case 26|000 : // blo.s #imm
+        case OPCODE_BRANCH_BLO_S : // blo.s #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if (Status.Flags.NegativeFlag != Status.Flags.OverflowFlag) ProgramCounter += Op1;
           break;
-        case 26|064 : // bhi.s #imm
+        case OPCODE_BRANCH_BHI_S : // bhi.s #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if ((!Status.Flags.ZeroFlag) && (Status.Flags.NegativeFlag == Status.Flags.OverflowFlag)) ProgramCounter += Op1;
           break;
-        case 26|128 : // ble.s #imm
+        case OPCODE_BRANCH_BLE_S : // ble.s #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           if ((Status.Flags.ZeroFlag) && (Status.Flags.NegativeFlag != Status.Flags.OverflowFlag)) ProgramCounter += Op1;
           break;
-        case 26|192 : // bra #imm
+        case OPCODE_BRANCH_BXX : // bra #imm
           Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
           ProgramCounter += Op1;
           break;
 
 
-        case 27:// jsr (reg)
+        case OPCODE_JSR_IND:// jsr (reg)
           Op1 = FetchOperand_8(ProgramCounter++); // Register
           PushStack_32(ProgramCounter);
           ProgramCounter = GeneralRegister[Op1&0xf].Reg_ULargest;
           break;
-        case 28:// rts
+        case OPCODE_RTS:// rts
           ProgramCounter = PopStack_32();
           break;
-        case 29:// rti
+        case OPCODE_RTI:// rti
           Status.WholeRegister = PopStack_32();
           ProgramCounter = PopStack_32();
           break;
-        case 30:// int reg
-        case 31|000:// ext.bw reg
+        //case 30:// int reg
+        case OPCODE_EXT_BW:// ext.bw reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
                 GeneralRegister[Op1&0xf].Reg_SWord = (Short)GeneralRegister[Op1&0xf].Reg_SByte;
 
                 break;
-        case 31|064:// ext.bl reg
+        case OPCODE_EXT_BL:// ext.bl reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
                 GeneralRegister[Op1&0xf].Reg_SLong = (Short)GeneralRegister[Op1&0xf].Reg_SByte;
                 break;
-        case 31|128:// ext.wl reg
+        case OPCODE_EXT_WL:// ext.wl reg
                 Op1 = FetchOperand_8(ProgramCounter++); // Register
                 GeneralRegister[Op1&0xf].Reg_SLong = (Short)GeneralRegister[Op1&0xf].Reg_SWord;
                 break;
