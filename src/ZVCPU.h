@@ -39,6 +39,7 @@
 #  include "ZTypes.h"
 #endif
 
+/*
 unsigned char optable[]=
 {
   1+128,0,128+2,0,0,0,
@@ -47,6 +48,7 @@ unsigned char optable[]=
   255,255,
   255,0
 };
+*/
 
 #define FLAG_CARRY 1
 #define FLAG_ZERO  64
@@ -145,42 +147,50 @@ class BlackCPU
 
   inline UByte FetchOpcode(ULong ProgramCounter)
   {
-    return(optable[ProgramCounter]);
+    //return(optable[ProgramCounter]);
+    return(0);
   }
   
   inline UByte FetchOperand_8(ULong ProgramCounter)
   {
-    return(optable[ProgramCounter]);
+    //return(optable[ProgramCounter]);
+    return(0);
   }
 
   inline UShort FetchOperand_16(ULong ProgramCounter)
   {
-    return( *(UShort *)(optable+ProgramCounter));
+    //return( *(UShort *)(optable+ProgramCounter));
+    return(0);
   }
 
   inline ULong FetchOperand_32(ULong ProgramCounter)
   {
-    return(*(ULong *)(optable+ProgramCounter));
+    //return(*(ULong *)(optable+ProgramCounter));
+    return(0);
   }
 
   inline UELong FetchOperand_64(ULong ProgramCounter)
   {
-    return(optable[ProgramCounter]);
+    //return(optable[ProgramCounter]);
+    return(0);
   }
 
   inline UByte ReadMemory_8(ULong Address)
   {
-    return(optable[Address]);
+    //return(optable[Address]);
+    return(0);
   }
 
   inline UShort ReadMemory_16(ULong Address)
   {
-    return(optable[Address]);
+    //return(optable[Address]);
+    return(0);
   }
 
   inline ULong ReadMemory_32(ULong Address)
   {
-    return(optable[Address]);
+    //return(optable[Address]);
+    return(0);
   }
 
   inline void WriteMemory_8(ULong Address, UByte Data)
@@ -310,8 +320,8 @@ class BlackCPU
         OPCODE_MOVE_IND_REG_L = OPCODE_MOVE_IND_REG_B     + 128,
         OPCODE_MOVE_REG_IND_L = OPCODE_MOVE_REG_IND_B     + 128,
         OPCODE_MOVE_REG_REG_L = OPCODE_MOVE_REG_REG_B     + 128,
-        OPCODE_MOVEX_IMM_SL   = OPCODE_MOVEX_IMM_SB       + 128,
-        OPCODE_MOVEX_IMM_UL   = OPCODE_MOVEX_IMM_UB       + 128,
+        // OPCODE_MOVEX_IMM_SL   = OPCODE_MOVEX_IMM_SB    + 128,
+        // OPCODE_MOVEX_IMM_UL   = OPCODE_MOVEX_IMM_UB    + 128,
         // OPCODE_PUSHREGS
         // OPCODE_POPREGS
         OPCODE_ADD_L          = OPCODE_ADD_B              + 128,
@@ -663,8 +673,6 @@ class BlackCPU
 #endif
                         break;
 
-        case OPCODE_MOVEX_IMM_SL:   // movex.l #imm,reg
-                        // does nothing. Reserved for future extension
 
         case OPCODE_MOVEX_IMM_UB:   // movex.ub #imm,reg
                         Op1 = FetchOperand_8(ProgramCounter++); // Register

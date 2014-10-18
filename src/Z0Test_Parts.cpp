@@ -26,9 +26,23 @@
 #include "Z0Test_Parts.h"
 #include <stdio.h>
 
+#ifndef Z_MACROASSEMBLER_H
+#  include "ZMacroAssembler.h"
+#endif
+
 bool ZTest_Parts::RunTestCode()
 {
   printf("Test Parts");
+
+  ZString Text;
+
+  Text = "  move.b #10,r0";
+
+  ZMacroAssembler Mass;
+
+  Mass.Assemble(Text);
+
+
   return(false);
 }
 

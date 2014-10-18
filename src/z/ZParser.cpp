@@ -312,6 +312,17 @@ Bool ZParser::GetToken(ZParser_Token &Token)
     else              return(false);  // ... do not lead to compatibility problems.
   }
 
+  // Try parsing keywords.
+
+  if (ParseKeyWords)
+  {
+    if ((Token.KeyWordId = GetKeyWord()))
+    {
+      Token.TokenType = ZParser_Token::TK_KEYWORD;
+      Token.TokenEnd = Tp;
+      return(true);
+    }
+  }
 
   // Try parsing constants
 
@@ -348,18 +359,6 @@ Bool ZParser::GetToken(ZParser_Token &Token)
       Token.TokenType = ZParser_Token::TK_CONST;
       Token.TokenEnd = Tp;
       Token.ConstType = ZParser_Token::CT_ALPHA;
-      return(true);
-    }
-  }
-
-  // Try parsing keywords.
-
-  if (ParseKeyWords)
-  {
-    if ((Token.KeyWordId = GetKeyWord()))
-    {
-      Token.TokenType = ZParser_Token::TK_KEYWORD;
-      Token.TokenEnd = Tp;
       return(true);
     }
   }

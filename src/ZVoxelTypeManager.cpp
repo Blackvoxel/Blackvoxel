@@ -378,7 +378,17 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,5,32);  // 32 BlackRock Orange
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,77,1);   // Constructeur / Destructeur N°3
-               // Extractor Robot N°1
+
+               // Extractor Robot XR-1
+               t=VoxelType->FabInfos->AddTransformation();   // T5
+                 VoxelType->FabInfos->AddCondition(t,7,1);   // 1 Fonte
+                 VoxelType->FabInfos->AddCondition(t,2,8);   // 8 Cuivre
+                 VoxelType->FabInfos->AddCondition(t,4,2);   // 2 Acier
+                 VoxelType->FabInfos->AddCondition(t,1,16);  // 16 Blackrock Green
+                 VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
+                 VoxelType->FabInfos->SetResult(t,0,153,1);  // Extraction Robot XR-1
+
+               // Extraction Robot XR-2
                t=VoxelType->FabInfos->AddTransformation();   // T5
                  VoxelType->FabInfos->AddCondition(t,7,1);   // 1 Fonte
                  VoxelType->FabInfos->AddCondition(t,2,4);   // 4 Cuivre
@@ -387,7 +397,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,4,4);   // 4 Acier
                  VoxelType->FabInfos->AddCondition(t,6,16);  // 16 Blackrock sky blue
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
-                 VoxelType->FabInfos->SetResult(t,0,153,1);  // Robot N°1
+                 VoxelType->FabInfos->SetResult(t,0,154,1);  // Extraction Robot XR-2
                  // Broyeur
                t=VoxelType->FabInfos->AddTransformation();   // T6
                  VoxelType->FabInfos->AddCondition(t,7,8);   // 8 Fonte
@@ -981,7 +991,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,0,1);    // 1 Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,108,1);  // Material Optical Receiver
 
-               // Mining Robot xr-2
+               // Mining Robot xr-3
                t=VoxelType->FabInfos->AddTransformation();  // T12
                  VoxelType->FabInfos->AddCondition(t,20,6);   // 6 Desintegrateurs
                  VoxelType->FabInfos->AddCondition(t,23,1);   // 1 Voxel Conductor
@@ -993,7 +1003,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,13,4);   // 4 Feuilles d'inox
                  VoxelType->FabInfos->AddCondition(t,17,12);  // 12 Profilés d'inox
                  VoxelType->FabInfos->AddCondition(t,0,1);    // 1 Blackrock Blue (Validation)
-                 VoxelType->FabInfos->SetResult(t,0,154,1);  // Material Optical Receiver
+                 VoxelType->FabInfos->SetResult(t,0,155,1);  // XR-3 Mining Robot
 
               // Aircraft
               t=VoxelType->FabInfos->AddTransformation();  // T13
