@@ -87,7 +87,10 @@ void ZActor_Player::Init(bool Death)
 
   // Camera settings.
 
-  EyesPosition.x = 0; EyesPosition.y = 256.0 * 1.75 ; EyesPosition.z = 0.0; // Old eye y = 450
+  EyesPosition.x = 0;
+  EyesPosition.y = 256.0 * 1.75 / COMPILEOPTION_VOXELSIZEFACTOR ;
+  EyesPosition.z = 0.0;
+
   Camera.x = Location.x + EyesPosition.x; Camera.y = Location.y + EyesPosition.y; Camera.z = Location.z + EyesPosition.z;
   Camera.Pitch = ViewDirection.pitch; Camera.Roll  = ViewDirection.roll; Camera.Yaw   = ViewDirection.yaw;
   Camera.ColoredVision.Activate = false;

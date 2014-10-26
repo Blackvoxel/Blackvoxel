@@ -508,7 +508,7 @@ void ZRender_Basic::Render()
     // printf("Norm(%lf %lf %lf)\n",Norm.x,Norm.y,Norm.z);
 
     In.MaxCubeIterations = 150;
-    In.MaxDetectionDistance = 1536;//1000000.0;
+    In.MaxDetectionDistance = (1536.0 / COMPILEOPTION_VOXELSIZEFACTOR);//1000000.0;
 
     ZVector3d CamPoint(Camera->x,Camera->y,Camera->z);
     ZVector3d Zp;
