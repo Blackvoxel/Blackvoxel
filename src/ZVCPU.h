@@ -269,11 +269,11 @@ class BlackCPU
         OPCODE_SMUL_B,
         OPCODE_CMP_B,
         OPCODE_JMP_IND,
+        OPCODE_JSR_IND,
         OPCODE_BRANCH_BRA,
         OPCODE_BRANCH_BCC,
         OPCODE_BRANCH_BVC,
         OPCODE_BRANCH_BLO_S,
-        OPCODE_JSR_IND,
         OPCODE_RTS,
         OPCODE_RTI,
         OPCODE_EXT_BW,
@@ -754,6 +754,7 @@ class BlackCPU
                           D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
                           D2 = GeneralRegister[Op1&0xf].Reg_UByte;
                           D3 = D1+D2;
+                          GeneralRegister[Op1&0xf].Reg_UByte = D3;
                           Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
                           Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
                           Status.Flags.ZeroFlag = (!D3);
@@ -789,6 +790,7 @@ class BlackCPU
                           D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord;
                           D2 = GeneralRegister[Op1&0xf].Reg_UWord;
                           D3 = D1+D2;
+                          GeneralRegister[Op1&0xf].Reg_UWord = D3;
                           Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
                           Status.Flags.OverflowFlag = ((Short)((D1^D3) & (~(D1^D2))) < 0);
                           Status.Flags.ZeroFlag = (!D3);
@@ -824,6 +826,7 @@ class BlackCPU
                           D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong;
                           D2 = GeneralRegister[Op1&0xf].Reg_ULong;
                           D3 = D1+D2;
+                          GeneralRegister[Op1&0xf].Reg_ULong = D3;
                           Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
                           Status.Flags.OverflowFlag = ((Long)((D1^D3) & (~(D1^D2))) < 0);
                           Status.Flags.ZeroFlag = (!D3);

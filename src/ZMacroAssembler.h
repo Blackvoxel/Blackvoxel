@@ -38,15 +38,107 @@
 #  include "ZVCPU.h"
 #endif
 
+#ifndef Z_ZSIMPLEHASH_H
+#  include "z/ZSimpleHash.h"
+#endif
+
+#ifndef Z_ZGENERICTABLE_H
+#  include "z/ZGenericTable.h"
+#endif
+
+#ifndef Z_ZSTREAM_SPECIALRAMSTREAM_H
+#  include "z/ZStream_SpecialRamStream.h"
+#endif
 
 class ZMacroAssembler
 {
+
+
+  class ZLabelStore
+  {
+    protected:
+
+      struct ZEntry
+      {
+        ZString Label;
+        ULong   Value;
+      };
+
+      ZSimpleHash<ZEntry> Hash;
+      ZGenericTable<ZEntry, 8192> Table;
+
+      ZEntry * FindEntry(char const * Name)
+      {
+        ZMemSize FoundHash;
+        ZEntry * Entry;
+
+        if ( !(Entry = Hash.FindItem(Name, FoundHash))) return(0);
+        do
+        {
+          if (Entry->Label == Name) { return(Entry); }
+        } while ((Entry = Hash.FindNext(FoundHash)));
+
+        return(0);
+      }
+
+    public:
+
+      ZLabelStore()
+      {
+        Hash.Init(14);
+      }
+
+      ZLabelStore(ULong SizePowerOfTwo)
+      {
+        Hash.Init(SizePowerOfTwo);
+      }
+
+      void Clear()
+      {
+        Hash.Clear();
+        Table.Clear();
+      }
+
+      bool FindLabel(char const * Name, ULong & LabelValue )
+      {
+        ZEntry * Entry;
+
+        if (!(Entry = FindEntry(Name))) return(false);
+
+        LabelValue = Entry->Value;
+
+        return(true);
+      }
+
+      bool StoreLabel(char const * Name, ULong Value)
+      {
+        ZEntry * Entry;
+        ZMemSize Index;
+
+        if ((Entry = FindEntry(Name))) return(false);
+
+        if (!Table.CreateNew(Index)) return(false);
+        Entry = Table.GetElement(Index);
+        Entry->Label = Name;
+        Entry->Value = Value;
+        Hash.AddItem(Name,Entry);
+
+        return(true);
+      }
+
+  };
+
   struct AssemblyData
   {
+     ZLabelStore LabelStore;
      ZFastKeyWordSet KeyworSet;
      ZParser Parser;
      ZString * Text;
      ULong Address;
+     ULong SectionSize;
+     ZStream_SpecialRamStream Stream;
+     ZMemSize Stream_SectionPos_Save;
+     ULong *  Stream_SectionSize_Ptr;
   };
 
   enum { KW_META_ORG,
@@ -69,7 +161,27 @@ class ZMacroAssembler
          KW_OP_SMUL,
          KW_OP_CMP,
          KW_OP_JMP,
+         KW_OP_JSR,
          KW_OP_BRA,
+         KW_OP_BEQ,
+         KW_OP_BNE,
+         KW_OP_BCS,
+         KW_OP_BCC,
+         KW_OP_BMI,
+         KW_OP_BPL,
+         KW_OP_BVS,
+         KW_OP_BVC,
+         KW_OP_BHI_U,
+         KW_OP_BLE_U,
+         KW_OP_BHE_S,
+         KW_OP_BLO_S,
+         KW_OP_BHI_S,
+         KW_OP_BLE_S,
+         KW_OP_RTS,
+         KW_OP_RTI,
+         KW_OP_EXT_BW,
+         KW_OP_EXT_BL,
+         KW_OP_EXT_WL,
 
          KW_SZ_BYTE,
          KW_SZ_WORD,
@@ -100,10 +212,20 @@ class ZMacroAssembler
          KW_PNK_SHARP,
          KW_PNK_VIRG,
          KW_PNK_OPENPARENT,
-         KW_PNK_CLOSEPARENT
+         KW_PNK_CLOSEPARENT,
+         KW_PNK_TIRET,
+         KW_PNK_TWOPOINTS,
+         KW_PNK_ADD,
+         KW_PNK_SUB,
+         KW_PNK_MUL,
+         KW_PNK_DIV,
+         KW_PNK_OR,
+         KW_PNK_XOR,
+         KW_PNK_AND,
+         KW_PNK_NOT
        };
-  enum { ERROR_EXPECTEDOPERANDSIZE, ERROR_EXPECTEDOPERAND, ERROR_EXPECTEDEXPRESSION, ERROR_EXPECTEDINTEGERVALUE, ERROR_EXPECTEDREGISTER, ERROR_EXPECTEDVIRGULE, ERROR_EXPECTEDCLOSEPARENT, ERROR_UNEPECTEDSTATMENT,
-         ERROR_EXPECTEDSHARP};
+  enum { ERROR_EXPECTEDOPERANDSIZE, ERROR_EXPECTEDOPERAND, ERROR_EXPECTEDEXPRESSION, ERROR_EXPECTEDINTEGERVALUE, ERROR_EXPECTEDREGISTER, ERROR_EXPECTEDVIRGULE,
+         ERROR_EXPECTEDOPENPARENT, ERROR_EXPECTEDCLOSEPARENT, ERROR_UNEPECTEDSTATMENT, ERROR_EXPECTEDSHARP, ERROR_EXPECTEDTWOPOINTS };
 
 
   void RegisterKeywords(ZKeyWordSet * Ks)
@@ -129,6 +251,26 @@ class ZMacroAssembler
     Ks->AddKeyWord("cmp",        KW_OP_CMP     );
     Ks->AddKeyWord("jmp",        KW_OP_JMP     );
     Ks->AddKeyWord("bra",        KW_OP_BRA     );
+    Ks->AddKeyWord("beq",        KW_OP_BEQ     );
+    Ks->AddKeyWord("bne",        KW_OP_BNE     );
+    Ks->AddKeyWord("bcs",        KW_OP_BCS     );
+    Ks->AddKeyWord("bcc",        KW_OP_BCC     );
+    Ks->AddKeyWord("bmi",        KW_OP_BMI     );
+    Ks->AddKeyWord("bpl",        KW_OP_BPL     );
+    Ks->AddKeyWord("bvs",        KW_OP_BVS     );
+    Ks->AddKeyWord("bvc",        KW_OP_BVC     );
+    Ks->AddKeyWord("bhi.u",      KW_OP_BHI_U   );
+    Ks->AddKeyWord("ble.u",      KW_OP_BLE_U   );
+    Ks->AddKeyWord("bhe.s",      KW_OP_BHE_S   );
+    Ks->AddKeyWord("blo.s",      KW_OP_BLO_S   );
+    Ks->AddKeyWord("bhi.s",      KW_OP_BHI_S   );
+    Ks->AddKeyWord("ble.s",      KW_OP_BLE_S   );
+    Ks->AddKeyWord("rts",        KW_OP_RTS     );
+    Ks->AddKeyWord("rti",        KW_OP_RTI     );
+    Ks->AddKeyWord("ext.bw",     KW_OP_EXT_BW  );
+    Ks->AddKeyWord("ext.bl",     KW_OP_EXT_BL  );
+    Ks->AddKeyWord("ext.wl",     KW_OP_EXT_WL  );
+
     Ks->AddKeyWord(".b",         KW_SZ_BYTE    );
     Ks->AddKeyWord(".w",         KW_SZ_WORD    );
     Ks->AddKeyWord(".l",         KW_SZ_LONG    );
@@ -140,6 +282,18 @@ class ZMacroAssembler
     Ks->AddKeyWord(",",          KW_PNK_VIRG   );
     Ks->AddKeyWord("(",          KW_PNK_OPENPARENT);
     Ks->AddKeyWord(")",          KW_PNK_CLOSEPARENT);
+    Ks->AddKeyWord("-",          KW_PNK_TIRET  );
+    Ks->AddKeyWord(":",          KW_PNK_TWOPOINTS );
+    Ks->AddKeyWord("+",          KW_PNK_ADD );
+    Ks->AddKeyWord("-",          KW_PNK_SUB );
+    Ks->AddKeyWord("*",          KW_PNK_MUL );
+    Ks->AddKeyWord("/",          KW_PNK_DIV );
+
+    Ks->AddKeyWord("|",          KW_PNK_OR );
+    Ks->AddKeyWord("^",          KW_PNK_XOR );
+    Ks->AddKeyWord("&",          KW_PNK_AND );
+    Ks->AddKeyWord("!",          KW_PNK_NOT );
+
     Ks->AddKeyWord("r0",         KW_REG_R0     );
     Ks->AddKeyWord("r1",         KW_REG_R1     );
     Ks->AddKeyWord("r2",         KW_REG_R2     );
@@ -164,6 +318,7 @@ class ZMacroAssembler
   void ThrowError(AssemblyData * Asd, ZParser_Token * Token, ULong MessageNum)
   {
      ZString As;
+
      switch (MessageNum)
      {
        case ERROR_EXPECTEDOPERANDSIZE: As = "Expected operand size : '.b', '.w' or '.l')."; break;
@@ -172,24 +327,32 @@ class ZMacroAssembler
        case ERROR_EXPECTEDINTEGERVALUE:As = "Integer value expected."; break;
        case ERROR_EXPECTEDREGISTER:    As = "Expected register"; break;
        case ERROR_EXPECTEDVIRGULE:     As = "',' separator expected."; break;
+       case ERROR_EXPECTEDOPENPARENT:  As = "'(' expected."; break;
        case ERROR_EXPECTEDCLOSEPARENT: As = "')' expected."; break;
        case ERROR_UNEPECTEDSTATMENT:   As = "Unexpected statment."; break;
        case ERROR_EXPECTEDSHARP:       As = "'#' Sharp sign expected."; break;
+       case ERROR_EXPECTEDTWOPOINTS:   As = "':' Two Points sign expected."; break;
        default: As = "Unkown Error."; break;
      }
   }
 
   void BinaryOut_Byte(UByte Code, AssemblyData * Asd)
   {
-
+    Asd->Stream.Put(Code);
+    Asd->Address++;
+    Asd->SectionSize++;
   }
   void BinaryOut_Word(UShort Code, AssemblyData * Asd)
   {
-
+    Asd->Stream.Put(Code);
+    Asd->Address++;
+    Asd->SectionSize++;
   }
   void BinaryOut_Long(ULong Code, AssemblyData * Asd)
   {
-
+    Asd->Stream.Put(Code);
+    Asd->Address++;
+    Asd->SectionSize++;
   }
 
 
@@ -201,43 +364,202 @@ class ZMacroAssembler
     {
       case KW_SZ_BYTE:
       case KW_SZ_WORD:
-      case KW_SZ_LONG: return(true);
+      case KW_SZ_LONG:
+      case KW_SZ_UBYTE:
+      case KW_SZ_UWORD:
+      case KW_SZ_SBYTE:
+      case KW_SZ_SWORD:
+                       return(true);
       default:         ThrowError(Asd, &Token,ERROR_EXPECTEDOPERANDSIZE); return(false);
     }
   }
 
-  bool inline GetIdentifierValue(ZString & IdentifierName, ULong & Value)
+  bool inline GetIdentifierValue(AssemblyData * Asd, ZString & IdentifierName, ULong & Value)
   {
-    Value = 0;
+    if (!Asd->LabelStore.FindLabel(IdentifierName.String, Value)) Value = 0;
+
     return(true);
   }
+
+
+  bool inline GetExpression_ConstAndIdentifier(AssemblyData * Asd, ULong & ExpressionValue)
+  {
+     ZParser_Token Token;
+     ULong Value;
+
+     Asd->Parser.GetToken(Token);
+
+     switch(Token.TokenType)
+     {
+       case ZParser_Token::TK_IDENTIFIER: GetIdentifierValue(Asd, Token.AlphaValue, Value);
+                                          break;
+
+       case ZParser_Token::TK_CONST:      if (Token.ConstType!= ZParser_Token::CT_INTEGER)  { ThrowError(Asd, &Token, ERROR_EXPECTEDINTEGERVALUE); return(false);}
+                                          ExpressionValue = Token.ConstValue.ValULong;
+                                          break;
+       case ZParser_Token::TK_KEYWORD:    if (Token.KeyWordId != KW_PNK_OPENPARENT)         { ThrowError(Asd, &Token, KW_PNK_OPENPARENT); return(false); }
+                                          GetExpression(Asd, ExpressionValue);
+                                          if (!ExpectToken(Asd, KW_PNK_OPENPARENT, KW_PNK_CLOSEPARENT)) return(false);
+                                          break;
+
+
+       default: ThrowError(Asd, &Token, ERROR_EXPECTEDEXPRESSION); return(false); break;
+     }
+     return(true);
+   }
+
+  bool inline GetExpression_MultDiv(AssemblyData * Asd, ULong & ExpressionValue)
+  {
+    ZParser_Token Token;
+    ZParser_State Pos;
+    ULong Value;
+
+    if (!GetExpression_ConstAndIdentifier(Asd, ExpressionValue)) return(false);
+
+    while(true)
+    {
+      Asd->Parser.SavePos(Pos);
+      Asd->Parser.GetToken(Token);
+      if (Token.TokenType != ZParser_Token::TK_KEYWORD) { Asd->Parser.RestorePos(Pos); return(true); }
+      switch(Token.KeyWordId)
+      {
+        case KW_PNK_ADD: if (!GetExpression_ConstAndIdentifier(Asd, Value)) return(false);
+                         ExpressionValue += Value;
+                         break;
+        case KW_PNK_SUB: if (!GetExpression_ConstAndIdentifier(Asd, Value)) return(false);
+                         ExpressionValue -= Value;
+                         break;
+        default:         Asd->Parser.RestorePos(Pos); return(true);
+      }
+    }
+
+  }
+
+  bool inline GetExpression_AddSub(AssemblyData * Asd, ULong & ExpressionValue)
+  {
+    ZParser_Token Token;
+    ZParser_State Pos;
+    ULong Value;
+
+    if (!GetExpression_MultDiv(Asd, ExpressionValue)) return(false);
+
+    while(true)
+    {
+      Asd->Parser.SavePos(Pos);
+      Asd->Parser.GetToken(Token);
+      if (Token.TokenType != ZParser_Token::TK_KEYWORD) { Asd->Parser.RestorePos(Pos); return(true); }
+      switch(Token.KeyWordId)
+      {
+        case KW_PNK_ADD: if (!GetExpression_MultDiv(Asd, Value)) return(false);
+                         ExpressionValue += Value;
+                         break;
+        case KW_PNK_SUB: if (!GetExpression_MultDiv(Asd, Value)) return(false);
+                         ExpressionValue -= Value;
+                         break;
+        default:         Asd->Parser.RestorePos(Pos); return(true);
+      }
+    }
+
+  }
+  bool inline GetExpression_OrXorAnd(AssemblyData * Asd, ULong & ExpressionValue)
+  {
+    ZParser_Token Token;
+    ZParser_State Pos;
+    ULong Value;
+
+    if (!GetExpression_AddSub(Asd, ExpressionValue)) return(false);
+
+    while(true)
+    {
+      Asd->Parser.SavePos(Pos);
+      Asd->Parser.GetToken(Token);
+      if (Token.TokenType != ZParser_Token::TK_KEYWORD) { Asd->Parser.RestorePos(Pos); return(true); }
+      switch(Token.KeyWordId)
+      {
+        case KW_PNK_OR:  if (!GetExpression_AddSub(Asd, Value)) return(false);
+                         ExpressionValue |= Value;
+                         break;
+        case KW_PNK_XOR: if (!GetExpression_AddSub(Asd, Value)) return(false);
+                         ExpressionValue ^= Value;
+                         break;
+        case KW_PNK_AND: if (!GetExpression_AddSub(Asd, Value)) return(false);
+                         ExpressionValue &= Value;
+                         break;
+
+        default:         Asd->Parser.RestorePos(Pos); return(true);
+      }
+    }
+
+  }
+
+
 
   bool inline GetExpression(AssemblyData * Asd, ULong & ExpressionValue)
   {
+    return(GetExpression_OrXorAnd(Asd, ExpressionValue));
+  }
+
+  bool inline ExpectToken(AssemblyData * Asd, ULong Opcode, ULong ErrorCase)
+  {
     ZParser_Token Token;
-    ULong Value;
+
+    // Fetch Token
 
     Asd->Parser.GetToken(Token);
 
-    switch(Token.TokenType)
+    // Ensure token is what's expected
+
+    if ( Token.TokenType != ZParser_Token::TK_KEYWORD || Token.KeyWordId != Opcode )
     {
-      case ZParser_Token::TK_IDENTIFIER: GetIdentifierValue(Token.AlphaValue, Value); break;
-
-      case ZParser_Token::TK_CONST:      if (Token.ConstType!= ZParser_Token::CT_INTEGER) { ThrowError(Asd, &Token, ERROR_EXPECTEDINTEGERVALUE); return(false); }
-                                         ExpressionValue = Token.ConstValue.ValULong;
-                                         break;
-
-      default: ThrowError(Asd, &Token, ERROR_EXPECTEDEXPRESSION); return(false); break;
+      ThrowError(Asd, &Token, ErrorCase);
+      return(false);
     }
+
     return(true);
   }
+
+  bool inline ExpectRegisterOnToken(AssemblyData * Asd, ZParser_Token & Token_Register, ULong * Register)
+  {
+    // Ensure token is a register number.
+
+    Asd->Parser.GetToken(Token_Register);
+    if (   Token_Register.TokenType != ZParser_Token::TK_KEYWORD
+        || Token_Register.KeyWordId < KW_REG_R0
+        || Token_Register.KeyWordId > KW_REG_R15 )
+    {
+      ThrowError(Asd, &Token_Register, ERROR_EXPECTEDREGISTER);
+      return(false);
+    }
+
+    // Convert token to register number
+
+    *Register = Token_Register.KeyWordId - KW_REG_R0;
+
+    return(true);
+  }
+
+  bool inline ExpectRegister(AssemblyData * Asd, ULong * Register)
+  {
+    ZParser_Token Token_Register;
+
+    // Fetch Token
+
+    Asd->Parser.GetToken(Token_Register);
+
+    // Parse Token and return result
+
+    return( ExpectRegisterOnToken(Asd, Token_Register, Register) );
+
+  }
+
+
 
   bool inline AssembleSection_Token_Move(AssemblyData * Asd)
   {
     ZParser_Token Token_Size, Token_Arg, Token_Register,Token_Register2, Token_Separator;
 
     ULong ImmediateValue;
-    UByte RegisterNumber, RegisterNumber2;
+    ULong RegisterNumber, RegisterNumber2;
 
     if (!AssembleSection_OperandSize(Asd,Token_Size)) return(false);
 
@@ -245,10 +567,9 @@ class ZMacroAssembler
     switch(Token_Arg.KeyWordId)
     {
       case KW_PNK_SHARP: if (!GetExpression(Asd, ImmediateValue)) return(false);
-                         Asd->Parser.GetToken(Token_Separator); if (Token_Separator.TokenType != ZParser_Token::TK_KEYWORD || Token_Separator.KeyWordId != KW_PNK_VIRG) {ThrowError(Asd, &Token_Register, ERROR_EXPECTEDVIRGULE); return(false);}
-                         Asd->Parser.GetToken(Token_Register); if (Token_Register.TokenType != ZParser_Token::TK_KEYWORD) {ThrowError(Asd, &Token_Register, ERROR_EXPECTEDREGISTER); return(false);}
-                         if (Token_Register.KeyWordId < KW_REG_R0 || Token_Register.KeyWordId > KW_REG_R15) {ThrowError(Asd, &Token_Register, ERROR_EXPECTEDREGISTER); return(false); }
-                         RegisterNumber = Token_Register.KeyWordId - KW_REG_R0;
+                         if (!ExpectToken(Asd, KW_PNK_VIRG, ERROR_EXPECTEDVIRGULE)) return(false);
+                         if (!ExpectRegister(Asd, &RegisterNumber)) return(false);
+
                          switch(Token_Size.KeyWordId)
                          {
                            case KW_SZ_BYTE: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_IMM_B, Asd );
@@ -263,6 +584,7 @@ class ZMacroAssembler
                                             BinaryOut_Byte(RegisterNumber, Asd);
                                             BinaryOut_Long(ImmediateValue, Asd);
                                             break;
+                           default:         ThrowError(Asd, &Token_Size,ERROR_EXPECTEDOPERANDSIZE); return(false);
                          }
                          break;
 
@@ -282,14 +604,13 @@ class ZMacroAssembler
        case KW_REG_R13:
        case KW_REG_R14:
        case KW_REG_R15:  RegisterNumber = Token_Arg.KeyWordId - KW_REG_R0;
-                         Asd->Parser.GetToken(Token_Separator); if (Token_Separator.TokenType != ZParser_Token::TK_KEYWORD || Token_Separator.KeyWordId != KW_PNK_VIRG) {ThrowError(Asd, &Token_Separator, ERROR_EXPECTEDVIRGULE); return(false);}
+                         if (!ExpectToken(Asd, KW_PNK_VIRG, ERROR_EXPECTEDVIRGULE)) return(false);
                          Asd->Parser.GetToken(Token_Register2); if (Token_Register2.TokenType != ZParser_Token::TK_KEYWORD) {ThrowError(Asd, &Token_Register2, ERROR_UNEPECTEDSTATMENT); return(false);}
                          if (Token_Register2.KeyWordId == KW_PNK_OPENPARENT)
                          {
-                           Asd->Parser.GetToken(Token_Register2); if (Token_Register2.TokenType != ZParser_Token::TK_KEYWORD) {ThrowError(Asd, &Token_Register2, ERROR_EXPECTEDREGISTER); return(false);}
-                           if (Token_Register2.KeyWordId < KW_REG_R0 || Token_Register2.KeyWordId > KW_REG_R15) {ThrowError(Asd, &Token_Register2, ERROR_EXPECTEDREGISTER); return(false); }
-                           RegisterNumber2 = Token_Register2.KeyWordId - KW_REG_R0;
-                           Asd->Parser.GetToken(Token_Separator); if (Token_Separator.TokenType != ZParser_Token::TK_KEYWORD || Token_Separator.KeyWordId != KW_PNK_CLOSEPARENT) {ThrowError(Asd, &Token_Separator, ERROR_EXPECTEDCLOSEPARENT); return(false);}
+                           if (!ExpectRegister(Asd, &RegisterNumber2)) return(false);
+                           if (!ExpectToken(Asd, KW_PNK_CLOSEPARENT, ERROR_EXPECTEDCLOSEPARENT)) return(false);
+
                            switch(Token_Size.KeyWordId)
                            {
                              case KW_SZ_BYTE: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_IND_B, Asd);
@@ -301,6 +622,7 @@ class ZMacroAssembler
                              case KW_SZ_LONG: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_IND_L, Asd);
                                               BinaryOut_Byte(RegisterNumber2 || RegisterNumber << 4, Asd);
                                               break;
+                             default:         ThrowError(Asd, &Token_Size,ERROR_EXPECTEDOPERANDSIZE); return(false);
                            }
                          }
                          else if (Token_Register2.KeyWordId >= KW_REG_R0 && Token_Register2.KeyWordId <= KW_REG_R15)
@@ -317,6 +639,7 @@ class ZMacroAssembler
                              case KW_SZ_LONG: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_REG_B, Asd);
                                               BinaryOut_Byte(RegisterNumber2 || RegisterNumber << 4, Asd);
                                               break;
+                             default:         ThrowError(Asd, &Token_Size,ERROR_EXPECTEDOPERANDSIZE); return(false);
                            }
                          }
                          else {ThrowError(Asd, &Token_Register, ERROR_UNEPECTEDSTATMENT); return(false);}
@@ -325,11 +648,10 @@ class ZMacroAssembler
       case KW_PNK_OPENPARENT:
                          if (Token_Register.KeyWordId < KW_REG_R0 || Token_Register.KeyWordId > KW_REG_R15) {ThrowError(Asd, &Token_Register, ERROR_EXPECTEDREGISTER); return(false); }
                          RegisterNumber = Token_Register.KeyWordId - KW_REG_R0;
-                         Asd->Parser.GetToken(Token_Separator); if (Token_Separator.TokenType != ZParser_Token::TK_KEYWORD || Token_Separator.KeyWordId != KW_PNK_CLOSEPARENT) {ThrowError(Asd, &Token_Separator, ERROR_EXPECTEDCLOSEPARENT); return(false);}
-                         Asd->Parser.GetToken(Token_Separator); if (Token_Separator.TokenType != ZParser_Token::TK_KEYWORD || Token_Separator.KeyWordId != KW_PNK_VIRG) {ThrowError(Asd, &Token_Separator, ERROR_EXPECTEDVIRGULE); return(false);}
-                         Asd->Parser.GetToken(Token_Register2); if (Token_Register2.TokenType != ZParser_Token::TK_KEYWORD) {ThrowError(Asd, &Token_Register2, ERROR_UNEPECTEDSTATMENT); return(false);}
-                         if (Token_Register2.KeyWordId < KW_REG_R0 || Token_Register2.KeyWordId > KW_REG_R15) {ThrowError(Asd, &Token_Register2, ERROR_EXPECTEDREGISTER); return(false); }
-                         RegisterNumber2 = Token_Register2.KeyWordId - KW_REG_R0;
+                         if (!ExpectToken(Asd, KW_PNK_CLOSEPARENT, ERROR_EXPECTEDCLOSEPARENT)) return(false);
+                         if (!ExpectToken(Asd, KW_PNK_VIRG, ERROR_EXPECTEDVIRGULE)) return(false);
+                         if (!ExpectRegister(Asd, &RegisterNumber2)) return(false);
+
                          switch(Token_Size.KeyWordId)
                          {
                            case KW_SZ_BYTE: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_IND_B, Asd);
@@ -341,6 +663,7 @@ class ZMacroAssembler
                            case KW_SZ_LONG: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_IND_L, Asd);
                                             BinaryOut_Byte(RegisterNumber2 || RegisterNumber << 4, Asd);
                                             break;
+                           default:         ThrowError(Asd, &Token_Size,ERROR_EXPECTEDOPERANDSIZE); return(false);
                          }
                          break;
 
@@ -354,7 +677,7 @@ class ZMacroAssembler
   bool inline AssembleSection_Token_Movex(AssemblyData * Asd)
   {
     ZParser_Token Token_Size, Token_Separator, Token_Register;
-    ULong ImmediateValue;
+    ULong ImmediateValue, Register;
 
     // .x size
 
@@ -362,11 +685,137 @@ class ZMacroAssembler
 
     // # sharp sign.
 
-    Asd->Parser.GetToken(Token_Separator); if (Token_Separator.TokenType != ZParser_Token::TK_KEYWORD || Token_Separator.KeyWordId != KW_PNK_SHARP ) {ThrowError(Asd, &Token_Separator, ERROR_EXPECTEDREGISTER); return(false);}
+    if (!ExpectToken(Asd, KW_PNK_SHARP, ERROR_EXPECTEDSHARP)) return(false);
 
     // Immediate constant expression.
 
     if (!GetExpression(Asd, ImmediateValue)) return(false);
+
+    // ',' separator
+
+    if (!ExpectToken(Asd, KW_PNK_VIRG, ERROR_EXPECTEDVIRGULE)) return(false);
+
+    // Destination register.
+
+    if (!ExpectRegister(Asd, &Register)) return(false);
+
+    // Code output
+
+    switch(Token_Size.KeyWordId)
+    {
+      case KW_SZ_BYTE:
+      case KW_SZ_UBYTE: BinaryOut_Byte(BlackCPU::OPCODE_MOVEX_IMM_UB, Asd);
+                        BinaryOut_Byte( Register, Asd);
+                        BinaryOut_Byte(ImmediateValue, Asd);
+                        break;
+      case KW_SZ_SBYTE: BinaryOut_Byte(BlackCPU::OPCODE_MOVEX_IMM_SB, Asd);
+                        BinaryOut_Byte( Register, Asd);
+                        BinaryOut_Byte(ImmediateValue, Asd);
+                        break;
+      case KW_SZ_WORD:
+      case KW_SZ_UWORD: BinaryOut_Byte(BlackCPU::OPCODE_MOVEX_IMM_UW, Asd);
+                        BinaryOut_Byte( Register, Asd);
+                        BinaryOut_Byte(ImmediateValue, Asd);
+                        break;
+      case KW_SZ_SWORD: BinaryOut_Byte(BlackCPU::OPCODE_MOVEX_IMM_SW, Asd);
+                        BinaryOut_Byte( Register, Asd);
+                        BinaryOut_Byte(ImmediateValue, Asd);
+                        break;
+      default:          ThrowError(Asd, &Token_Size,ERROR_EXPECTEDOPERANDSIZE); return(false);
+
+    }
+    return(true);
+  }
+
+  bool inline AssembleSection_Token_PushPopRegs(AssemblyData * Asd, ULong Opcode)
+  {
+    ZParser_Token Token_Separator, Token_Register, Token;
+    ULong  RegisterMask, RegisterNum, RegisterNum2,Tmp,i;
+    ZParser_State Pos;
+
+
+    RegisterMask = 0;
+    do
+    {
+      if (!ExpectRegister( Asd, &RegisterNum )) return(false);
+
+      Asd->Parser.SavePos(Pos);
+      Asd->Parser.GetToken(Token);
+      if ( Token.TokenType == ZParser_Token::TK_KEYWORD && ( Token.KeyWordId == KW_PNK_TIRET )  )
+      {
+        if (!ExpectRegister( Asd, &RegisterNum2 )) return(false);
+        if (RegisterNum>RegisterNum2) {Tmp = RegisterNum; RegisterNum = RegisterNum2; RegisterNum2 = Tmp; }
+        for (i=RegisterNum; i<=RegisterNum2;i++) RegisterMask |= 1 << i;
+        Asd->Parser.SavePos(Pos);
+        Asd->Parser.GetToken(Token);
+      }
+
+    } while ( Token_Register.TokenType != ZParser_Token::TK_KEYWORD || Token_Register.KeyWordId < KW_PNK_VIRG);
+
+    Asd->Parser.RestorePos(Pos);
+
+    BinaryOut_Byte(Opcode, Asd);
+    BinaryOut_Word(RegisterMask, Asd);
+
+    return(true);
+  }
+
+  bool inline AssembleSection_Token_OneParameterAritmetic(AssemblyData * Asd, ULong Opcode, bool Size=true)
+  {
+    ZParser_Token Token_Size, Token_Register;
+    ULong DestinationRegister;
+
+    // .x size
+
+    if (Size)
+    {
+      if (!AssembleSection_OperandSize(Asd,Token_Size)) return(false);
+    }
+    else Token_Size.KeyWordId = KW_SZ_BYTE;
+
+    // Destination register.
+
+    if (!ExpectRegister( Asd, &DestinationRegister )) return(false);
+
+    // Code output
+
+    switch(Token_Size.KeyWordId)
+    {
+      case KW_SZ_BYTE:  BinaryOut_Byte(Opcode, Asd);
+                        BinaryOut_Byte(DestinationRegister , Asd);
+                        break;
+      case KW_SZ_WORD:  BinaryOut_Byte(Opcode+64, Asd);
+                        BinaryOut_Byte(DestinationRegister , Asd);
+                        break;
+      case KW_SZ_LONG:  BinaryOut_Byte(Opcode+128, Asd);
+                        BinaryOut_Byte(DestinationRegister , Asd);
+                        break;
+      default:          ThrowError(Asd, &Token_Size,ERROR_EXPECTEDOPERANDSIZE); return(false);
+    }
+
+    return(true);
+  }
+
+  bool inline AssembleSection_Token_TwoParameterAritmetic(AssemblyData * Asd, ULong Opcode, bool Size=true)
+  {
+    ZParser_Token Token_Size, Token_Separator, Token_Register;
+    ULong SourceRegister, DestinationRegister;
+
+    // .x size
+
+    if (Size)
+    {
+      if (!AssembleSection_OperandSize(Asd,Token_Size)) return(false);
+    }
+    else Token_Size.KeyWordId = KW_SZ_BYTE;
+
+    // Source register.
+
+    Asd->Parser.GetToken(Token_Register);
+    if (   Token_Register.TokenType != ZParser_Token::TK_KEYWORD
+        || Token_Register.KeyWordId < KW_REG_R0
+        || Token_Register.KeyWordId > KW_REG_R15                ) { ThrowError(Asd, &Token_Register, ERROR_EXPECTEDREGISTER); return(false); }
+    SourceRegister = Token_Register.KeyWordId - KW_REG_R0;
 
     // ',' separator
 
@@ -378,14 +827,89 @@ class ZMacroAssembler
     if (   Token_Register.TokenType != ZParser_Token::TK_KEYWORD
         || Token_Register.KeyWordId < KW_REG_R0
         || Token_Register.KeyWordId > KW_REG_R15                ) { ThrowError(Asd, &Token_Register, ERROR_EXPECTEDREGISTER); return(false); }
+    DestinationRegister = Token_Register.KeyWordId - KW_REG_R0;
 
     // Code output
 
     switch(Token_Size.KeyWordId)
     {
-      case KW_SZ_UBYTE: BinaryOut_Byte(BlackCPU::OPCODE_MOVE_REG_IND_W, Asd);
+      case KW_SZ_BYTE:  BinaryOut_Byte(Opcode, Asd);
+                        BinaryOut_Byte(SourceRegister & (DestinationRegister << 4) , Asd);
                         break;
+      case KW_SZ_WORD:  BinaryOut_Byte(Opcode+64, Asd);
+                        BinaryOut_Byte(SourceRegister & (DestinationRegister << 4) , Asd);
+                        break;
+      case KW_SZ_LONG:  BinaryOut_Byte(Opcode+128, Asd);
+                        BinaryOut_Byte(SourceRegister & (DestinationRegister << 4) , Asd);
+                        break;
+      default:          ThrowError(Asd, &Token_Size,ERROR_EXPECTEDOPERANDSIZE); return(false);
     }
+
+    return(true);
+  }
+
+
+
+
+  bool inline AssembleSection_Token_IndirectJump(AssemblyData * Asd, ULong Opcode)
+  {
+    ZParser_Token Token_Size, Token_Separator, Token_Register;
+    ULong Register;
+
+    // Open parenthesis
+
+    if (!ExpectToken(Asd, KW_PNK_OPENPARENT, ERROR_EXPECTEDOPENPARENT)) return(false);
+
+    // Source register.
+
+    if (!ExpectRegister(Asd, &Register)) return(false);
+
+    // Close parenthesis
+
+    if (!ExpectToken(Asd, KW_PNK_CLOSEPARENT, ERROR_EXPECTEDCLOSEPARENT)) return(false);
+
+    // Code output
+
+    BinaryOut_Byte(Opcode, Asd);
+    BinaryOut_Byte(Register , Asd);
+
+    return(true);
+  }
+
+  bool inline AssembleSection_Token_ConditionalBranch(AssemblyData * Asd, ULong Opcode)
+  {
+    ULong ImmediateValue;
+
+    // Immediate constant expression.
+
+    if (!GetExpression(Asd, ImmediateValue)) return(false);
+
+    // Code output
+
+    BinaryOut_Byte(Opcode, Asd);
+    BinaryOut_Word( ImmediateValue, Asd);
+
+    return(true);
+  }
+
+  bool inline AssembleSection_Token_SingleInstruction(AssemblyData * Asd, ULong Opcode)
+  {
+    // Code output
+
+    BinaryOut_Byte(Opcode, Asd);
+
+    return(true);
+  }
+
+  bool inline AssembleSection_Token_Org(AssemblyData * Asd)
+  {
+    ULong Value;
+
+    if (!GetExpression(Asd, Value)) return(false);
+
+    CloseSection(Asd);
+    OpenNewSection(Asd, MulticharConst('C','O','D','E') , Value);
+
     return(true);
   }
 
@@ -393,11 +917,96 @@ class ZMacroAssembler
   {
     switch(Token.KeyWordId)
     {
-      case KW_META_ORG: break;
-      case KW_OP_MOVE: AssembleSection_Token_Move(Asd); break;
+      case KW_META_ORG:      AssembleSection_Token_Org(Asd);                                              break;
+      case KW_OP_MOVE:       AssembleSection_Token_Move(Asd);                                             break;
+      case KW_OP_MOVEX:      AssembleSection_Token_Movex(Asd);                                            break;
+      case KW_OP_PUSHREGS:   AssembleSection_Token_PushPopRegs(Asd, BlackCPU::OPCODE_PUSHREGS);           break;
+      case KW_OP_POPREGS:    AssembleSection_Token_PushPopRegs(Asd, BlackCPU::OPCODE_POPREGS);            break;
+      case KW_OP_ADD:        AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_ADD_B );   break;
+      case KW_OP_SUB:        AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_SUB_B );   break;
+      case KW_OP_AND:        AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_AND_B );   break;
+      case KW_OP_OR:         AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_OR_B  );   break;
+      case KW_OP_XOR:        AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_XOR_B );   break;
+      case KW_OP_ASL:        AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_ASL_B );   break;
+      case KW_OP_ASR:        AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_ASR_B );   break;
+      case KW_OP_LSL:        AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_LSL_B );   break;
+      case KW_OP_LSR:        AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_LSR_B );   break;
+      case KW_OP_ROL:        AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_ROL_B );   break;
+      case KW_OP_ROR:        AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_ROR_B );   break;
+      case KW_OP_UMUL:       AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_UMUL_B );  break;
+      case KW_OP_SMUL:       AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_SMUL_B );  break;
+      case KW_OP_CMP:        AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU::OPCODE_CMP_B );   break;
+      case KW_OP_JMP:        AssembleSection_Token_IndirectJump(Asd, BlackCPU::OPCODE_JMP_IND );          break;
+      case KW_OP_JSR:        AssembleSection_Token_IndirectJump(Asd, BlackCPU::OPCODE_JSR_IND );          break;
+
+      case KW_OP_BRA:        AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BRA ); break;
+      case KW_OP_BEQ:        AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BEQ ); break;
+      case KW_OP_BNE:        AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BNE ); break;
+      case KW_OP_BCS:        AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BCS ); break;
+      case KW_OP_BCC:        AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BCC ); break;
+      case KW_OP_BMI:        AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BMI ); break;
+      case KW_OP_BPL:        AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BPL ); break;
+      case KW_OP_BVS:        AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BVS ); break;
+      case KW_OP_BVC:        AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BVC ); break;
+      case KW_OP_BHI_U:      AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BHI_U);break;
+      case KW_OP_BLE_U:      AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BLE_U);break;
+      case KW_OP_BHE_S:      AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BHE_S);break;
+      case KW_OP_BLO_S:      AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BLO_S);break;
+      case KW_OP_BHI_S:      AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BHI_S);break;
+      case KW_OP_BLE_S:      AssembleSection_Token_ConditionalBranch(Asd, BlackCPU::OPCODE_BRANCH_BLE_S);break;
+
+      case KW_OP_RTS:        AssembleSection_Token_SingleInstruction(Asd, BlackCPU::OPCODE_RTS);         break;
+      case KW_OP_RTI:        AssembleSection_Token_SingleInstruction(Asd, BlackCPU::OPCODE_RTI);         break;
+      case KW_OP_EXT_BW:     AssembleSection_Token_OneParameterAritmetic(Asd, BlackCPU::OPCODE_EXT_BW);  break;
+      case KW_OP_EXT_BL:     AssembleSection_Token_OneParameterAritmetic(Asd, BlackCPU::OPCODE_EXT_BL);  break;
+      case KW_OP_EXT_WL:     AssembleSection_Token_OneParameterAritmetic(Asd, BlackCPU::OPCODE_EXT_WL);  break;
 
       default: break;
     }
+    return(true);
+  }
+
+  bool inline AssembleSection_Label(AssemblyData * Asd, ZParser_Token &Token)
+  {
+    ZParser_Token Token_Separator;
+
+    // Separator :
+
+    Asd->Parser.GetToken(Token_Separator);
+    if ( Token_Separator.TokenType != ZParser_Token::TK_KEYWORD || Token_Separator.KeyWordId != KW_PNK_TWOPOINTS ) {ThrowError(Asd, &Token_Separator, ERROR_EXPECTEDTWOPOINTS); return(false); }
+
+    Asd->LabelStore.StoreLabel(Token.AlphaValue.String, Asd->Address);
+
+    return(true);
+  }
+
+  bool OpenNewSection(AssemblyData * Asd, ULong SectionType, ULong Origin_Address)
+  {
+    Asd->Address = Origin_Address;
+    Asd->SectionSize = 0;
+    Asd->Stream_SectionPos_Save = Asd->Stream.GetPos();
+    Asd->Stream.Put( SectionType ); // MulticharConst('C','O','D','E')
+    Asd->Stream.Put( Origin_Address );
+    Asd->Stream_SectionSize_Ptr = Asd->Stream.GetPointer_ULong();
+    Asd->Stream.Put( 0 );
+
+    return(true);
+  }
+
+  bool CloseSection(AssemblyData * Asd)
+  {
+
+    // If section size is 0, delete it.
+
+    if (Asd->SectionSize == 0)
+    {
+      Asd->Stream.SetPos(Asd->Stream_SectionPos_Save);
+    }
+    else
+    {
+      *Asd->Stream_SectionSize_Ptr = Asd->SectionSize;
+    }
+
     return(true);
   }
 
@@ -411,7 +1020,7 @@ class ZMacroAssembler
       {
         case ZParser_Token::TK_KEYWORD: AssembleSection_Token(Asd, Token); break;
 
-        case ZParser_Token::TK_IDENTIFIER: break;
+        case ZParser_Token::TK_IDENTIFIER: AssembleSection_Label(Asd, Token); break;
         default: break;
 
       }
@@ -422,24 +1031,44 @@ class ZMacroAssembler
 
   public:
 
+  bool Assembly_Pass(AssemblyData * Asd)
+  {
+    bool Result;
+
+    Asd->Parser.Init(Asd->Text->String, Asd->Text->Len, &Asd->KeyworSet);
+    Asd->Address = 0;
+    Asd->Stream.OpenWrite();
+      OpenNewSection(Asd, MulticharConst('C','O','D','E') ,0);
+        Result = AssembleSection(Asd);
+      CloseSection(Asd);
+    Asd->Stream.Close();
+
+    return(Result);
+  }
+
   bool Assemble(ZString & Text)
   {
-
     AssemblyData AsData, * Asd;
+    ZStream_SpecialRamStream Stream;
+
+    // End test
 
     Asd = &AsData;
 
-
-
+    Asd->LabelStore.Clear();
     Asd->Text = &Text;
-
     RegisterKeywords(&Asd->KeyworSet);
-    Asd->Parser.Init(Asd->Text->String, Asd->Text->Len, &Asd->KeyworSet);
 
-    Asd->Address = 0;
+    // Pass 1 : Fill the label table.
 
-    if (!AssembleSection(Asd)) return(false);
-    return (true);
+    if (!Assembly_Pass(Asd)) return(false);
+
+    // Pass 2 : Final pass with right label values.
+
+    if (!Assembly_Pass(Asd)) return(false);
+
+
+    return(true);
   }
 
 

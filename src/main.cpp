@@ -157,9 +157,6 @@ ZGame * Ge;
 double FrameTime;
 
 
-
-
-
 int main(int argc, char *argv[])
 {
   ULong Result;
