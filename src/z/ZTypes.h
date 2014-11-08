@@ -73,7 +73,11 @@
   typedef struct { double Start, End; } ZRect1d;
   typedef struct { ZVector2d Start, End; } ZLineCoords;
 
-#define MANUAL_BREAKPOINT  asm volatile ("int3;")
+#ifdef WIN32
+#  define MANUAL_BREAKPOINT  DebugBreak();
+#else
+#  define MANUAL_BREAKPOINT  asm volatile ("int3;")
+#endif
   // User defined complex class types.
 
 #ifndef Z_ZTYPE_ZVECTOR3D_H
@@ -100,6 +104,10 @@
 
 #ifndef Z_ZTYPE_ZVECTOR3L_CROSSFUNC_H
 #  include "ZType_ZVector3L_CrossFunc.h"
+#endif
+
+#ifndef Z_ZTYPE_ZMATRIX_H
+#  include "ZType_ZMatrix.h"
 #endif
 
 typedef struct { ZVector3L Start, End; } ZRect3L;

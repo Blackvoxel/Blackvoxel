@@ -26,6 +26,15 @@
 #include "ZMemPool_Optimized.h"
 #include <stdio.h>
 
+#ifndef __GNUC__
+// __64__ needs to be defined in Build (make/Cmake) scripts.
+#  ifdef __64__
+#    define __sync_bool_compare_and_swap(a,b,c) InterlockedCompareExchange64((__int64*)a,(__int64)b,(__int64)c)
+#  else
+#    define __sync_bool_compare_and_swap(a,b,c) InterlockedCompareExchange(a,b,c)
+#  endif
+#endif
+
 bool ZMemPool_Optimized::Initialized = false;
 char ZMemPool_Optimized::BitPosTable[65536];
 

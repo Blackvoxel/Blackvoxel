@@ -1,5 +1,21 @@
-
-
+/*
+ * This file is part of Blackvoxel.
+ *
+ * Copyright 2010-2014 Laurent Thiebaut & Olivia Merle
+ *     contributed by: d3x0r (github)
+ * Blackvoxel is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Blackvoxel is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #ifndef Z_ZTYPE_ZMATRIX_H
 #define Z_ZTYPE_ZMATRIX_H
 
@@ -16,7 +32,6 @@ class ZMatrix
 #define vRight 0
 #define vUp 1
 #define vForward 2
-#define DOFUNC(n) n
 
 	int nTime;
 	double s[4];
@@ -478,9 +493,9 @@ public:
 		 // this origin, and then rotates according to the
 		 // above matrix... so I need to undo having the correct
 		// bias on the translation.
-		 //DOFUNC(ApplyInverseRotation)( pt, gl_m[3], m[3] );
+		 //ApplyInverseRotation( pt, gl_m[3], m[3] );
 		//Invert( m[2] );
-		DOFUNC(ApplyInverseRotation)( (ZVector3d*)gl_m[3], (ZVector3d*)m[3] );
+		ApplyInverseRotation( (ZVector3d*)gl_m[3], (ZVector3d*)m[3] );
 		//Invert( m[2] );
 		Invert( gl_m[3] );
 
@@ -593,6 +608,9 @@ public:
 
 };
 
+#undef vRight
+#undef vUp
+#undef vForward
 
 
 #endif
