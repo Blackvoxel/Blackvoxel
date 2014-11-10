@@ -49,7 +49,7 @@ void * ZMemPool_Optimized::AllocMem( const ZMemSize Size, ZMemSize & NewSize)
     if ( (NewBlock = MemTable[BitPosition] ))
     {
       if (__sync_bool_compare_and_swap(&MemTable[BitPosition],NewBlock,NewBlock->Next))
-	  {
+      {
         return((void *) (((char *)NewBlock) + 16));
       }
     }
@@ -113,5 +113,4 @@ void ZMemPool_Optimized::FreeMem( void * Block )
     MemBlock->Next = MemTable[Index];
 
   } while(! __sync_bool_compare_and_swap( &MemTable[Index] , MemBlock->Next , MemBlock ));
-
 }
