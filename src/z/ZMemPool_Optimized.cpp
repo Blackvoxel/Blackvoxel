@@ -24,11 +24,8 @@
  */
 
 #include "ZMemPool_Optimized.h"
-#include <stdio.h>
-
-#ifndef __GNUC__
-#    define __sync_bool_compare_and_swap(a,b,c) (InterlockedCompareExchangePointer((void*volatile*)a,c,b), (*a)==(c))
-#endif
+#include "../ZOs_Specific_various.h"
+//#include <stdio.h>
 
 bool ZMemPool_Optimized::Initialized = false;
 char ZMemPool_Optimized::BitPosTable[65536];
