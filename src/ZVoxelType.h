@@ -59,6 +59,8 @@ class ZGame;
 class ZStream_SpecialRamStream;
 class ZFabInfos;
 class ZVoxelTypeManager;
+class ZActiveVoxelInterface;
+
 
 class ZVoxelType
 {
@@ -175,6 +177,10 @@ class ZVoxelType
     virtual bool  Interface_GetInfoDoc(ULong InfoNum, ULong DocType, ZVar * Out) { return(false); }
     virtual bool  Interface_SetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * In)  { return(false); }
     virtual void  GetBlockInformations(VoxelLocation * DestLocation, ZString & Infos) { return; }
+
+    // When an active voxel should be processed. Note some voxels use "direct" faster way.
+
+    virtual void  ActiveProcess( ZActiveVoxelInterface * AvData) {};
 };
 
 

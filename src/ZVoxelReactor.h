@@ -106,6 +106,7 @@ class ZVoxelReactor
   protected:
 
     // Fast computing offsets;
+
     UByte Of_x[ZVOXELBLOCSIZE_X+2];
     UByte Of_y[ZVOXELBLOCSIZE_Y+2];
     UByte Of_z[ZVOXELBLOCSIZE_Z+2];

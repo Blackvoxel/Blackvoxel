@@ -43,21 +43,30 @@ class ZGame;
 class ZVoxelExtension
 {
   public:
-  ULong ExtensionType;
 
+    // Extension type
 
+    ULong ExtensionType;
 
-  enum ExtensionTypes { Extension_None = 0,Extension_Storage=1, Extension_UserTextureTransformer = 2, Extension_PlaneZ1 = 3, Extension_TransformationMachine = 4,
-                        Extension_Programmable = 5, Extension_FusionElement = 6, Extension_BlastFurnace = 7, Extension_MiningRobot_xr1 = 8,
-                        Extension_Sequencer = 9, Extension_Egmy_T1 = 10 };
+    // Extension type definition.
 
-  virtual ULong GetExtensionID() {return(0);}
-  virtual bool Save(ZStream_SpecialRamStream * Stream)=0;
-  virtual bool Load(ZStream_SpecialRamStream * Stream)=0;
-  virtual void SetGameEnv(ZGame * GameEnv) { }
-  virtual ZVoxelExtension * GetNewCopy() { return(0); }
+    enum ExtensionTypes { Extension_None = 0,Extension_Storage=1, Extension_UserTextureTransformer = 2, Extension_PlaneZ1 = 3, Extension_TransformationMachine = 4,
+                          Extension_Programmable = 5, Extension_FusionElement = 6, Extension_BlastFurnace = 7, Extension_MiningRobot_xr1 = 8,
+                          Extension_Sequencer = 9, Extension_Egmy_T1 = 10, Extension_GeneralModing = 11 };
 
-  virtual ~ZVoxelExtension() {}
+  protected:
+
+    bool _ThrowExtension(ZStream_SpecialRamStream * Stream, ZMemSize ExtensionSize);
+
+  public:
+
+    virtual ULong GetExtensionID() { return(MulticharConst('N','S','P','C'));}
+    virtual bool Save(ZStream_SpecialRamStream * Stream)=0;
+    virtual bool Load(ZStream_SpecialRamStream * Stream)=0;
+    virtual void SetGameEnv(ZGame * GameEnv) { }
+    virtual ZVoxelExtension * GetNewCopy() { return(0); }
+
+    virtual ~ZVoxelExtension() {}
 };
 
 
