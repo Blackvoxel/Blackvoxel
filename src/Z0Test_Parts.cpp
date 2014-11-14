@@ -30,17 +30,35 @@
 #  include "ZMacroAssembler.h"
 #endif
 
+#ifndef Z_ZVCPU_H
+#  include "ZVCPU.h"
+#endif
+
+#ifndef Z_ZVMACHINE_T1_H
+#  include "ZVMachine_T1.h"
+#endif
+
+#ifndef Z_ZSTREAMS_FILE_H
+#  include "z/ZStream_File.h"
+#endif
+
 bool ZTest_Parts::RunTestCode()
 {
+  ZStream_File Stream;
+  ZString Text, Out;
   printf("Test Parts");
 
-  ZString Text;
-
-  Text = "  move.b #10,r0";
+  Stream.SetFileName("/home/laurent/workspace/a_newblackvoxel/test.zcpuasm");
+  Stream.GetFileContent(Text);
+  //Text = "  move.b #10,r0";
 
   ZMacroAssembler Mass;
 
-  Mass.Assemble(Text);
+  Mass.Assemble(Text, Out);
+  Stream.SetFileName("test.bin");
+  Stream.PutFileContent(Out);
+
+  BlackCPU<ZVMachine_T1> Cpu;
 
 
   return(false);

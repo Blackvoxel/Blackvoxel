@@ -118,6 +118,7 @@ class ZMonoSizeMemoryPool : public ZMemoryPool
       MemorySize = 0;
       AllocCount = 0;
       FreeCount  = 0;
+      AllocSize  = 0;
     }
 
     virtual ~ZMonoSizeMemoryPool()

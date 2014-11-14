@@ -85,7 +85,7 @@ struct StatusRegister_BCPU
   bool CarryFlag:1;
 };
 
-
+template <typename ZVMachine>
 class BlackCPU
 {
   public:
@@ -108,9 +108,9 @@ class BlackCPU
   };
 
   ZGeneralRegister GeneralRegister[16];
-  ULong ProgramCounter;
-  ZStatusRegister StatusRegister;
-  
+  ULong            ProgramCounter;
+  ZStatusRegister  StatusRegister;
+  ZVMachine      * VMachine;
   
   BlackCPU()
   {
@@ -119,6 +119,13 @@ class BlackCPU
     for(i=0;i<16;i++) GeneralRegister[i].Reg_ULargest = 0;
     ProgramCounter = 0;
     StatusRegister.WholeRegister = 0;
+
+    VMachine = 0;
+  }
+
+  void SetVMachine(ZVMachine * VMachine)
+  {
+    this->VMachine = VMachine;
   }
 
   inline void Status_Test_ZN_8(UByte Data, ZStatusRegister &Status)
@@ -147,14 +154,12 @@ class BlackCPU
 
   inline UByte FetchOpcode(ULong ProgramCounter)
   {
-    //return(optable[ProgramCounter]);
-    return(0);
+    return( VMachine->FetchOpcode(ProgramCounter) );
   }
   
   inline UByte FetchOperand_8(ULong ProgramCounter)
   {
-    //return(optable[ProgramCounter]);
-    return(0);
+    return( VMachine->FetchOperand_8(ProgramCounter) );
   }
 
   inline UShort FetchOperand_16(ULong ProgramCounter)
@@ -169,11 +174,6 @@ class BlackCPU
     return(0);
   }
 
-  inline UELong FetchOperand_64(ULong ProgramCounter)
-  {
-    //return(optable[ProgramCounter]);
-    return(0);
-  }
 
   inline UByte ReadMemory_8(ULong Address)
   {
@@ -383,1341 +383,703 @@ class BlackCPU
 
 // ---------------- MOVE
 
-        case OPCODE_MOVE_IMM_B:   // move.b #imm,reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-                        Op2 = FetchOperand_8(ProgramCounter); ProgramCounter+=2; // Immediate value
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        GeneralRegister[Op1 & 0x0f].Reg_UByte = Op2;
-                        Status_Test_ZN_8(Op2,Status);
-#else
-                        asm
-                        (
-                          "testb %b3,%b3;"
-                          "movb  %b3,%b0;"
-                          "lahf;"
-                          "rcrl $1,%1;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%1;"
-                          : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
-                          : "1" (Status), "q" (Op2)
-                          : "%eax"
-                        );
-#endif
-                        break;
+        case OPCODE_MOVE_IMM_B:       // move.b #imm,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Op2 = FetchOperand_8(ProgramCounter); ProgramCounter+=2; // Immediate value
+                                      GeneralRegister[Op1 & 0x0f].Reg_UByte = Op2;
+                                      Status_Test_ZN_8(Op2,Status);
+                                      ElapsedCycles += 8;
+                                      break;
 
-        case OPCODE_MOVE_IMM_W:  // move.w #imm,reg
-                        Op1 = FetchOperand_8(ProgramCounter++) & 0x0f; // Register
-                        Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Immediate value
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        GeneralRegister[Op1 & 0x0f].Reg_UWord = Op2;
-                        Status_Test_ZN_16(Op2,Status);
-#else
-                        asm
-                        (
-                          "testw %w3,%w3;"
-                          "movw  %w3,%w0;"
-                          "lahf;"
-                          "rcrl $1,%1;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%1;"
-                          : "=m" (GeneralRegister[Op1]), "=q" (Status)
-                          : "1" (Status), "q" (Op2)
-                          : "%eax"
-                        );
-#endif
-                        break;
+        case OPCODE_MOVE_IMM_W:       // move.w #imm,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++) & 0x0f; // Register
+                                      Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Immediate value
+                                      GeneralRegister[Op1 & 0x0f].Reg_UWord = Op2;
+                                      Status_Test_ZN_16(Op2,Status);
+                                      ElapsedCycles += 10;
+                                      break;
 
-        case OPCODE_MOVE_IMM_L:   // move.l #imm,reg
-                        Op1 = FetchOperand_8(ProgramCounter++) & 0x0f; // Register
-                        Op2 = FetchOperand_32(ProgramCounter); ProgramCounter+=4;  // Immediate value
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        GeneralRegister[Op1 & 0x0f].Reg_ULong = Op2;
-                        Status_Test_ZN_32(Op2,Status);
-#else
-                        asm
-                        (
-                          "testl %3,%3;"
-                          "movl  %3,%0;"
-                          "lahf;"
-                          "rcrl $1,%1;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%1;"
-                          : "=m" (GeneralRegister[Op1]), "=q" (Status)
-                          : "1" (Status), "q" (Op2)
-                          : "%eax"
-                        );
-#endif
-                   break;
+        case OPCODE_MOVE_IMM_L:       // move.l #imm,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++) & 0x0f; // Register
+                                      Op2 = FetchOperand_32(ProgramCounter); ProgramCounter+=4;  // Immediate value
+                                      GeneralRegister[Op1 & 0x0f].Reg_ULong = Op2;
+                                      Status_Test_ZN_32(Op2,Status);
+                                      ElapsedCycles += 14;
+                                      break;
 
         case OPCODE_MOVE_IND_REG_B:   // move.b (reg),reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-           Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte = ReadMemory_8(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
-                            ,Status );
-#else
-           asm
-           (
-             "movb %3,%%al;"
-             "movb %%al,%0;"
-             "testb %%al,%%al;"
-             "lahf;"
-             "rcrl $1,%1;"
-             "rcrl $15,%%eax;"
-             "rcrl $1,%1;"
-             "rcrl $1,%%eax;"
-             "rcll $2,%1;"
-             : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
-             : "1" (Status), "q" (ReadMemory_8(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest))
-             : "%eax"
-           );
-#endif
-   break;
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte = ReadMemory_8(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
+                                                        ,Status );
+                                      ElapsedCycles += 8;
+                                      break;
+
         case OPCODE_MOVE_IND_REG_W:   // move.w (reg),reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord = ReadMemory_16(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
-                                          ,Status );
-#else
-                        asm
-                        (
-                          "movw %w3,%%ax;"
-                          "movw %%ax,%w0;"
-                          "testw %%ax,%%ax;"
-                          "lahf;"
-                          "rcrl $1,%1;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%1;"
-                          : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
-                          : "1" (Status), "q" (ReadMemory_16(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest))
-                          : "%eax"
-                        );
-#endif
-                        break;
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord = ReadMemory_16(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
+                                                         ,Status );
+                                      ElapsedCycles += 10;
+                                      break;
 
         case OPCODE_MOVE_IND_REG_L:   // move.l (reg),reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong = ReadMemory_32(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
-                                           ,Status );
-#else
-                        asm
-                        (
-                          "movl %3,%%eax;"
-                          "movl %%eax,%0;"
-                          "testl %%eax,%%eax;"
-                          "lahf;"
-                          "rcrl $1,%1;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%1;"
-                          : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
-                          : "1" (Status), "q" (ReadMemory_32(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest))
-                          : "%eax"
-                        );
-#endif
-                        break;
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong = ReadMemory_32(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
+                                                         ,Status );
+                                      ElapsedCycles += 14;
+                                      break;
 
         case OPCODE_MOVE_REG_IND_B:   // move.b reg,(reg)
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        WriteMemory_8(GeneralRegister[Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_UByte);
-                        Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)>>4].Reg_UByte ,Status );
-#else
-#endif
-                        break;
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      WriteMemory_8(GeneralRegister[Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_UByte);
+                                      Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)>>4].Reg_UByte ,Status );
+                                      ElapsedCycles += 8;
+                                      break;
 
         case OPCODE_MOVE_REG_IND_W:   // move.w reg,(reg)
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        WriteMemory_8(GeneralRegister[Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_UWord);
-                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)>>4].Reg_UWord ,Status );
-#else
-#endif
-                        break;
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      WriteMemory_8(GeneralRegister[Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_UWord);
+                                      Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)>>4].Reg_UWord ,Status );
+                                      ElapsedCycles += 10;
+                                      break;
 
         case OPCODE_MOVE_REG_IND_L:   // move.b reg,(reg)
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        WriteMemory_8(GeneralRegister[Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_ULong);
-                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest ,Status );
-#else
-#endif
-                        break;
-
-
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      WriteMemory_8(GeneralRegister[Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_ULong);
+                                      Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest ,Status );
+                                      ElapsedCycles += 14;
+                                      break;
 
         case OPCODE_MOVE_REG_REG_B:   // move.b reg,reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        Status_Test_ZN_8( GeneralRegister[Op1&0x0f].Reg_UByte = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
-                                          ,Status );
-#else
-                        GeneralRegister[Op1&0x0f].Reg_UByte = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
-                        asm
-                        (
-                          "testb %b2,%b2;"
-                          "lahf;"
-                          "rcrl $1,%0;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%0;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%0;"
-                          : "=q" (Status)
-                          : "0" (Status), "r" (GeneralRegister[(Op1&0xf0)>>4])
-                          : "%eax"
-                        );
-#endif
-                        break;
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_8( GeneralRegister[Op1&0x0f].Reg_UByte = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
+                                                        ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
 
         case OPCODE_MOVE_REG_REG_W:   // move.w reg,reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        Status_Test_ZN_16( GeneralRegister[Op1&0x0f].Reg_UWord = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
-                                          ,Status );
-#else
-                        GeneralRegister[Op1&0x0f].Reg_UWord = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord;
-                        asm
-                        (
-                          "testw %w2,%w2;"
-                          "lahf;"
-                          "rcrl $1,%0;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%0;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%0;"
-                          : "=q" (Status)
-                          : "0" (Status), "r" (GeneralRegister[(Op1&0xf0)>>4])
-                          : "%eax"
-                        );
-#endif
-                        break;
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_16( GeneralRegister[Op1&0x0f].Reg_UWord = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
 
         case OPCODE_MOVE_REG_REG_L:   // move.l reg,reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        Status_Test_ZN_32( GeneralRegister[Op1&0x0f].Reg_ULong = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
-                                           ,Status );
-#else
-                        GeneralRegister[Op1&0x0f].Reg_ULong = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong;
-                        asm
-                        (
-                          "testl %2,%2;"
-                          "lahf;"
-                          "rcrl $1,%0;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%0;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%0;"
-                          : "=q" (Status)
-                          : "0" (Status), "r" (GeneralRegister[(Op1&0xf0)>>4])
-                          : "%eax"
-                        );
-#endif
-                        break;
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_32( GeneralRegister[Op1&0x0f].Reg_ULong = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
 
-        case OPCODE_MOVEX_IMM_SB:    // movex.sb #imm,reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-                        Op2 = FetchOperand_8(ProgramCounter++);  // Immediate value
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        GeneralRegister[Op1 & 0x0f].Reg_SLargest = (Byte)Op2;
-                        Status_Test_ZN_8(Op2,Status);
-#else
-                        asm
-                        (
-                          "testb %b3,%b3;"
-                          "lahf;"
-                          "rcrl $1,%1;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%1;"
-                          "movsbl %b3,%%eax;"
-                          "movl %%eax,%0;"
-                          : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
-                          : "1" (Status), "q" (Op2)
-                          : "%eax"
-                        );
-#endif
-                        break;
-        case OPCODE_MOVEX_IMM_SW:   // movex.sw #imm,reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-                        Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Immediate value
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        GeneralRegister[Op1 & 0x0f].Reg_SLargest = (Short)Op2;
-                        Status_Test_ZN_16(Op2,Status);
-#else
-                        asm
-                        (
-                          "testw %w3,%w3;"
-                          "lahf;"
-                          "rcrl $1,%1;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%1;"
-                          "movswl %w3,%%eax;"
-                          "movl   %%eax,%0;"
-                          : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
-                          : "1" (Status), "q" (Op2)
-                          : "%eax"
-                        );
-#endif
-                        break;
+        case OPCODE_MOVEX_IMM_SB:     // movex.sb #imm,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Op2 = FetchOperand_8(ProgramCounter++);  // Immediate value
+                                      GeneralRegister[Op1 & 0x0f].Reg_SLargest = (Byte)Op2;
+                                      Status_Test_ZN_8(Op2,Status);
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_MOVEX_IMM_SW:     // movex.sw #imm,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Immediate value
+                                      GeneralRegister[Op1 & 0x0f].Reg_SLargest = (Short)Op2;
+                                      Status_Test_ZN_16(Op2,Status);
+                                      ElapsedCycles += 8;
+                                      break;
 
 
-        case OPCODE_MOVEX_IMM_UB:   // movex.ub #imm,reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-                        Op2 = FetchOperand_8(ProgramCounter++);  // Immediate value
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        GeneralRegister[Op1 & 0x0f].Reg_ULargest = (UByte)Op2;
-                        Status_Test_ZN_8(Op2,Status);
-#else
-                        asm
-                        (
-                          "testb %b3,%b3;"
-                          "lahf;"
-                          "rcrl $1,%1;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%1;"
-                          "movzbl %b3,%%eax;"
-                          "movl   %%eax,%0;"
-                          : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
-                          : "1" (Status), "q" (Op2)
-                          : "%eax"
-                        );
-#endif
-                        break;
+        case OPCODE_MOVEX_IMM_UB:     // movex.ub #imm,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Op2 = FetchOperand_8(ProgramCounter++);  // Immediate value
+                                      GeneralRegister[Op1 & 0x0f].Reg_ULargest = (UByte)Op2;
+                                      Status_Test_ZN_8(Op2,Status);
+                                      ElapsedCycles += 8;
+                                      break;
 
-         case OPCODE_MOVEX_IMM_UW:  // movex.uw #imm,reg
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-                        Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Immediate value
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        GeneralRegister[Op1 & 0x0f].Reg_ULargest = (UShort)Op2;
-                        Status_Test_ZN_16(Op2,Status);
-#else
-                        asm
-                        (
-                          "testw %w3,%w3;"
-                          "lahf;"
-                          "rcrl $1,%1;"
-                          "rcrl $15,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcll $2,%1;"
-                          "movzwl %w3,%%eax;"
-                          "movl %%eax,%0;"
-                          : "=m" (GeneralRegister[Op1&0x0f]), "=q" (Status)
-                          : "1" (Status), "q" (Op2)
-                          : "%eax"
-                        );
-#endif
-                        break;
-
-
+         case OPCODE_MOVEX_IMM_UW:    // movex.uw #imm,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Immediate value
+                                      GeneralRegister[Op1 & 0x0f].Reg_ULargest = (UShort)Op2;
+                                      Status_Test_ZN_16(Op2,Status);
+                                      ElapsedCycles += 10;
+                                      break;
 
         case OPCODE_PUSHREGS:         // pushregs R0-R14(reg)
-                        {
-                          Op1 = FetchOperand_16(ProgramCounter++); // Register
-                          for(i=0;i<15;i++)
-                          {
-                            if (Op1&1) PushStack_32(GeneralRegister[i].Reg_ULargest);
-                            Op1>>=1;
-                          }
-                        }
-                        break;
+                                      {
+                                        Op1 = FetchOperand_16(ProgramCounter++); // Register
+                                        ElapsedCycles += 8;
+                                        for(i=0;i<15;i++)
+                                        {
+                                          if (Op1&1) {PushStack_32(GeneralRegister[i].Reg_ULargest); ElapsedCycles += 4;}
+                                          Op1>>=1;
+                                        }
+                                      }
+                                      break;
 
-        case OPCODE_POPREGS:         // popregs R0-R15
-                        Op1 = FetchOperand_16(ProgramCounter++); // Register
-                        for(i=14;i<15;i--)
-                        {
-                          if (Op1&0x04000) GeneralRegister[i].Reg_ULargest = PopStack_32();
-                          Op1<<=1;
-                        }
-                        break;
+        case OPCODE_POPREGS:          // popregs R0-R15
+                                      Op1 = FetchOperand_16(ProgramCounter++); // Register
+                                      ElapsedCycles += 8;
+                                      for(i=14;i<15;i--)
+                                      {
+                                        if (Op1&0x04000) {GeneralRegister[i].Reg_ULargest = PopStack_32(); ElapsedCycles += 4; }
+                                        Op1<<=1;
+                                      }
+                                      break;
 
-        case OPCODE_ADD_B:   // add.b reg,reg (No carry)
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        {
-                          register UByte D1,D2,D3;
-                          D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
-                          D2 = GeneralRegister[Op1&0xf].Reg_UByte;
-                          D3 = D1+D2;
-                          GeneralRegister[Op1&0xf].Reg_UByte = D3;
-                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-                          Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
-                          Status.Flags.ZeroFlag = (!D3);
-                          Status.Flags.NegativeFlag = ((Byte)D3 < 0);
-                        }
-#else
-                        asm
-                        (
-                          "addb %b2,%b0;"
-                          "pushf;"
-                          "popl %%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $7,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $4,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcll $0xB,%%eax;"
-                          "rcll $4,%1;"
-                          : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                          : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                          : "%eax"
-                        );
-#endif
-                        break;
+        case OPCODE_ADD_B:            // add.b reg,reg (No carry)
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register UByte D1,D2,D3;
+                                        D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
+                                        D2 = GeneralRegister[Op1&0xf].Reg_UByte;
+                                        D3 = D1+D2;
+                                        GeneralRegister[Op1&0xf].Reg_UByte = D3;
+                                        Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
+                                        Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
+                                        Status.Flags.ZeroFlag = (!D3);
+                                        Status.Flags.NegativeFlag = ((Byte)D3 < 0);
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
 
-        case OPCODE_ADD_W:   // add.w reg,reg (No carry)
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        {
-                          register UShort D1,D2,D3;
-                          D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord;
-                          D2 = GeneralRegister[Op1&0xf].Reg_UWord;
-                          D3 = D1+D2;
-                          GeneralRegister[Op1&0xf].Reg_UWord = D3;
-                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-                          Status.Flags.OverflowFlag = ((Short)((D1^D3) & (~(D1^D2))) < 0);
-                          Status.Flags.ZeroFlag = (!D3);
-                          Status.Flags.NegativeFlag = ((Short)D3 < 0);
-                        }
-#else
-                        asm
-                        (
-                          "addw %w2,%w0;"
-                          "pushf;"
-                          "popl %%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $7,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $4,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcll $0xB,%%eax;"
-                          "rcll $4,%1;"
-                          : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                          : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                          : "%eax"
-                        );
-#endif
-                        break;
+        case OPCODE_ADD_W:            // add.w reg,reg (No carry)
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register UShort D1,D2,D3;
+                                        D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord;
+                                        D2 = GeneralRegister[Op1&0xf].Reg_UWord;
+                                        D3 = D1+D2;
+                                        GeneralRegister[Op1&0xf].Reg_UWord = D3;
+                                        Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
+                                        Status.Flags.OverflowFlag = ((Short)((D1^D3) & (~(D1^D2))) < 0);
+                                        Status.Flags.ZeroFlag = (!D3);
+                                        Status.Flags.NegativeFlag = ((Short)D3 < 0);
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
 
-        case OPCODE_ADD_L:   // add.l reg,reg (No carry)
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                        {
-                          register ULong D1,D2,D3;
-                          D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong;
-                          D2 = GeneralRegister[Op1&0xf].Reg_ULong;
-                          D3 = D1+D2;
-                          GeneralRegister[Op1&0xf].Reg_ULong = D3;
-                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-                          Status.Flags.OverflowFlag = ((Long)((D1^D3) & (~(D1^D2))) < 0);
-                          Status.Flags.ZeroFlag = (!D3);
-                          Status.Flags.NegativeFlag = ((Long)D3 < 0);
-                        }
-#else
-                        asm
-                        (
-                          "addl %2,%0;"
-                          "pushf;"
-                          "popl %%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $7,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $4,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcll $0xB,%%eax;"
-                          "rcll $4,%1;"
-                          : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                          : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                          : "%eax"
-                        );
-#endif
-                        break;
+        case OPCODE_ADD_L:            // add.l reg,reg (No carry)
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register ULong D1,D2,D3;
+                                        D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong;
+                                        D2 = GeneralRegister[Op1&0xf].Reg_ULong;
+                                        D3 = D1+D2;
+                                        GeneralRegister[Op1&0xf].Reg_ULong = D3;
+                                        Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
+                                        Status.Flags.OverflowFlag = ((Long)((D1^D3) & (~(D1^D2))) < 0);
+                                        Status.Flags.ZeroFlag = (!D3);
+                                        Status.Flags.NegativeFlag = ((Long)D3 < 0);
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
 
-        case OPCODE_SUB_B:   // sub.b reg,reg (No carry)
-                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-                        {
-                          register UByte D1,D2,D3;
-                          D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
-                          D2 = GeneralRegister[Op1&0xf].Reg_UByte;
-                          D3 = D1-D2;
-                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-                          Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
-                          Status.Flags.ZeroFlag = (!D3);
-                          Status.Flags.NegativeFlag = ((Byte)D3 < 0);
-                        }
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-#else
-                        asm
-                        (
-                          "subb %b2,%b0;"
-                          "pushf;"
-                          "popl %%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $7,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $1,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcrl $4,%%eax;"
-                          "rcrl $1,%1;"
-                          "rcll $0xB,%%eax;"
-                          "rcll $4,%1;"
-                          : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                          : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                          : "%eax"
-                        );
-#endif
-                break;
-        case OPCODE_SUB_W: // sub.w reg,reg (No carry)
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-#else
-                asm
-                (
-                  "subw %w2,%w0;"
-                  "pushf;"
-                  "popl %%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $7,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $4,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcll $0xB,%%eax;"
-                  "rcll $4,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax"
-                );
-#endif
-                break;
-        case OPCODE_SUB_L: // sub.l reg,reg (No carry)
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-#else
-                asm
-                (
-                  "subl %2,%0;"
-                  "pushf;"
-                  "popl %%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $7,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $4,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcll $0xB,%%eax;"
-                  "rcll $4,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax"
-                );
-#endif
-                break;
-        case OPCODE_AND_B: // and.b reg,reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte &= GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
-                                 ,Status );
-#else
-                asm
-                (
-                  "andb %b2,%b0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcll $2,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax"
-                );
-#endif
-                break;
-        case OPCODE_AND_W: // and.w reg,reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord &= GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
-                                   ,Status );
-#else
-                asm
-                (
-                  "andw %w2,%w0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcll $2,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax"
-                );
-#endif
-                break;
-        case OPCODE_AND_L: // and.l reg,reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong &= GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
-                                  ,Status );
-#else
-                asm
-                (
-                  "andl %2,%0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcll $2,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax"
-                );
-#endif
-                break;
-        case OPCODE_OR_B: // or.b  reg,reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte |= GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
-                                  ,Status );
-#else
-                asm
-                (
-                  "orb %b2,%b0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcll $2,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax"
-                );
-#endif
-                break;
-        case OPCODE_OR_W: // or.w  reg,reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord |= GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
-                                   ,Status );
-#else
-                asm
-                (
-                  "orw %w2,%w0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcll $2,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax"
-                );
-#endif
-                break;
-        case OPCODE_OR_L: // or.l  reg,reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong |= GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
-                                   ,Status );
-#else
-                asm
-                (
-                  "orl %2,%0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcll $2,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax"
-                );
-#endif
-                break;
-        case OPCODE_XOR_B: // xor.b reg.reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte ^= GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
-                                  ,Status );
-#else
-                asm
-                (
-                  "xorb %b2,%b0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcll $2,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax"
-                );
-#endif
-                break;
-        case OPCODE_XOR_W: // xor.w reg.reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord ^= GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
-                                  ,Status );
-#else
-                asm
-                (
-                  "xorw %w2,%w0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcll $2,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax"
-                );
-#endif
-                break;
-        case OPCODE_XOR_L: // xor.l reg.reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_ULong ^= GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
-                                  ,Status );
-#else
-                asm
-                (
-                  "xorl %2,%0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcll $2,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "r" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax"
-                );
-#endif
-                break;
-        case OPCODE_ASL_B: // asl.b reg,reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
-                Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_SByte = (GeneralRegister[(Op1&0xf0)].Reg_SByte << GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SByte & 0x80)
-                                  ,Status );
-#else
-                asm
-                (
-                  "movb %b2,%%cl;"
-                  "salb %%cl,%b0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcrl $2,%1;"
-                  "rcll $7,%%eax;"
-                  "rcll $4,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "q" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax","%ecx"
-                );
-#endif
-                break;
-        case OPCODE_ASL_W: // asl.w reg,reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
-                Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_SWord = (GeneralRegister[(Op1&0xf0)].Reg_SWord << GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SWord & 0x8000)
-                                   ,Status );
-#else
-                asm
-                (
-                  "movb %b2,%%cl;"
-                  "salw %%cl,%w0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcrl $2,%1;"
-                  "rcll $7,%%eax;"
-                  "rcll $4,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "q" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax","%ecx"
-                );
-#endif
-                break;
-        case OPCODE_ASL_L: // asl.l reg,reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
-                Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_SLong = (GeneralRegister[(Op1&0xf0)].Reg_SLong << GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SLong & 0x80000000UL)
-                                  ,Status );
-#else
-                asm
-                (
-                  "movb %b2,%%cl;"
-                  "sall %%cl,%0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcrl $2,%1;"
-                  "rcll $7,%%eax;"
-                  "rcll $4,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "q" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax","%ecx"
-                );
-#endif
-                break;
-        case OPCODE_ASR_B: // asr.b reg,reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
+        case OPCODE_SUB_B:            // sub.b reg,reg (No carry)
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register UByte D1,D2,D3;
+                                        D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
+                                        D2 = GeneralRegister[Op1&0xf].Reg_UByte;
+                                        D3 = D1-D2;
+                                        Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
+                                        Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
+                                        Status.Flags.ZeroFlag = (!D3);
+                                        Status.Flags.NegativeFlag = ((Byte)D3 < 0);
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
 
-#else
-                asm
-                (
-                  "movb %b2,%%cl;"
-                  "sarb %%cl,%b0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcrl $2,%1;"
-                  "rcll $7,%%eax;"
-                  "rcll $4,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "q" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax","%ecx"
-                );
-#endif
-                break;
-        case OPCODE_ASR_W: // asr.w reg,reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
-                Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_SWord = (GeneralRegister[(Op1&0xf0)].Reg_SWord >> GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SWord & 0x8000)
-                                   ,Status );
-#else
-                asm
-                (
-                  "movb %b2,%%cl;"
-                  "sarb %%cl,%w0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcrl $2,%1;"
-                  "rcll $7,%%eax;"
-                  "rcll $4,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "q" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax","%ecx"
-                );
-#endif
-                break;
-        case OPCODE_ASR_L: // asr.l reg,reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
-                Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_SLong = (GeneralRegister[(Op1&0xf0)].Reg_SLong >> GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SLong & 0x80000000UL)
-                                   ,Status );
-#else
-                asm
-                (
-                  "movb %b2,%%cl;"
-                  "sarl %%cl,%0;"
-                  "lahf;"
-                  "rcrl $1,%1;"
-                  "rcrl $15,%%eax;"
-                  "rcrl $1,%1;"
-                  "rcrl $1,%%eax;"
-                  "rcrl $2,%1;"
-                  "rcll $7,%%eax;"
-                  "rcll $4,%1;"
-                  : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-                  : "q" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-                  : "%eax","%ecx"
-                );
-#endif
-                break;
-        case OPCODE_LSL_B:// lsl.b reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
-          Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_SByte <<= GeneralRegister[Op1&0xf].Reg_UByte
-                            ,Status );
-#else
-          asm
-          (
-            "movb %b2,%%cl;"
-            "shlb %%cl,%b0;"
-            "lahf;"
-            "rcrl $1,%1;"
-            "rcrl $15,%%eax;"
-            "rcrl $1,%1;"
-            "rcrl $1,%%eax;"
-            "rcrl $2,%1;"
-            "rcll $7,%%eax;"
-            "rcll $4,%1;"
-            : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-            : "q" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-            : "%eax","%ecx"
-          );
-#endif
-          break;
+        case OPCODE_SUB_W:            // sub.w reg,reg (No carry)
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      ElapsedCycles += 6;
+                                      // Todo
+                                      break;
 
-        case OPCODE_LSL_W:// lsl.w reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
-          Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_SWord <<= GeneralRegister[Op1&0xf].Reg_UByte
-                             ,Status );
-#else
-          asm
-          (
-            "movb %b2,%%cl;"
-            "shlw %%cl,%w0;"
-            "lahf;"
-            "rcrl $1,%1;"
-            "rcrl $15,%%eax;"
-            "rcrl $1,%1;"
-            "rcrl $1,%%eax;"
-            "rcrl $2,%1;"
-            "rcll $7,%%eax;"
-            "rcll $4,%1;"
-            : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-            : "q" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-            : "%eax","%ecx"
-          );
-#endif
-          break;
-        case OPCODE_LSL_L:// lsl.l reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
-          Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_SLong <<= GeneralRegister[Op1&0xf].Reg_UByte
-                             ,Status );
-#else
-          asm
-          (
-            "movb %b2,%%cl;"
-            "shll %%cl,%0;"
-            "lahf;"
-            "rcrl $1,%1;"
-            "rcrl $15,%%eax;"
-            "rcrl $1,%1;"
-            "rcrl $1,%%eax;"
-            "rcrl $2,%1;"
-            "rcll $7,%%eax;"
-            "rcll $4,%1;"
-            : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-            : "q" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-            : "%eax","%ecx"
-          );
-#endif
-          break;
-        case OPCODE_LSR_B:// lsr.b reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
-          Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_SByte >>= GeneralRegister[Op1&0xf].Reg_UByte
-                            ,Status );
-#else
-          asm
-          (
-            "movb %b2,%%cl;"
-            "shrb %%cl,%b0;"
-            "lahf;"
-            "rcrl $1,%1;"
-            "rcrl $15,%%eax;"
-            "rcrl $1,%1;"
-            "rcrl $1,%%eax;"
-            "rcrl $2,%1;"
-            "rcll $7,%%eax;"
-            "rcll $4,%1;"
-            : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-            : "q" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-            : "%eax","%ecx"
-          );
-#endif
-          break;
-        case OPCODE_LSR_W:// lsr.w reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
-          Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_SWord >>= GeneralRegister[Op1&0xf].Reg_UByte
-                             ,Status );
-#else
-          asm
-          (
-            "movb %b2,%%cl;"
-            "shrw %%cl,%w0;"
-            "lahf;"
-            "rcrl $1,%1;"
-            "rcrl $15,%%eax;"
-            "rcrl $1,%1;"
-            "rcrl $1,%%eax;"
-            "rcrl $2,%1;"
-            "rcll $7,%%eax;"
-            "rcll $4,%1;"
-            : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-            : "q" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-            : "%eax","%ecx"
-          );
-#endif
-          break;
-        case OPCODE_LSR_L:// lsr.l reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
-          Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_SLong >>= GeneralRegister[Op1&0xf].Reg_UByte
-                             ,Status );
-#else
-          asm
-          (
-            "movb %b2,%%cl;"
-            "shrl %%cl,%0;"
-            "lahf;"
-            "rcrl $1,%1;"
-            "rcrl $15,%%eax;"
-            "rcrl $1,%1;"
-            "rcrl $1,%%eax;"
-            "rcrl $2,%1;"
-            "rcll $7,%%eax;"
-            "rcll $4,%1;"
-            : "=m" (GeneralRegister[Op1&0xf])     , "=q" (Status)
-            : "q" (GeneralRegister[(Op1&0xf0)>>4]), "1" (Status)
-            : "%eax","%ecx"
-          );
-#endif
-          break;
-        case OPCODE_ROL_B:// rol.b reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-          {
-            register bool Carry;
-            Carry = Status.Flags.CarryFlag;
-            Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
-            Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_UByte = GeneralRegister[(Op1&0xf0)].Reg_UByte >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
-                               ,Status );
-          }
-#else
-#endif
-          break;
+        case OPCODE_SUB_L:            // sub.l reg,reg (No carry)
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      ElapsedCycles += 6;
+                                      // Todo
+                                      break;
 
-        case OPCODE_ROL_W:// rol.w reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-          {
-            register bool Carry;
-            Carry = Status.Flags.CarryFlag;
-            Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
-            Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_UWord = GeneralRegister[(Op1&0xf0)].Reg_UByte >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
-                               ,Status );
-          }
-#else
-#endif
-          break;
-        case OPCODE_ROL_L:// rol.l reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-          {
-            register bool Carry;
-            Carry = Status.Flags.CarryFlag;
-            Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
-            Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_ULong = GeneralRegister[(Op1&0xf0)].Reg_ULong >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
-                               ,Status );
-          }
-#else
-#endif
-          break;
+        case OPCODE_AND_B:            // and.b reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte &= GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
+                                                        ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
 
+        case OPCODE_AND_W:            // and.w reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord &= GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
+                                                        ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
 
-        case OPCODE_ROR_B:// ror.b reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-          {
-            register bool Carry;
-            Carry = Status.Flags.CarryFlag;
-            Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte | 1;
-            Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_UByte = GeneralRegister[(Op1&0xf0)].Reg_UByte >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
-                               ,Status );
-          }
-#else
-#endif
-          break;
-        case OPCODE_ROR_W:// ror.b reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-          {
-            register bool Carry;
-            Carry = Status.Flags.CarryFlag;
-            Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord | 1;
-            Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_UWord = GeneralRegister[(Op1&0xf0)].Reg_UWord >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
-                               ,Status );
-          }
-#else
-#endif
-          break;
-        case OPCODE_ROR_L:// ror.b reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-          {
-            register bool Carry;
-            Carry = Status.Flags.CarryFlag;
-            Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong | 1;
-            Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_ULong = GeneralRegister[(Op1&0xf0)].Reg_ULong >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
-                               ,Status );
-          }
-#else
-#endif
-          break;
-        case OPCODE_UMUL_B:// umul.b reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-            GeneralRegister[(Op1&0xf0)].Reg_UWord = (GeneralRegister[(Op1&0xf0)].Reg_UByte) * (GeneralRegister[Op1&0xf].Reg_UByte);
-            Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_UWord > 255;
-            Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_UWord ,Status );
-#else
-#endif
-          break;
-        case OPCODE_UMUL_W:// umul.w reg,reg
-            Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-            GeneralRegister[(Op1&0xf0)].Reg_ULong = (GeneralRegister[(Op1&0xf0)].Reg_UWord) * (GeneralRegister[Op1&0xf].Reg_UWord);
-            Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_UWord > 65535;
-            Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_UWord ,Status );
-#else
-#endif
-          break;
-        case OPCODE_UMUL_L:// umul.l reg,reg
-                 Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                 {
-                   UELong Tmp;
-                   Tmp = GeneralRegister[(Op1&0xf0)].Reg_ULong * GeneralRegister[Op1&0xf].Reg_ULong;
-                   GeneralRegister[(Op1&0xf0)].Reg_ULong = (ULong)Tmp;
-                   GeneralRegister[((Op1+0x10)&0xf0)].Reg_ULong = (ULong)(Tmp>>16);
-                   Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_ULong != 0;
-                   Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_ULong ,Status );
-                 }
-#else
-#endif
-          break;
+        case OPCODE_AND_L:            // and.l reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong &= GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
 
+        case OPCODE_OR_B:             // or.b  reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte |= GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
+                                                        ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
 
-        case OPCODE_SMUL_B:// smul.b reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-            GeneralRegister[(Op1&0xf0)].Reg_SWord = (GeneralRegister[(Op1&0xf0)].Reg_SByte) * (GeneralRegister[Op1&0xf].Reg_SByte);
-            Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord > 255;
-            Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_UWord ,Status );
-#else
-#endif
-          break;
-        case OPCODE_SMUL_W:// smul.w reg,reg
-            Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-            GeneralRegister[(Op1&0xf0)].Reg_SLong = (GeneralRegister[(Op1&0xf0)].Reg_SWord) * (GeneralRegister[Op1&0xf].Reg_SWord);
-            Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_UWord > 65535;
-            Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_UWord ,Status );
-#else
-#endif
-          break;
-        case OPCODE_SMUL_L:// smul.l reg,reg
-                 Op1 = FetchOperand_8(ProgramCounter++); // Register
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-                 {
-                   ELong Tmp;
-                   Tmp = GeneralRegister[(Op1&0xf0)].Reg_SLong * GeneralRegister[Op1&0xf].Reg_SLong;
-                   GeneralRegister[(Op1&0xf0)].Reg_ULong = (ULong)Tmp;
-                   GeneralRegister[((Op1+0x10)&0xf0)].Reg_ULong = (ULong)(Tmp>>16);
-                   Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong != 0;
-                   Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_ULong ,Status );
-                 }
-#else
-#endif
-          break;
+        case OPCODE_OR_W:             // or.w  reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord |= GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
 
-        case OPCODE_CMP_B:// cmp.b reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-          {
-            register UByte D1,D2,D3;
-            D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
-            D2 = GeneralRegister[Op1&0xf].Reg_UByte;
-            D3 = D1-D2;
-            Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-            Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
-            Status.Flags.ZeroFlag = (!D3);
-            Status.Flags.NegativeFlag = ((Byte)D3 < 0);
-          }
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-#else
-#endif
-          break;
-        case OPCODE_CMP_W:// cmp.w reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-          {
-            register UShort D1,D2,D3;
-            D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord;
-            D2 = GeneralRegister[Op1&0xf].Reg_UWord;
-            D3 = D1-D2;
-            Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-            Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
-            Status.Flags.ZeroFlag = (!D3);
-            Status.Flags.NegativeFlag = ((Byte)D3 < 0);
-          }
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-#else
-#endif
-          break;
-        case OPCODE_CMP_L:// cmp.l reg,reg
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-          {
-            register ULong D1,D2,D3;
-            D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
-            D2 = GeneralRegister[Op1&0xf].Reg_UByte;
-            D3 = D1-D2;
-            Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-            Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
-            Status.Flags.ZeroFlag = (!D3);
-            Status.Flags.NegativeFlag = ((Byte)D3 < 0);
-          }
-#if Z_ZVCPU_EXPERIMENTAL_ASMCODE==0
-#else
-#endif
-          break;
-        case OPCODE_JMP_IND:// jmp (reg)
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-          ProgramCounter = GeneralRegister[Op1&0xf].Reg_ULargest;
-          break;
-        case OPCODE_BRANCH_BRA:// bra #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          break;
-        case OPCODE_BRANCH_BEQ :// beq #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if (Status.Flags.ZeroFlag) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BNE :// bne #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if (!Status.Flags.ZeroFlag) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BCS : // bcs #imm bhe.u #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if (Status.Flags.CarryFlag) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BCC : // bcc #imm blo.u #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if (!Status.Flags.CarryFlag) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BMI : // bmi #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if (Status.Flags.NegativeFlag) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BPL : // bpl #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if (!Status.Flags.NegativeFlag) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BVS : // bvs #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if (Status.Flags.OverflowFlag) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BVC : // bvc #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if (!Status.Flags.OverflowFlag) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BHI_U : // bhi.u #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if (Status.Flags.CarryFlag && (!Status.Flags.ZeroFlag)) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BLE_U : // ble.u #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if (Status.Flags.CarryFlag && (!Status.Flags.ZeroFlag)) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BHE_S : // bhe.s #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if (Status.Flags.NegativeFlag == Status.Flags.OverflowFlag) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BLO_S : // blo.s #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if (Status.Flags.NegativeFlag != Status.Flags.OverflowFlag) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BHI_S : // bhi.s #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if ((!Status.Flags.ZeroFlag) && (Status.Flags.NegativeFlag == Status.Flags.OverflowFlag)) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BLE_S : // ble.s #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          if ((Status.Flags.ZeroFlag) && (Status.Flags.NegativeFlag != Status.Flags.OverflowFlag)) ProgramCounter += Op1;
-          break;
-        case OPCODE_BRANCH_BXX : // bra #imm
-          Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-          ProgramCounter += Op1;
-          break;
+        case OPCODE_OR_L:             // or.l  reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong |= GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
 
+        case OPCODE_XOR_B:            // xor.b reg.reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte ^= GeneralRegister[(Op1&0xf0)>>4].Reg_UByte
+                                                        ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
 
-        case OPCODE_JSR_IND:// jsr (reg)
-          Op1 = FetchOperand_8(ProgramCounter++); // Register
-          PushStack_32(ProgramCounter);
-          ProgramCounter = GeneralRegister[Op1&0xf].Reg_ULargest;
-          break;
-        case OPCODE_RTS:// rts
-          ProgramCounter = PopStack_32();
-          break;
-        case OPCODE_RTI:// rti
-          Status.WholeRegister = PopStack_32();
-          ProgramCounter = PopStack_32();
-          break;
+        case OPCODE_XOR_W:            // xor.w reg.reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord ^= GeneralRegister[(Op1&0xf0)>>4].Reg_UWord
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_XOR_L:            // xor.l reg.reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_ULong ^= GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_ASL_B:            // asl.b reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
+                                      Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_SByte = (GeneralRegister[(Op1&0xf0)].Reg_SByte << GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SByte & 0x80)
+                                                        ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_ASL_W:            // asl.w reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
+                                      Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_SWord = (GeneralRegister[(Op1&0xf0)].Reg_SWord << GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SWord & 0x8000)
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_ASL_L:            // asl.l reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
+                                      Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_SLong = (GeneralRegister[(Op1&0xf0)].Reg_SLong << GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SLong & 0x80000000UL)
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_ASR_B:            // asr.b reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      ElapsedCycles += 6;
+                                      // Todo
+                                      break;
+
+        case OPCODE_ASR_W:            // asr.w reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
+                                      Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_SWord = (GeneralRegister[(Op1&0xf0)].Reg_SWord >> GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SWord & 0x8000)
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_ASR_L:            // asr.l reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
+                                      Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_SLong = (GeneralRegister[(Op1&0xf0)].Reg_SLong >> GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SLong & 0x80000000UL)
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_LSL_B:            // lsl.b reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
+                                      Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_SByte <<= GeneralRegister[Op1&0xf].Reg_UByte
+                                                        ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_LSL_W:            // lsl.w reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
+                                      Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_SWord <<= GeneralRegister[Op1&0xf].Reg_UByte
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_LSL_L:            // lsl.l reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
+                                      Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_SLong <<= GeneralRegister[Op1&0xf].Reg_UByte
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_LSR_B:            // lsr.b reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
+                                      Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_SByte >>= GeneralRegister[Op1&0xf].Reg_UByte
+                                                        ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_LSR_W:            // lsr.w reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
+                                      Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_SWord >>= GeneralRegister[Op1&0xf].Reg_UByte
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_LSR_L:            // lsr.l reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
+                                      Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_SLong >>= GeneralRegister[Op1&0xf].Reg_UByte
+                                                         ,Status );
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_ROL_B:            // rol.b reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register bool Carry;
+                                        Carry = Status.Flags.CarryFlag;
+                                        Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
+                                        Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_UByte = GeneralRegister[(Op1&0xf0)].Reg_UByte >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                                          ,Status );
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
+
+        case OPCODE_ROL_W:            // rol.w reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register bool Carry;
+                                        Carry = Status.Flags.CarryFlag;
+                                        Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
+                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_UWord = GeneralRegister[(Op1&0xf0)].Reg_UByte >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                                           ,Status );
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
+
+        case OPCODE_ROL_L:            // rol.l reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register bool Carry;
+                                        Carry = Status.Flags.CarryFlag;
+                                        Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
+                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_ULong = GeneralRegister[(Op1&0xf0)].Reg_ULong >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                                           ,Status );
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
+
+        case OPCODE_ROR_B:            // ror.b reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register bool Carry;
+                                        Carry = Status.Flags.CarryFlag;
+                                        Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte | 1;
+                                        Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_UByte = GeneralRegister[(Op1&0xf0)].Reg_UByte >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                                          ,Status );
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
+
+        case OPCODE_ROR_W:            // ror.b reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register bool Carry;
+                                        Carry = Status.Flags.CarryFlag;
+                                        Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord | 1;
+                                        Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_UWord = GeneralRegister[(Op1&0xf0)].Reg_UWord >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                                          ,Status );
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
+
+        case OPCODE_ROR_L:            // ror.b reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register bool Carry;
+                                        Carry = Status.Flags.CarryFlag;
+                                        Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong | 1;
+                                        Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_ULong = GeneralRegister[(Op1&0xf0)].Reg_ULong >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                                          ,Status );
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
+
+        case OPCODE_UMUL_B:           // umul.b reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      GeneralRegister[(Op1&0xf0)].Reg_UWord = (GeneralRegister[(Op1&0xf0)].Reg_UByte) * (GeneralRegister[Op1&0xf].Reg_UByte);
+                                      Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_UWord > 255;
+                                      Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_UWord ,Status );
+                                      ElapsedCycles += 150;
+                                      break;
+
+        case OPCODE_UMUL_W:           // umul.w reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      GeneralRegister[(Op1&0xf0)].Reg_ULong = (GeneralRegister[(Op1&0xf0)].Reg_UWord) * (GeneralRegister[Op1&0xf].Reg_UWord);
+                                      Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_UWord > 65535;
+                                      Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_UWord ,Status );
+                                      ElapsedCycles += 150;
+                                      break;
+
+        case OPCODE_UMUL_L:           // umul.l reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        UELong Tmp;
+                                        Tmp = GeneralRegister[(Op1&0xf0)].Reg_ULong * GeneralRegister[Op1&0xf].Reg_ULong;
+                                        GeneralRegister[(Op1&0xf0)].Reg_ULong = (ULong)Tmp;
+                                        GeneralRegister[((Op1+0x10)&0xf0)].Reg_ULong = (ULong)(Tmp>>16);
+                                        Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_ULong != 0;
+                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_ULong ,Status );
+                                        ElapsedCycles += 150;
+                                      }
+                                      break;
+
+        case OPCODE_SMUL_B:           // smul.b reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      GeneralRegister[(Op1&0xf0)].Reg_SWord = (GeneralRegister[(Op1&0xf0)].Reg_SByte) * (GeneralRegister[Op1&0xf].Reg_SByte);
+                                      Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord > 255;
+                                      Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_UWord ,Status );
+                                      ElapsedCycles += 150;
+                                      break;
+
+        case OPCODE_SMUL_W:           // smul.w reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      GeneralRegister[(Op1&0xf0)].Reg_SLong = (GeneralRegister[(Op1&0xf0)].Reg_SWord) * (GeneralRegister[Op1&0xf].Reg_SWord);
+                                      Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_UWord > 65535;
+                                      Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_UWord ,Status );
+                                      ElapsedCycles += 150;
+                                      break;
+
+        case OPCODE_SMUL_L:           // smul.l reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        ELong Tmp;
+                                        Tmp = GeneralRegister[(Op1&0xf0)].Reg_SLong * GeneralRegister[Op1&0xf].Reg_SLong;
+                                        GeneralRegister[(Op1&0xf0)].Reg_ULong = (ULong)Tmp;
+                                        GeneralRegister[((Op1+0x10)&0xf0)].Reg_ULong = (ULong)(Tmp>>16);
+                                        Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong != 0;
+                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_ULong ,Status );
+                                        ElapsedCycles += 150;
+                                      }
+                                      break;
+
+        case OPCODE_CMP_B:            // cmp.b reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register UByte D1,D2,D3;
+                                        D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
+                                        D2 = GeneralRegister[Op1&0xf].Reg_UByte;
+                                        D3 = D1-D2;
+                                        Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
+                                        Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
+                                        Status.Flags.ZeroFlag = (!D3);
+                                        Status.Flags.NegativeFlag = ((Byte)D3 < 0);
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
+
+        case OPCODE_CMP_W:            // cmp.w reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register UShort D1,D2,D3;
+                                        D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord;
+                                        D2 = GeneralRegister[Op1&0xf].Reg_UWord;
+                                        D3 = D1-D2;
+                                        Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
+                                        Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
+                                        Status.Flags.ZeroFlag = (!D3);
+                                        Status.Flags.NegativeFlag = ((Byte)D3 < 0);
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
+
+        case OPCODE_CMP_L:            // cmp.l reg,reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      {
+                                        register ULong D1,D2,D3;
+                                        D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
+                                        D2 = GeneralRegister[Op1&0xf].Reg_UByte;
+                                        D3 = D1-D2;
+                                        Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
+                                        Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
+                                        Status.Flags.ZeroFlag = (!D3);
+                                        Status.Flags.NegativeFlag = ((Byte)D3 < 0);
+                                        ElapsedCycles += 6;
+                                      }
+                                      break;
+
+        case OPCODE_JMP_IND:          // jmp (reg)
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      ProgramCounter = GeneralRegister[Op1&0xf].Reg_ULargest;
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_BRANCH_BRA:       // bra #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BEQ :      // beq #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if (Status.Flags.ZeroFlag) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BNE :      // bne #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if (!Status.Flags.ZeroFlag) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BCS :      // bcs #imm bhe.u #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if (Status.Flags.CarryFlag) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BCC :      // bcc #imm blo.u #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if (!Status.Flags.CarryFlag) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BMI :      // bmi #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if (Status.Flags.NegativeFlag) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BPL :      // bpl #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if (!Status.Flags.NegativeFlag) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BVS :      // bvs #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if (Status.Flags.OverflowFlag) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BVC :      // bvc #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if (!Status.Flags.OverflowFlag) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BHI_U :    // bhi.u #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if (Status.Flags.CarryFlag && (!Status.Flags.ZeroFlag)) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BLE_U :    // ble.u #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if (Status.Flags.CarryFlag && (!Status.Flags.ZeroFlag)) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BHE_S :    // bhe.s #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if (Status.Flags.NegativeFlag == Status.Flags.OverflowFlag) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BLO_S :    // blo.s #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if (Status.Flags.NegativeFlag != Status.Flags.OverflowFlag) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BHI_S :    // bhi.s #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if ((!Status.Flags.ZeroFlag) && (Status.Flags.NegativeFlag == Status.Flags.OverflowFlag)) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BLE_S :    // ble.s #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      if ((Status.Flags.ZeroFlag) && (Status.Flags.NegativeFlag != Status.Flags.OverflowFlag)) ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_BRANCH_BXX :      // bra #imm
+                                      Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                      ProgramCounter += Op1;
+                                      ElapsedCycles += 8;
+                                      break;
+
+        case OPCODE_JSR_IND:          // jsr (reg)
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      PushStack_32(ProgramCounter);
+                                      ProgramCounter = GeneralRegister[Op1&0xf].Reg_ULargest;
+                                      ElapsedCycles += 14;
+                                      break;
+
+        case OPCODE_RTS:              // rts
+                                      ProgramCounter = PopStack_32();
+                                      ElapsedCycles += 12;
+                                      break;
+
+        case OPCODE_RTI:              // rti
+                                      Status.WholeRegister = PopStack_32();
+                                      ProgramCounter = PopStack_32();
+                                      ElapsedCycles += 16;
+                                      break;
+
         //case 30:// int reg
-        case OPCODE_EXT_BW:// ext.bw reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-                GeneralRegister[Op1&0xf].Reg_SWord = (Short)GeneralRegister[Op1&0xf].Reg_SByte;
+        case OPCODE_EXT_BW:           // ext.bw reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      GeneralRegister[Op1&0xf].Reg_SWord = (Short)GeneralRegister[Op1&0xf].Reg_SByte;
+                                      ElapsedCycles += 6;
+                                      break;
 
-                break;
-        case OPCODE_EXT_BL:// ext.bl reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-                GeneralRegister[Op1&0xf].Reg_SLong = (Short)GeneralRegister[Op1&0xf].Reg_SByte;
-                break;
-        case OPCODE_EXT_WL:// ext.wl reg
-                Op1 = FetchOperand_8(ProgramCounter++); // Register
-                GeneralRegister[Op1&0xf].Reg_SLong = (Short)GeneralRegister[Op1&0xf].Reg_SWord;
-                break;
+        case OPCODE_EXT_BL:           // ext.bl reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      GeneralRegister[Op1&0xf].Reg_SLong = (Short)GeneralRegister[Op1&0xf].Reg_SByte;
+                                      ElapsedCycles += 6;
+                                      break;
+
+        case OPCODE_EXT_WL:           // ext.wl reg
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      GeneralRegister[Op1&0xf].Reg_SLong = (Short)GeneralRegister[Op1&0xf].Reg_SWord;
+                                      ElapsedCycles += 6;
+                                      break;
+
         case 255: return;
       }
     }
+
+    // Environment call.
+
+
+
+    VMachine->Envcall();
+
   }
 };
 
