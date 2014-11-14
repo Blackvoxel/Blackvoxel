@@ -67,8 +67,8 @@ class ZActiveVoxelInterface
     inline ZVoxelExtension *   GetVoxelExtension_Main();
     inline ZVoxelExtension *   GetVoxelExtension( VoxelLocation * VoxLocation ) { return((ZVoxelExtension *)VoxLocation->Sector->OtherInfos[VoxLocation->Offset]);};
     inline bool                MoveThis( ZVector3L * Destination, ZChangeImportance ChangeImportance );
-    inline bool                MoveVoxel( ZVector3L * Source, ZVector3L * Destination, ZChangeImportance ChangeImportance ) { return(World->MoveVoxel_Sm(Source, Destination, 0, (UByte) ChangeImportance  )); }
-    inline bool                ExchangeVoxels(ZVector3L * Voxel1, ZVector3L * Voxel2) {return(false);}
+    inline bool                MoveVoxel( ZVector3L * Source, ZVector3L * Destination, ZChangeImportance ChangeImportance );
+    inline bool                ExchangeVoxels(ZVector3L * Voxel1, ZVector3L * Voxel2, ZChangeImportance ChangeImportance);
     inline bool                SetVoxel( ZVector3L * Coords, UShort VoxelType, ZChangeImportance ChangeImportance );
     inline bool                SetVoxelExt( ZVector3L * Coords, UShort VoxelType, ZChangeImportance ChangeImportance, VoxelLocation * VoxLocation );
     inline UShort              GetVoxel( ZVector3L * Coords );
@@ -82,6 +82,10 @@ inline bool  ZActiveVoxelInterface::MoveThis( ZVector3L * Destination, ZChangeIm
   return( World->MoveVoxel_Sm(&Coords, Destination, 0, (UByte) ChangeImportance) );
 }
 
+inline bool ZActiveVoxelInterface::MoveVoxel( ZVector3L * Source, ZVector3L * Destination, ZChangeImportance ChangeImportance )
+{
+  return(World->MoveVoxel_Sm(Source, Destination, 0, (UByte) ChangeImportance  ));
+}
 
 inline UShort ZActiveVoxelInterface::GetVoxelType_Main()
 {
@@ -134,6 +138,11 @@ inline bool ZActiveVoxelInterface::GetNeighborVoxel(ULong PositionCode, VoxelLoc
   NewCoords.x += _xbp[PositionCode].x; NewCoords.x += _xbp[PositionCode].y; NewCoords.x += _xbp[PositionCode].z;
 
   return(World->GetVoxelLocation(VoxelLocation, &NewCoords));
+}
+
+inline bool ZActiveVoxelInterface::ExchangeVoxels(ZVector3L * Voxel1, ZVector3L * Voxel2, ZChangeImportance ChangeImportance)
+{
+  return(World->ExchangeVoxels(Voxel1,Voxel2, ChangeImportance, true));
 }
 
 

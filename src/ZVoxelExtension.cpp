@@ -26,7 +26,7 @@
 #include "ZVoxelExtension.h"
 
 
-bool _ThrowExtension(ZStream_SpecialRamStream * Stream, ZMemSize ExtensionSize)
+bool ZVoxelExtension::_ThrowExtension(ZStream_SpecialRamStream * Stream, ZMemSize ExtensionSize)
 {
   bool Ok;
   UByte Temp_Byte;

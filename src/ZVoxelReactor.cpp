@@ -2588,9 +2588,10 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                            // For "massive" voxeltype presence where you want more speed, consider implementing it
                            // in the switch in this code file.
 
-                   default:ActiveVoxelInterface.Coords.x = Sx + x;
-                           ActiveVoxelInterface.Coords.y = Sy + y;
-                           ActiveVoxelInterface.Coords.z = Sz + z;
+                   default:IsActiveVoxels = true;
+                           ActiveVoxelInterface.Coords.x = RSx + x;
+                           ActiveVoxelInterface.Coords.y = RSy + y;
+                           ActiveVoxelInterface.Coords.z = RSz + z;
                            ActiveVoxelInterface.Location.Sector = Sector;
                            ActiveVoxelInterface.Location.Offset = VoxelP - DisplayData;
                            VoxelTypeManager->VoxelTable[VoxelType]->ActiveProcess(&ActiveVoxelInterface);

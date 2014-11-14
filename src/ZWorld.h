@@ -149,12 +149,14 @@ class ZVoxelWorld : public ZObject
 
     void SetVoxel(Long x, Long y, Long z, UShort VoxelValue);
     bool SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension = true, VoxelLocation * Location = 0);
+
     //bool SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, bool ImportanceFactor, bool CreateExtension = true, VoxelLocation * Location = 0);
     inline bool MoveVoxel(Long Sx, Long Sy, Long Sz, Long Ex, Long Ey, Long Ez, UShort ReplacementVoxel, UByte ImportanceFactor);
     inline bool MoveVoxel(ZVector3L * SCoords, ZVector3L * DCoords, UShort ReplacementVoxel, UByte ImportanceFactor);
     inline bool MoveVoxel_Sm(Long Sx, Long Sy, Long Sz, Long Ex, Long Ey, Long Ez, UShort ReplacementVoxel, UByte ImportanceFactor); // Set Moved flag
     inline bool MoveVoxel_Sm( ZVector3L * SCoords, ZVector3L * DCoords, UShort ReplacementVoxel, UByte ImportanceFactor);
     inline bool ExchangeVoxels(Long Sx, Long Sy, Long Sz, Long Dx, Long Dy, Long Dz, UByte ImportanceFactor, bool SetMoved);
+    inline bool ExchangeVoxels( ZVector3L * Voxel1, ZVector3L * Voxel2, UByte ImportanceFactor, bool SetMoved);
 
     bool BlitBox(ZVector3L &SCoords, ZVector3L &DCoords, ZVector3L &Box);
 
@@ -552,6 +554,55 @@ bool ZVoxelWorld::ExchangeVoxels(Long Sx, Long Sy, Long Sz, Long Dx, Long Dy, Lo
 
   if (!SetVoxel_WithCullingUpdate(Dx, Dy, Dz, VoxelType1, ImportanceFactor, false, 0 )) return(false);
   if (!SetVoxel_WithCullingUpdate(Sx, Sy, Sz, VoxelType2, ImportanceFactor, false, 0 )) return(false);
+
+  // Set Extensions a and temperature informations.
+
+  Location1.Sector->OtherInfos[Location1.Offset] = Extension2;
+  Location1.Sector->TempInfos[Location1.Offset]  = Temp2;
+  Location2.Sector->OtherInfos[Location2.Offset] = Extension1;
+  Location2.Sector->TempInfos[Location2.Offset]  = Temp1;
+
+  // Set moved
+
+  if (SetMoved)
+  {
+    Location1.Sector->ModifTracker.Set(Location1.Offset);
+    Location2.Sector->ModifTracker.Set(Location2.Offset);
+  }
+
+  return(true);
+}
+
+bool ZVoxelWorld::ExchangeVoxels( ZVector3L * V1, ZVector3L * V2, UByte ImportanceFactor, bool SetMoved)
+{
+  VoxelLocation Location1, Location2;
+  UShort VoxelType1,VoxelType2,Temp1,Temp2;
+  ZMemSize Extension1,Extension2;
+
+  // Getting Voxel Memory Location Informations
+
+  if (!GetVoxelLocation(&Location1, V1->x, V1->y, V1->z)) return(false);
+  if (!GetVoxelLocation(&Location2, V2->x, V2->y, V2->z)) return(false);
+  if ((Location1.Offset == Location2.Offset) && (Location1.Sector == Location2.Sector)) return(false);
+
+  // Getting all infos.
+
+  VoxelType1 = Location1.Sector->Data[Location1.Offset];
+  Extension1 = Location1.Sector->OtherInfos[Location1.Offset];
+  Temp1      = Location1.Sector->TempInfos[Location1.Offset];
+  VoxelType2 = Location2.Sector->Data[Location2.Offset];
+  Extension2 = Location2.Sector->OtherInfos[Location2.Offset];
+  Temp2      = Location2.Sector->TempInfos[Location2.Offset];
+
+  // Setting Extensions to zero to prevent multithreading issues of access to the wrong type of extension.
+
+  Location1.Sector->OtherInfos[Location1.Offset]=0;
+  Location2.Sector->OtherInfos[Location2.Offset]=0;
+
+  // Set the voxels
+
+  if (!SetVoxel_WithCullingUpdate(V2->x, V2->y, V2->z, VoxelType1, ImportanceFactor, false, 0 )) return(false);
+  if (!SetVoxel_WithCullingUpdate(V1->x, V1->y, V1->z, VoxelType2, ImportanceFactor, false, 0 )) return(false);
 
   // Set Extensions a and temperature informations.
 

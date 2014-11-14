@@ -2110,7 +2110,6 @@ bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort Voxe
 }
 
 
-
 void ZVoxelWorld::Purge(UShort VoxelType)
 {
   ZVoxelSector * Sector;

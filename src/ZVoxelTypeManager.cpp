@@ -99,9 +99,15 @@
 #  include "ZVoxelType_Concrete.h"
 #endif
 
+#ifndef Z_ZVOXELTYPE_EXAMPLE_H
+#  include "ZVoxelType_Example.h"
+#endif
+
 #ifndef Z_ZVOXELTYPE_VOID_H
 #  include "ZVoxelType_Void.h"
 #endif
+
+
 
 void ZVoxelTypeManager::DumpInfos()
 {
@@ -1602,6 +1608,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
       case 214 ... 215: VoxelType = new ZVoxelType_SimpleButton(i);  break;
       case 216 ... 231: VoxelType = new ZVoxelType_IndicatorLight(i);break;
       case 235: VoxelType = new ZVoxelType_Concrete(i);              break;
+      case 237: VoxelType = new ZVoxelType_Example(i);               break;
 
       default:  VoxelType = new ZVoxelType(i);                       break;
     }

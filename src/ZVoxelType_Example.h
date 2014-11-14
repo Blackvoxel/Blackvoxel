@@ -40,18 +40,24 @@
 #  include "ZVoxelExtension_Example.h"
 #endif
 
+#ifndef Z_ZACTIVEVOXELINTERFACE_H
+#  include "ZActiveVoxelInterface.h"
+#endif
+
 class ZVoxelType_Example : public ZVoxelType
 {
   public:
+
     ZVoxelType_Example(ULong VoxelType) : ZVoxelType(VoxelType)
     {
       Is_VoxelExtension              = true;   // If there is a voxel extension
       Is_HasAllocatedMemoryExtension = true;   // If the voxel extension is a pointer to stored data.
       Is_Interface_PushBlock         = false;  // If it support
       Is_Interface_StoreBlock        = false;  //
-      Is_Interface_PullBlock         = false;          // Interface Pullblock is
-      Is_HasHelpingMessage           = false;            // If true, help message will be displayed when voxel is pointed.
+      Is_Interface_PullBlock         = false;  // Interface Pullblock is
+      Is_HasHelpingMessage           = false;  // If true, help message will be displayed when voxel is pointed.
       HelpingMessage = "Your help message";    // The message to display.
+      Is_Active = true;
     }
 
     // Voxel Extensions
@@ -80,15 +86,34 @@ class ZVoxelType_Example : public ZVoxelType
       return(0);
     }
 
-    virtual void  DeleteVoxelExtension(ZMemSize VoxelExtension, bool IsUnloadingPhase = false);
+
+    virtual void  ActiveProcess( ZActiveVoxelInterface * AvData)
+    {
+      ZVector3L Loc, Loc2;
+      VoxelLocation Location;
+
+      Loc = Loc2 = AvData->Coords;
+      Loc.x ++;
+      Loc2.x --;
+
+      AvData->MoveThis(&Loc, ZActiveVoxelInterface::CHANGE_IMPORTANT);
+      //AvData->ExchangeVoxels(&Loc, &Loc2, ZActiveVoxelInterface::CHANGE_IMPORTANT);
+      //AvData->MoveVoxel(&Loc, &Loc2, ZActiveVoxelInterface::CHANGE_IMPORTANT);
+      //AvData->SetVoxel(&Loc, 49, ZActiveVoxelInterface::CHANGE_IMPORTANT);
+      //AvData->SetVoxelExt(&Loc, 49, ZActiveVoxelInterface::CHANGE_IMPORTANT,&Location);
+      //printf("%d\n",AvData->GetVoxel(&Loc));
+
+    };
+
+    //virtual void  DeleteVoxelExtension(ZMemSize VoxelExtension, bool IsUnloadingPhase = false)
 
 
     // The user click the activation button(Middle) on the voxel to activate special functions.
-    virtual void  UserAction_Activate(ZMemSize VoxelInfo, Long x, Long y, Long z);
+    //virtual void  UserAction_Activate(ZMemSize VoxelInfo, Long x, Long y, Long z);
 
-    virtual ULong  Interface_PushBlock_Push    ( VoxelLocation * DestLocation, UShort VoxelType, ULong Count );
-    virtual ULong  Interface_PushBlock_Pull    ( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
-    virtual ULong  Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
+    //virtual ULong  Interface_PushBlock_Push    ( VoxelLocation * DestLocation, UShort VoxelType, ULong Count );
+    //virtual ULong  Interface_PushBlock_Pull    ( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
+    //virtual ULong  Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
 
 };
 
