@@ -30,12 +30,18 @@
 //#  include "ZVoxelExtension.h"
 //#endif
 
+#include <stddef.h>
+
 #ifndef Z_ZTYPES_H
 #  include "z/ZTypes.h"
 #endif
 
 #ifndef Z_ZSTREAM_SPECIALRAMSTREAM_H
 #  include "z/ZStream_SpecialRamStream.h"
+#endif
+
+#ifndef Z_ZMEMPOOL_OPTIMIZED_H
+#  include "ZMemPool_Optimized.h"
 #endif
 
 class ZGame;
@@ -67,6 +73,16 @@ class ZVoxelExtension
     virtual ZVoxelExtension * GetNewCopy() { return(0); }
 
     virtual ~ZVoxelExtension() {}
+
+    inline void * operator new (size_t Size)
+    {
+      return(ZMemPool_Optimized::GetMainPublicPool()->AllocMem(Size));
+    }
+
+    inline void operator delete (void * Memory)
+    {
+      ZMemPool_Optimized::GetMainPublicPool()->FreeMem(Memory);
+    }
 };
 
 

@@ -39,6 +39,8 @@
 
 class ZMemPool_Optimized : public ZMemoryPool
 {
+
+
   protected:
 
     static bool Initialized;
@@ -54,6 +56,8 @@ class ZMemPool_Optimized : public ZMemoryPool
 
 
   public:
+
+    static ZMemPool_Optimized MainPool;
 
     ZMemPool_Optimized()
     {
@@ -80,6 +84,11 @@ class ZMemPool_Optimized : public ZMemoryPool
 
     virtual void * AllocMem( const ZMemSize Size );
     virtual void FreeMem( void * Block );
+
+    static ZMemPool_Optimized * GetMainPublicPool()
+    {
+      return( &MainPool);
+    }
 };
 
 

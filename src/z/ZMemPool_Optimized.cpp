@@ -28,6 +28,7 @@
 
 bool ZMemPool_Optimized::Initialized = false;
 char ZMemPool_Optimized::BitPosTable[65536];
+ZMemPool_Optimized ZMemPool_Optimized::MainPool;
 
 void * ZMemPool_Optimized::AllocMem( const ZMemSize Size, ZMemSize & NewSize)
 {
