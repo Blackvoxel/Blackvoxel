@@ -44,8 +44,12 @@
 #  include "ZMemPool_Optimized.h"
 #endif
 
-class ZGame;
+#ifndef A_COMPILESETTINGS_H
+#  include "ACompileSettings.h"
+#endif
 
+class ZGame;
+#include <stdio.h>
 class ZVoxelExtension
 {
   public:
@@ -74,8 +78,10 @@ class ZVoxelExtension
 
     virtual ~ZVoxelExtension() {}
 
+#if COMPILEOPTION_EXPERIMENTAL_POOLED_EXTENSIONS == 1
     inline void * operator new (size_t Size)
     {
+      printf("Alloc Size %ld:\n", Size);
       return(ZMemPool_Optimized::GetMainPublicPool()->AllocMem(Size));
     }
 
@@ -83,6 +89,8 @@ class ZVoxelExtension
     {
       ZMemPool_Optimized::GetMainPublicPool()->FreeMem(Memory);
     }
+#endif
+
 };
 
 

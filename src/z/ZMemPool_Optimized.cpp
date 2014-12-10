@@ -73,7 +73,7 @@ void * ZMemPool_Optimized::AllocMem( const ZMemSize Size )
 
   ULong Index, BitPosition;
 
-  if ((Index = Size >> 16)) BitPosition = 16 + BitPosTable[Index];
+  if ((Index = Size >> 16)) BitPosition = 17 + BitPosTable[Index];
   else                      BitPosition = BitPosTable[Size];
 
   NewSize = 1 << BitPosition;
