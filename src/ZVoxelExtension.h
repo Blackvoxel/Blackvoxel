@@ -81,7 +81,6 @@ class ZVoxelExtension
 #if COMPILEOPTION_EXPERIMENTAL_POOLED_EXTENSIONS == 1
     inline void * operator new (size_t Size)
     {
-      printf("Alloc Size %ld:\n", Size);
       return(ZMemPool_Optimized::GetMainPublicPool()->AllocMem(Size));
     }
 
