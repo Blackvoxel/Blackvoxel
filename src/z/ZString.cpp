@@ -24,7 +24,8 @@
  */
 
 #include "ZString.h"
-#include "stdio.h"
+#include <stdio.h>
+#include <string.h>
 
 
 //ZBasicMemoryPool ZStringBasicMemoryPool;
@@ -81,7 +82,7 @@ char *  ZString::ULongToAsc(ULong Num, ZMemSize &EffectiveMemSize, ZMemSize &Len
   Buffer = (char *)MemPool->AllocMem(ZSTRING_CONVERSIONSIZE,EffectiveMemSize);
 
   Len=0;TrailFlag=(Bool)Settings.Display_TrailZero;
-  if (Settings.Display_SignAnyway) Buffer[Len++]='+';
+  if (Settings.Display_AlwaysShowSign) Buffer[Len++]='+';
   if (!Num && TrailFlag) {Buffer[Len++] = '0';Buffer[Len]=0;return(Buffer);}
   do
   {
@@ -106,7 +107,7 @@ char *  ZString::LongToAsc(long Num, ZMemSize &EffectiveMemSize, ZMemSize & Len)
   Buffer = (char *)MemPool->AllocMem(ZSTRING_CONVERSIONSIZE,EffectiveMemSize);
   Len=0;TrailFlag=(Bool)Settings.Display_TrailZero;
   if      (Num<0)                  {Buffer[Len++]='-'; Num= -Num;}
-  else if (Settings.Display_SignAnyway) Buffer[Len++]='+';
+  else if (Settings.Display_AlwaysShowSign) Buffer[Len++]='+';
   if (!Num && TrailFlag) {Buffer[Len++] = '0';Buffer[Len]=0;return(Buffer);}
   do
   {
@@ -199,7 +200,7 @@ ZString::ZString()
   Len = 0;
   MemLen = 0;
   Settings.Display_TrailZero = 1;
-  Settings.Display_SignAnyway= 0;
+  Settings.Display_AlwaysShowSign= 0;
   Settings.Base = 10;
 }
 
@@ -224,7 +225,7 @@ ZString::ZString( const char * SourceString )
   Len = StrLen;
 
   Settings.Display_TrailZero = 1;
-  Settings.Display_SignAnyway= 1;ZString::
+  Settings.Display_AlwaysShowSign= 1;ZString::
   Settings.Base = 10;
 }
 
@@ -242,7 +243,7 @@ ZString::ZString( const ZString & Str )
   Len = i;
 
   Settings.Display_TrailZero = 1;
-  Settings.Display_SignAnyway= 0;
+  Settings.Display_AlwaysShowSign= 0;
   Settings.Base = 10;
 }
 
@@ -258,7 +259,7 @@ ZString::ZString( const float Number )
   Len = GetOldCStringLen(String);
 
   Settings.Display_TrailZero = 1;
-  Settings.Display_SignAnyway= 0;
+  Settings.Display_AlwaysShowSign= 0;
   Settings.Base = 10;
 }
 
@@ -268,7 +269,7 @@ ZString::ZString( const ULong Number )
   MemPool = ZStringCurrentMemoryPool;
   MemLen = 0;
   Settings.Display_TrailZero = 1;
-  Settings.Display_SignAnyway= 0;
+  Settings.Display_AlwaysShowSign= 0;
   Settings.Base = 10;
 
   String = ULongToAsc(Number, MemLen, Len);
@@ -283,7 +284,7 @@ ZString::ZString( const Long Number )
 
 
   Settings.Display_TrailZero = 1;
-  Settings.Display_SignAnyway= 0;
+  Settings.Display_AlwaysShowSign= 0;
   Settings.Base = 10;
 
   String = LongToAsc(Number, MemLen, Len);
@@ -401,17 +402,39 @@ ZString & ZString::operator << (const ZString & Str)
 
 ZString & ZString::operator << (const ULong Number)
 {
-  ZString As = Number;
+  ZMemSize EffectiveMemSize, StrLen, TotalLen,i;
+  char * ConvertedString, * Dest;
 
-  (*this)<<As;
+  ConvertedString = ULongToAsc(Number,EffectiveMemSize,StrLen);
+  TotalLen = Len + StrLen;
+  if ( MemLen <= TotalLen) RaiseMem_GetOldContent(TotalLen);
+
+  for ( Dest = String+Len, i=0; i<StrLen; i++) Dest[i] = ConvertedString[i];
+
+  Len+=StrLen;
+  String[Len]=0;
+
+  MemPool->FreeMem(ConvertedString);
+
   return(*this);
 }
 
 ZString & ZString::operator << (Long const Number)
 {
-  ZString As = Number;
+  ZMemSize EffectiveMemSize, StrLen, TotalLen,i;
+  char * ConvertedString, * Dest;
 
-  (*this)<<As;
+  ConvertedString = LongToAsc(Number,EffectiveMemSize,StrLen);
+  TotalLen = Len + StrLen;
+  if ( MemLen <= TotalLen) RaiseMem_GetOldContent(TotalLen);
+
+  for ( Dest = String+Len, i=0; i<StrLen; i++) Dest[i] = ConvertedString[i];
+
+  Len+=StrLen;
+  String[Len]=0;
+
+  MemPool->FreeMem(ConvertedString);
+
   return(*this);
 }
 
@@ -472,6 +495,41 @@ ZString & ZString::Append_char(char c)
   return(*this);
 }
 
+ZString & ZString::Append_CStringPart(char const * Str, ZMemSize PartLen)
+{
+  char c;
+
+  if (MemLen<=(Len + PartLen + 1)) RaiseMem_GetOldContent(Len + PartLen + 1);
+
+  while ( (PartLen--) && (c = *Str++))
+  {
+    String[Len++]=c;
+  }
+  String[Len++]=0;
+
+  return(*this);
+}
+
+ZString & ZString::Append_CStringUpToEOL(char const * Str)
+{
+  ZMemSize Count;
+  char c;
+
+  Count = 0;
+  while(true)
+  {
+    c = Str[Count];
+    if (c==0 || c== '\r' || c== '\n') break;
+    Count++;
+  }
+
+  Append_CStringPart(Str, Count);
+
+  return(*this);
+
+}
+
+
 ZString & ZString::Append_ULong( ULong Number )
 {
   char * Buffer;
@@ -488,7 +546,7 @@ ZString & ZString::Append_ULong( ULong Number )
   Buffer = &String[Len];
 
   CLen=0;TrailFlag=(Bool)Settings.Display_TrailZero;
-  if (Settings.Display_SignAnyway) Buffer[CLen++]='+';
+  if (Settings.Display_AlwaysShowSign) Buffer[CLen++]='+';
   if (!Number && TrailFlag) {Buffer[CLen++] = '0';Buffer[CLen]=0;Len+=CLen;return(*this);}
   do
   {
@@ -559,21 +617,19 @@ Bool ZString::LoadFromFile(const char * FileName)
 {
   FILE * Fl;
   size_t ReadSize, TrueRead;
-  ZMemSize TotalSize;
 
   if ((Fl = fopen(FileName, "rb")) == 0) return(false);
 
   ReadSize = 1024;
-  TotalSize = 0;
+  Len = 0;
   RaiseMem_DiscardContent(ReadSize);
-  while ( 0!=(TrueRead = fread(String+TotalSize, 1,ReadSize-1,Fl)) )
+  while ( 0!=(TrueRead = fread(String+Len, 1,ReadSize,Fl)) )
   {
-    TotalSize += TrueRead;
-    if (TrueRead < (ReadSize-1)) break;
+    Len+=TrueRead;
+    if (TrueRead < ReadSize) break;
     ReadSize <<= 1;
-    RaiseMem_GetOldContent(ReadSize);
+    RaiseMem_GetOldContent(Len + ReadSize);
   }
-  Len = TotalSize;
   String[Len]=0;
   fclose(Fl);
 

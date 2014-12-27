@@ -34,6 +34,7 @@
 
 
 #define ZSTRING_CONVERSIONSIZE 128
+#define ZSTRING_MINIMUMSTRINGSIZE 256
 
 class ZString
 {
@@ -46,7 +47,7 @@ class ZString
 
   private:
     struct{ UShort  Display_TrailZero:1;
-            UShort  Display_SignAnyway:1;
+            UShort  Display_AlwaysShowSign:1;
             UShort  Base:6;
     } Settings;
 
@@ -66,11 +67,27 @@ class ZString
 
   public:
 
+    void Set_DisplayBase(UShort Base)
+    {
+      Settings.Base = Base;
+    }
+
+    void Set_DisplayTrailingZero(bool Flag = true)
+    {
+      Settings.Display_TrailZero = (Flag) ? 0:1;
+    }
+
+    void Set_DisplayAlwaysShowSign(bool Flag = true)
+    {
+      Settings.Display_AlwaysShowSign = (Flag) ? 1:0;
+    }
+
     void SetMemPool(ZMemoryPool * MemPool) { this->MemPool = MemPool; }
 
     inline void RaiseMem_DiscardContent( ZMemSize NewSize)
     {
       NewSize ++;
+      if (NewSize < ZSTRING_MINIMUMSTRINGSIZE) NewSize = ZSTRING_MINIMUMSTRINGSIZE;
       if (MemLen>0) MemPool->FreeMem(String,MemLen);
       String = (char *)MemPool->AllocMem(NewSize,NewSize);
       MemLen = NewSize;
@@ -82,6 +99,7 @@ class ZString
       ZMemSize i;
 
       NewSize ++;
+      if (NewSize < ZSTRING_MINIMUMSTRINGSIZE) NewSize = ZSTRING_MINIMUMSTRINGSIZE;
       NewString = (char *)MemPool->AllocMem(NewSize,NewSize);
       for(i=0;i<Len;i++) NewString[i] = String[i];
       //String[i]=0;
@@ -103,6 +121,19 @@ class ZString
       ZMemSize i;
 
       for (i=0;i<Len;i++) String[i]=c;
+    }
+
+    void PadUptoLen(char c, ZMemSize PadLen)
+    {
+      ZMemSize PadCount;
+      ZMemSize NewSize;
+
+      if (Len >= PadLen) return;
+      PadCount = PadLen - Len;
+      NewSize = Len+PadLen+1;
+      if ( NewSize >= MemLen) RaiseMem_GetOldContent(NewSize);
+      while (PadCount--) String[Len++] = c;
+      String[Len]=0;
     }
 
     void AdjustLenToZeroTerminated()
@@ -144,6 +175,8 @@ class ZString
     ZString & Append_pchar(char const * Str);
     ZString & Append_ULong(ULong Number);
     ZString & Append_char(char c);
+    ZString & Append_CStringPart(char const * Str, ZMemSize PartLen);
+    ZString & Append_CStringUpToEOL(char const * Str);
 
 
     ZString & AddToPath(char const * Str);
