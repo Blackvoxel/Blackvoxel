@@ -34,6 +34,76 @@
 #  include "ZTypes.h"
 #endif
 
+class ZFastBit_Array
+{
+  public:
+    ULong   * Storage;
+    ZMemSize  StorageSize;
+
+    ZFastBit_Array()
+    {
+      if (sizeof(ULong)!=4) throw; // ULong Needs to be 32 bits
+      Storage = 0;
+      StorageSize = 0;
+    }
+
+    bool InitSize(ZMemSize Size)
+    {
+      if (sizeof(ULong)!=4) throw; // ULong Needs to be 32 bits
+      StorageSize = (Size >> 5) + ((Size & 0x1F) ? 1 : 0);
+      if (Storage) delete [] Storage;
+      Storage = new ULong[StorageSize]; if (!Storage) return(false);
+      return(true);
+    }
+
+    ZFastBit_Array(ZMemSize Size)
+    {
+      Storage = 0;
+      InitSize(Size);
+    }
+
+    ~ZFastBit_Array()
+    {
+      if ((Storage)) { delete [] Storage; Storage = 0; }
+    }
+
+
+    inline void Clear()
+    {
+      ULong i;
+      for(i=0;i<StorageSize;i++) Storage[i]=0;
+    }
+
+    inline void Set(ZMemSize Index, bool Data)
+    {
+      register UByte Remain;
+      register ZMemSize Offset;
+      Remain = Index;
+      Offset = Index >> 5;
+      Remain &= 0x1f;
+#if COMPILEOPTION_BOUNDCHECKINGSLOW==1
+      if (Offset >= StorageSize) throw;
+#endif
+      if (Data) Storage[Offset] |= 1<<Remain;
+      else      Storage[Offset] &= ~(1<<Remain);
+    }
+
+    inline bool Get(ZMemSize Index)
+    {
+      register UByte Remain;
+      register ZMemSize Offset;
+      Remain = Index;
+      Offset = Index >> 5;
+#if COMPILEOPTION_BOUNDCHECKINGSLOW==1
+      if (Offset >= StorageSize) throw;
+#endif
+      Remain &= 0x1f;
+      return( Storage[Offset] & (1<<Remain) );
+    }
+};
+
+// A specialized version.
+
 class ZFastBit_Array_64k
 {
   public:
@@ -47,7 +117,7 @@ class ZFastBit_Array_64k
 
     ~ZFastBit_Array_64k()
     {
-      if ((Storage)) { delete Storage; Storage = 0; }
+      if ((Storage)) { delete [] Storage; Storage = 0; }
     }
 
 
@@ -78,13 +148,6 @@ class ZFastBit_Array_64k
       return( Storage[Offset] & (1<<Remain) );
     }
 };
-
-
-
-
-
-
-
 
 
 #endif /* Z_ZFASTBIT_ARRAY_H */
