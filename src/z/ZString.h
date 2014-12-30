@@ -136,6 +136,22 @@ class ZString
       String[Len]=0;
     }
 
+    void PadOnLeftUptoLen(char c, ZMemSize PadLen)
+    {
+      ZMemSize PadCount;
+      ZMemSize NewSize, i, s, d;
+
+      if (Len >= PadLen) return;
+      PadCount = PadLen - Len;
+      NewSize = Len+PadLen+1;
+      if ( NewSize >= MemLen) RaiseMem_GetOldContent(NewSize);
+      s=Len;d=Len+PadCount;i = Len;
+      Len+=PadCount;
+      while (i--) {String[--d] = String[--s]; }
+      for (i=0; PadCount--;i++) String[i]=c;
+      String[Len]=0;
+    }
+
     void AdjustLenToZeroTerminated()
     {
       ZMemSize i;
