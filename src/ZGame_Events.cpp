@@ -117,14 +117,16 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                     if (!GameEnv->Settings_Hardware->Experimental_LearningMode) break;
                     ULong SlotNum = 20;
                     ZInventory * Inv = Actor->Inventory;
-                    if (KeySym==SDLK_k) Actor->LearningModePage ++;
-                    else                {if((Actor->LearningModePage--)==0) Actor->LearningModePage = 2; }
+                    if (KeySym==SDLK_j) Actor->LearningModePage ++;
+                    else                {if((Actor->LearningModePage--)==0) Actor->LearningModePage = 3; }
 
+                    printf("Page : %d\n",Actor->LearningModePage);
                     switch (Actor->LearningModePage)
                     {
-                      default: Actor->LearningModePage = 0;
+                      default: Actor->LearningModePage = 1;
                               // Robots and co...
-                      case 0: Inv->SetSlot(SlotNum++, 108, 8192);
+                      case 1: Inv->SetSlot(SlotNum++, 108, 8192);
+                              Inv->SetSlot(SlotNum++, 236, 8192);
                               Inv->SetSlot(SlotNum++, 49 , 8192);
                               Inv->SetSlot(SlotNum++, 214, 8192);
                               Inv->SetSlot(SlotNum++, 216, 8192);
@@ -133,8 +135,8 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                               Inv->SetSlot(SlotNum++, 104, 8192);
                               Inv->SetSlot(SlotNum++, 105, 8192);
                               Inv->SetSlot(SlotNum++, 106, 8192);
-                              Inv->SetSlot(SlotNum++,  94, 8192);
 
+                              Inv->SetSlot(SlotNum++,  94, 8192);
                               Inv->SetSlot(SlotNum++, 95, 8192);
                               Inv->SetSlot(SlotNum++, 88, 8192);
                               Inv->SetSlot(SlotNum++, 87, 8192);
@@ -142,11 +144,10 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                               Inv->SetSlot(SlotNum++,198, 8192);
                               Inv->SetSlot(SlotNum++,204, 8192);
                               Inv->SetSlot(SlotNum++,209, 8192);
-                              Inv->SetSlot(SlotNum++,205, 8192);
-                              Inv->SetSlot(SlotNum++,206, 8192);
-                              Inv->SetSlot(SlotNum++,199, 8192);
+                              Inv->SetSlot(SlotNum++,96, 8192);
+                              Inv->SetSlot(SlotNum++,0, 0);
                               break;
-                      case 1:
+                      case 2:
                               Inv->SetSlot(SlotNum++, 90, 8192);
                               Inv->SetSlot(SlotNum++,99 , 8192);
                               Inv->SetSlot(SlotNum++,100, 8192);
@@ -156,10 +157,13 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                               Inv->SetSlot(SlotNum++,98,  8192);
                               Inv->SetSlot(SlotNum++,77 , 16);
                               Inv->SetSlot(SlotNum++,78 , 16);
+                              Inv->SetSlot(SlotNum++,205, 8192);
+                              Inv->SetSlot(SlotNum++,206, 8192);
+                              Inv->SetSlot(SlotNum++,199, 8192);
 
                               while(SlotNum<40) Inv->SetSlot(SlotNum++, 0, 0);
                               break;
-                      case 2: Inv->SetSlot(SlotNum++, 1, 8192);
+                      case 3: Inv->SetSlot(SlotNum++, 1, 8192);
                               Inv->SetSlot(SlotNum++, 2, 8192);
                               Inv->SetSlot(SlotNum++, 3, 8192);
                               Inv->SetSlot(SlotNum++, 4, 8192);
@@ -823,6 +827,7 @@ void ZGame_Events::Process_StillEvents()
 
       if      (GameEnv->GameWindow_Storage->Is_Shown()) {GameEnv->GameWindow_Storage->Hide();}
       else if (GameEnv->GameWindow_Programmable->Is_Shown()) {GameEnv->GameWindow_Programmable->Hide();}
+      else if (GameEnv->GameWindow_ProgRobot_Asm->Is_Shown()) { GameEnv->GameWindow_ProgRobot_Asm->Hide();}
       else if (GameEnv->GameWindow_UserTextureTransformer->Is_Shown()) {GameEnv->GameWindow_UserTextureTransformer->Hide();}
       else if (GameEnv->GameWindow_Sequencer->Is_Shown()) { GameEnv->GameWindow_Sequencer->Hide();}
       else

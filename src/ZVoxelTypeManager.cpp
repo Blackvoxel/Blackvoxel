@@ -55,6 +55,10 @@
 #  include "ZVoxelType_Programmable.h"
 #endif
 
+#ifndef Z_ZVOXELTYPE_PROGROBOT_ASM_H
+#  include "ZVoxelType_ProgRobot_Asm.h"
+#endif
+
 #ifndef Z_ZVOXELTYPE_FUSIONELEMENT_H
 #  include "ZVoxelType_FusionElement.h"
 #endif
@@ -1608,7 +1612,9 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
       case 214 ... 215: VoxelType = new ZVoxelType_SimpleButton(i);  break;
       case 216 ... 231: VoxelType = new ZVoxelType_IndicatorLight(i);break;
       case 235: VoxelType = new ZVoxelType_Concrete(i);              break;
-      case 237: VoxelType = new ZVoxelType_Example(i);               break;
+      case 236:
+      case 237: VoxelType = new ZVoxelType_ProgRobot_Asm(i);         break;
+      case 238: VoxelType = new ZVoxelType_Example(i);               break;
 
       default:  VoxelType = new ZVoxelType(i);                       break;
     }

@@ -31,59 +31,114 @@
 #  include "ZVoxelExtension_ProgRobot_Asm.h"
 #endif
 
+extern ZGame * Ge;
 
 ZVoxelExtension_ProgRobot_Asm::~ZVoxelExtension_ProgRobot_Asm()
 {
 
 }
 
-void ZVoxelExtension_ProgRobot_Asm::CompileAndRunScript(ULong ContextInfo, ULong ScriptToRun)
+bool ZVoxelExtension_ProgRobot_Asm::CompileAndRunScript(ULong ContextInfo, ULong ScriptToRun, bool StepMode)
 {
+  ZString ProgramText, FileName, FileSpec, BinaryOut;
 
+  ScriptNum = ScriptToRun;
 
+  // Make filename for the program to load
+
+  FileSpec = Ge->Path_UserScripts_Asm_1;
+  FileName = ScriptToRun;
+  FileName.Append_pchar(".asm");
+  FileSpec.AddToPath(FileName);
+
+  // Load from the file.
+
+  if (!ProgramText.LoadFromFile(FileSpec.String)) return(false);
+
+  // Assemble program
+
+  if (!MacroAssembler.Assemble(ProgramText, BinaryOut)) return(false);
+
+  // Clear Memory
+
+  VirtualMachine.ClearMemory();
+
+  // Load it into the virtual machine
+
+  if (!VirtualMachine.BinaryLoad(&BinaryOut)) return(false);
+
+  // Step mode
+
+  VirtualMachine.SetStepModeOn(StepMode);
+
+  // Run it.
+
+  VirtualMachine.PowerOn();
+
+  return(true);
 }
 
 void ZVoxelExtension_ProgRobot_Asm::StopProgram()
 {
-
+  VirtualMachine.StopProgram();
 }
 
 bool ZVoxelExtension_ProgRobot_Asm::IsRunningProgram()
 {
-  return(false);
+  return(VirtualMachine.IsRunningProgram());
 }
 
 bool ZVoxelExtension_ProgRobot_Asm::Save(ZStream_SpecialRamStream * Stream)
 {
+  ULong * ExtensionSize;
+  ULong   StartLen;
+
+  ExtensionSize = Stream->GetPointer_ULong();
+  Stream->Put(0u);       // The size of the extension (defered storage).
+  StartLen = Stream->GetActualBufferLen();
+  Stream->Put((UShort)1); // Extension Version;
+
+  // Storage informations.
+
+  Stream->Put(ScriptNum);
+  Stream->Put(RobotLevel);
+  Stream->Put(RobotSerialNumber);
+  Stream->Put(ProgramText);
+  Stream->PutZone(&VoxelType,sizeof(VoxelType));
+  Stream->PutZone(&VoxelQuantity,sizeof(VoxelQuantity));
+
+  VirtualMachine.Save(Stream);
+
+  *ExtensionSize = Stream->GetActualBufferLen() - StartLen;
 
   return(true);
 }
 
 bool ZVoxelExtension_ProgRobot_Asm::Load(ZStream_SpecialRamStream * Stream)
 {
-  bool Ok;
-  ULong  ExtensionSize;
-  UShort ExtensionVersion;
-  UByte  Temp_Byte;
-  bool   Compiled;
+    bool Ok;
 
-  Ok = Stream->Get(ExtensionSize);
-  Ok&= Stream->Get(ExtensionVersion);     if(!Ok) return(false);
+    ULong  ExtensionSize;
+    UShort ExtensionVersion;
+    UByte  Temp_Byte;
 
-  // Check for supported extension version. If unsupported new version, throw content and continue with a blank extension.
+    Ok = Stream->Get(ExtensionSize);
+    Ok&= Stream->Get(ExtensionVersion);     if(!Ok) return(false);
 
-  if (ExtensionVersion>3) { ExtensionSize-=2; for(ZMemSize i=0;i<ExtensionSize;i++) Ok = Stream->Get(Temp_Byte); if (Ok) return(true); else return(false);}
+    // Check for supported extension version. If unsupported new version, throw content and continue with a blank extension.
 
-  Ok&=Stream->Get(ScriptNum);
-  Ok&=Stream->Get(Compiled);
+    if (ExtensionVersion!=1) { ExtensionSize-=2; for(ZMemSize i=0;i<ExtensionSize;i++) Ok = Stream->Get(Temp_Byte); if (Ok) return(true); else return(false);}
 
+    Ok &= Stream->Get(ScriptNum);
+    Ok &= Stream->Get(RobotLevel);
+    Ok &= Stream->Get(RobotSerialNumber);
+    Ok &= Stream->Get(ProgramText);
+    Ok &= Stream->GetZone(&VoxelType, sizeof(VoxelType));
+    Ok &= Stream->GetZone(&VoxelQuantity, sizeof(VoxelQuantity));
+    Ok &= VirtualMachine.Load(Stream);
 
-  Ok&=Stream->GetZone(&VoxelType, sizeof(VoxelType));
-  Ok&=Stream->GetZone(&VoxelQuantity, sizeof(VoxelQuantity));
-
-  // Init the Script Engine
-
-  return(Ok);
+    return(Ok);
 }
+
 
 

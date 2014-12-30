@@ -30,6 +30,10 @@
 #  include "ZVoxelExtension_ProgRobot_Asm.h"
 #endif
 
+#ifndef Z_ZACTIVEVOXELINTERFACE_H
+#  include "ZActiveVoxelInterface.h"
+#endif
+
 
 ZVoxelExtension * ZVoxelType_ProgRobot_Asm::CreateVoxelExtension(bool IsLoadingPhase)
 {
@@ -47,14 +51,40 @@ void ZVoxelType_ProgRobot_Asm::DeleteVoxelExtension(ZMemSize VoxelExtension, boo
   Ext = (ZVoxelExtension_ProgRobot_Asm *)VoxelExtension;
   if (!Ext) return;
 
+  // Stop Execution
+
+  if (Ext->IsRunningProgram())
+  {
+    do
+    {
+      Ext->StopProgram();
+    } while (Ext->IsRunningProgram());
+  }
+
+  // If there is a window opened on this robot, then close it before it could displays bad memory locations (or crash).
+
+  if (GameEnv->GameWindow_ProgRobot_Asm)
+  {
+    // Does we are displaying the extension data of the robot we are about to get out of memory ?
+    if (GameEnv->GameWindow_ProgRobot_Asm->GetVoxelExtension() == Ext) GameEnv->GameWindow_ProgRobot_Asm->Hide();
+  }
+
+  if (GameEnv->GameWindow_AsmDebug)
+  {
+    // Does we are displaying the extension data of the robot we are about to get out of memory ?
+    if (GameEnv->GameWindow_AsmDebug->GetVoxelExtension() == Ext) GameEnv->GameWindow_AsmDebug->Hide();
+  }
+
+  // Ok, then we can destroy extension.
+
   delete Ext;
 }
 
 void  ZVoxelType_ProgRobot_Asm::UserAction_Activate(ZMemSize VoxelInfo, Long x, Long y, Long z)
 {
-//  if (GameEnv->GameWindow_Programmable->Is_Shown()) return;
-//  GameEnv->GameWindow_Programmable->SetVoxelExtension((ZVoxelExtension *)VoxelInfo);
-//  GameEnv->GameWindow_Programmable->Show();
+  if (GameEnv->GameWindow_ProgRobot_Asm->Is_Shown()) return;
+  GameEnv->GameWindow_ProgRobot_Asm->SetVoxelExtension((ZVoxelExtension *)VoxelInfo);
+  GameEnv->GameWindow_ProgRobot_Asm->Show();
 }
 
 ULong ZVoxelType_ProgRobot_Asm::Interface_PushBlock_Push( VoxelLocation * DestLocation, UShort VoxelType, ULong Count )
@@ -70,7 +100,6 @@ ULong ZVoxelType_ProgRobot_Asm::Interface_PushBlock_Push( VoxelLocation * DestLo
 
   return(0);
 }
-
 
 ULong ZVoxelType_ProgRobot_Asm::Interface_PushBlock_Pull( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
@@ -106,3 +135,13 @@ ULong ZVoxelType_ProgRobot_Asm::Interface_PushBlock_PullTest( VoxelLocation * De
 
   return(0);
 }
+
+void ZVoxelType_ProgRobot_Asm::ActiveProcess( ZActiveVoxelInterface * AvData)
+{
+  ZVoxelExtension_ProgRobot_Asm * Ext;
+
+  Ext = (ZVoxelExtension_ProgRobot_Asm *)AvData->GetVoxelExtension_Main();
+  Ext->SetActiveVoxelInterface(AvData);
+  Ext->VirtualMachine.RunQuantum();
+};
+

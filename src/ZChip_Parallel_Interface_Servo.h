@@ -17,44 +17,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZCircuit.h
+ * ZCircuit_Parallel_Interface_Servo.h
  *
- *  Created on: 8 nov. 2014
+ *  Created on: 15 déc. 2014
  *      Author: laurent
  */
 
-#ifndef Z_ZCIRCUIT_H
-#define Z_ZCIRCUIT_H
+#ifndef Z_ZCHIP_PARALLEL_INTERFACE_SERVO_H
+#define Z_ZCHIP_PARALLEL_INTERFACE_SERVO_H
 
-//#ifndef Z_ZCIRCUIT_H
-//#  include "ZChip.h"
+//#ifndef Z_ZCHIP_PARALLEL_INTERFACE_SERVO_H
+//#  include "ZChip_Parallel_Interface_Servo.h"
 //#endif
 
-#ifndef Z_ZTYPES_H
-#  include "z/ZTypes.h"
+#ifndef Z_ZCHIP_PARALLEL_INTERFACE_H
+#  include "ZChip_Parallel_Interface.h"
 #endif
 
-#ifndef Z_ZVMACHINE_H
-#  include "ZVMachine.h"
-#endif
 
-class ZChip
+
+
+
+
+class ZChip_Parallel_Interface_Servo : public ZChip_Parallel_Interface
 {
   public:
-    ZVMachine * VMachine;
-
-    inline void  SetVMachine(ZVMachine * VMachine) { this->VMachine = VMachine; }
-
-    inline void  SetRegister(ULong Register, ULong Value) {};
-    inline ULong GetRegister(ULong Register) { return(0); };
-    void         Reset() {}
-    inline void  DoChipManagement() {};
-    inline void  DoChipManagement_FrameCycle() {}
-    virtual bool Save(ZStream_SpecialRamStream * Stream) {return(false);};
-    virtual bool Load(ZStream_SpecialRamStream * Stream) {return(false);};
-    virtual ~ZChip() {}
+    void  SetRegister_Data(ULong Value);
+    void  SetRegister(ULong Register, ULong Value);
+    void  DoChipManagement();
+    void  Reset();
 };
 
 
-
-#endif /* Z_ZCIRCUIT_H */
+#endif /* Z_ZCHIP_PARALLEL_INTERFACE_SERVO_H */

@@ -590,6 +590,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                 St[i]->ModifTracker.Set(SecondaryOffset[i]);
                                 break;
                               }
+
                               for(i=0,j=4,vCount=0,WaveCount=0;i<4;i++,j++)
                               {
                                 cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];

@@ -17,17 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZGameWindow_Programmable.h
+ * ZGameWindow_ZProgRobot_Asm.h
  *
- *  Created on: 4 janv. 2013
+ *  Created on: 20 nov. 2014
  *      Author: laurent
  */
 
-#ifndef Z_ZGAMEWINDOW_PROGRAMMABLE_H
-#define Z_ZGAMEWINDOW_PROGRAMMABLE_H
+#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_ASM_H
+#define Z_ZGAMEWINDOW_ZPROGROBOT_ASM_H
 
-//#ifndef Z_ZGAMEWINDOW_PROGRAMMABLE_H
-//#  include "ZGameWindow_Programmable.h"
+//#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_ASM_H
+//#  include "ZGameWindow_ZProgRobot_Asm.h"
 //#endif
 
 #ifndef Z_ZGUI_H
@@ -54,13 +54,13 @@
 #  include "ZVoxelTypeManager.h"
 #endif
 
-#ifndef Z_ZVOXELEXTENSION_PROGRAMMABLE_H
-#  include "ZVoxelExtension_Programmable.h"
+#ifndef Z_ZVOXELEXTENSION_PROGROBOT_ASM_H
+#  include "ZVoxelExtension_ProgRobot_Asm.h"
 #endif
 
 class ZGame;
 
-class ZGameWindow_Programmable : public ZFrame
+class ZGameWindow_ProgRobot_Asm : public ZFrame
 {
   protected:
     ZFrame        * MainWindow;
@@ -74,6 +74,8 @@ class ZGameWindow_Programmable : public ZFrame
     ZFrame_FontFrame RobotProgramTitle;
     ZFrame_NumericChoiceBox RobotProgramNum;
     ZPanelTextButton RobotProgramLoad;
+    ZPanelTextButton RobotProgramDebug;
+    ZPanelTextButton RobotProgramDebugShow;
     ZFrame_FontFrame StorageTitle;
     ZFrame_FontFrame InventoryTitle;
 
@@ -84,15 +86,17 @@ class ZGameWindow_Programmable : public ZFrame
     ZString Text_StorageTitle;
     ZString Text_InventoryTitle;
     ZString Text_RobotProgramLoad;
+    ZString Text_RobotProgramDebug;
+    ZString Text_RobotProgramDebugShow;
     double  ProgramNum;
 
-    ZVoxelExtension_Programmable * VoxelExtension;
+    ZVoxelExtension_ProgRobot_Asm * VoxelExtension;
 
     UShort i1,i2,i3;
     ULong Q1,Q2,Q3;
   public:
 
-  ZGameWindow_Programmable()
+    ZGameWindow_ProgRobot_Asm()
   {
     MainWindow = this;
     GameEnv = 0;
@@ -101,22 +105,24 @@ class ZGameWindow_Programmable : public ZFrame
     Q1=Q2=Q3 = 0;
     MainStorage = new ZInventoryBox[128];
     Flag_Shown = false;
-    Text_MainTitle = "ROBOT";
+    Text_MainTitle = "MACHINE LANGUAGE ROBOT";
     Text_RobotZoneTitle = "ROBOT PROGRAM";
     Text_StorageTitle = "ROBOT STORAGE";
     Text_InventoryTitle = "INVENTORY";
-    Text_RobotProgramLoad = "LOAD / COMPILE";
+    Text_RobotProgramLoad = "LOAD-RUN";
+    Text_RobotProgramDebug = "LOAD-DEBUG";
+    Text_RobotProgramDebugShow = "DEBUG";
     ProgramNum = 0;
   }
 
-  ~ZGameWindow_Programmable()
+  ~ZGameWindow_ProgRobot_Asm()
   {
     if (MainStorage) delete [] MainStorage;
   }
 
   void SetGameEnv(ZGame * GameEnv) {this->GameEnv = GameEnv;}
 
-  void SetVoxelExtension(ZVoxelExtension * Extension) { VoxelExtension = (ZVoxelExtension_Programmable *)Extension; }
+  void SetVoxelExtension(ZVoxelExtension * Extension) { VoxelExtension = (ZVoxelExtension_ProgRobot_Asm *)Extension; }
   ZVoxelExtension * GetVoxelExtension() { return(VoxelExtension);}
   void Show();
   void Hide();
@@ -131,5 +137,4 @@ class ZGameWindow_Programmable : public ZFrame
 
 };
 
-
-#endif /* Z_ZGAMEWINDOW_PROGRAMMABLE_H */
+#endif /* Z_ZGAMEWINDOW_ZPROGROBOT_ASM_H */

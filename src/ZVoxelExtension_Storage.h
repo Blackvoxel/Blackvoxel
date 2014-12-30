@@ -82,6 +82,7 @@ class ZVoxelExtension_Storage : public ZVoxelExtension
 
     return(true);
   }
+
   virtual bool Load(ZStream_SpecialRamStream * Stream)
   {
     bool Ok;

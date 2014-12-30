@@ -81,10 +81,6 @@ void ZGraphicUserManager::FocusStack_SwapAndReset()
   Actual_FocusStackSize    = 0;
 }
 
-
-
-
-
 void ZGraphicUserManager::SetTextureManager( ZTextureManager * TextureManager )
 {
   this->TextureManager = TextureManager;

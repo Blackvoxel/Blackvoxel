@@ -61,6 +61,8 @@ class ZVoxelType_ProgRobot_Asm : public ZVoxelType
     virtual ULong  Interface_PushBlock_Pull    ( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
     virtual ULong  Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
 
+    virtual void  ActiveProcess( ZActiveVoxelInterface * AvData);
+
 };
 
 

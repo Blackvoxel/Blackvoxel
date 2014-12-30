@@ -168,6 +168,10 @@ class ZFrame : public ZObject
       Flag_Enable_Proc_KeyDown      = false;
       Flag_Enable_Proc_KeyUp        = false;
 
+      GuiManager  = 0;
+      TextureNum  = 0;
+      ParentFrame = 0;
+
       DrawColor.r = 1.0f; DrawColor.v = 1.0f; DrawColor.b = 1.0f;
     }
 

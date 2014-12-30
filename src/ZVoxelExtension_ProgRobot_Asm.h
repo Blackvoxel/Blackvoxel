@@ -34,6 +34,16 @@
 #  include "ZVoxelExtension.h"
 #endif
 
+#ifndef Z_ZVMACHINE_T1_H
+#  include "ZVMachine_T1.h"
+#endif
+
+#ifndef Z_MACROASSEMBLER_H
+#  include "ZMacroAssembler.h"
+#endif
+
+class ZActiveVoxelInterface;
+
 class ZVoxelExtension_ProgRobot_Asm : public ZVoxelExtension
 {
   public:
@@ -48,7 +58,10 @@ class ZVoxelExtension_ProgRobot_Asm : public ZVoxelExtension
 
     bool    IsAllowedToRun;
 
-    // Squirrel script engine
+    // Virtual machine engine
+
+    ZVMachine_T1    VirtualMachine;
+    ZMacroAssembler MacroAssembler;
 
 
     virtual ZVoxelExtension * GetNewCopy()
@@ -85,9 +98,11 @@ class ZVoxelExtension_ProgRobot_Asm : public ZVoxelExtension
     virtual bool Load(ZStream_SpecialRamStream * Stream);
 
 
-    virtual void SetVoxelPosition(ZVector3L * VoxelPosition)
+    inline void SetActiveVoxelInterface(ZActiveVoxelInterface * VoxelInterface)
     {
+      VirtualMachine.SetVoxelInterface(VoxelInterface);
     }
+
 
     virtual bool FindSlot(UShort VoxelType, ULong &Slot)
     {
@@ -159,7 +174,7 @@ class ZVoxelExtension_ProgRobot_Asm : public ZVoxelExtension
 
     virtual void SetScriptNum(ULong ScriptNum) {this->ScriptNum = ScriptNum; }
     virtual void SetSerial(ULong SerialNumber) {this->RobotSerialNumber = SerialNumber; }
-    virtual void CompileAndRunScript(ULong Context, ULong ScriptToRun = -1);
+    virtual bool CompileAndRunScript(ULong Context, ULong ScriptToRun = -1, bool StepMode = false);
     virtual bool IsCompiledOk() { return(true); }
 
     virtual void StopProgram();
