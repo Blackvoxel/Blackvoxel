@@ -34,6 +34,7 @@
 #  include "ZTypes.h"
 #endif
 
+class ZStream_SpecialRamStream;
 class ZFastBit_Array
 {
   public:
@@ -100,6 +101,9 @@ class ZFastBit_Array
       Remain &= 0x1f;
       return( Storage[Offset] & (1<<Remain) );
     }
+
+    bool Save (ZStream_SpecialRamStream * Stream);
+    bool Load (ZStream_SpecialRamStream * Stream, ZMemSize MinimumSize);
 };
 
 // A specialized version.
@@ -147,6 +151,8 @@ class ZFastBit_Array_64k
       Remain &= 0x1f;
       return( Storage[Offset] & (1<<Remain) );
     }
+
+
 };
 
 
