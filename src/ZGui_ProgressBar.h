@@ -48,6 +48,7 @@ class ZFrame_ProgressBar : public ZFrame
     {
       FrameType = MulticharConst('P','B','A','R'); // = InventoryBox;
       Flag_Cap_Dragable = false;
+      Factor = 0.0f;
     }
 
     void SetCompletion(float Completion) {this->Factor = Completion;}
