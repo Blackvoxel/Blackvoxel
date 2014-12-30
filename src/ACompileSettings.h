@@ -32,7 +32,7 @@
 
 // Options à inclure : -mfpmath=sse -msse2
 
-#define DEVELOPPEMENT_FORCE_DEV 0 // If you are making development, set it to 1
+#define DEVELOPPEMENT_FORCE_DEV 1 // If you are making development, set it to 1
 
 // Dev options forced ?
 
@@ -73,7 +73,7 @@
   #endif
 #else
   #define COMPILEOPTION_INVENTORY_DEMOCONTENT 0
-  #define COMPILEOPTION_ALLOWSAVE 0
+  #define COMPILEOPTION_ALLOWSAVE 1
   #define COMPILEOPTION_ALLOWSAVEPLAYERSTATE 1
   #define COMPILEOPTION_ALLOWVEHICLE 1
   #define COMPILEOPTION_VERSIONSTRING "VERSION 1.37 : CONFIDENTIAL TESTING (c) LAURENT THIEBAUT & OLIVIA MERLE"

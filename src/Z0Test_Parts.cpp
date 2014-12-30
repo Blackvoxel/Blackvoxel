@@ -42,24 +42,20 @@
 #  include "z/ZStream_File.h"
 #endif
 
+//#ifndef Z_ZVCPU_H
+//#  include "ZVCPU.h"
+//#endif
+
 bool ZTest_Parts::RunTestCode()
 {
   ZStream_File Stream;
   ZString Text, Out;
-  printf("Test Parts");
+  printf("Test Parts\n");
 
-  Stream.SetFileName("/home/laurent/workspace/a_newblackvoxel/test.zcpuasm");
-  Stream.GetFileContent(Text);
-  //Text = "  move.b #10,r0";
+  BlackCPU<int> CPU;
 
-  ZMacroAssembler Mass;
-
-  Mass.Assemble(Text, Out);
-  Stream.SetFileName("test.bin");
-  Stream.PutFileContent(Out);
-
-  BlackCPU<ZVMachine_T1> Cpu;
-
+  Out = CPU.OutputOpcodeDatabase(0);
+  printf("%s",Out.String);
 
   return(false);
 }

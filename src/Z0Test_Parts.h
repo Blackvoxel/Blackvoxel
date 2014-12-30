@@ -34,6 +34,8 @@ class ZTest_Parts
 {
   public:
     bool RunTestCode();
+
+
 };
 
 

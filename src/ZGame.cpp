@@ -247,13 +247,14 @@ bool ZGame::Init_TextureManager(ZLog * InitLog)
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/title_1_2.bmp");              Result = TextureManager.LoadBMPTexture(Path.String,4,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(7, ZLog::FAIL, Err); return(false); }
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_1_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,5,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(8, ZLog::FAIL, Err); return(false); }
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_2_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,6,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(9, ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/gui_tiles_1_2.bmp");          Result = TextureManager.LoadBMPTexture(Path.String,7,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(10,ZLog::FAIL, Err); return(false); }
+  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/gui_tiles_1_3.bmp");          Result = TextureManager.LoadBMPTexture(Path.String,7,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(10,ZLog::FAIL, Err); return(false); }
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/dialog_background_1_2.bmp");  Result = TextureManager.LoadBMPTexture(Path.String,8,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(11,ZLog::FAIL, Err); return(false); }
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/dialog_voxeltype_1_1.bmp");   Result = TextureManager.LoadBMPTexture(Path.String,9,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(12,ZLog::FAIL, Err); return(false); }
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/button_1_5.bmp");             Result = TextureManager.LoadBMPTexture(Path.String,10,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(13,ZLog::FAIL, Err); return(false); }
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_2_2.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,11,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(14,ZLog::FAIL, Err); return(false); }
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_3_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,12,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(15,ZLog::FAIL, Err); return(false); }
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/contribute_1_1.bmp");         Result = TextureManager.LoadBMPTexture(Path.String,13,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(15,ZLog::FAIL, Err); return(false); }
+  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/background_black.bmp");       Result = TextureManager.LoadBMPTexture(Path.String,14,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(15,ZLog::FAIL, Err); return(false); }
 
   Initialized_TextureManager = true;
   InitLog->Log(2, ZLog::INFO, "Ended Ok : Texture Manager Init");
@@ -809,11 +810,14 @@ bool ZGame::Start_GameWindows()
   VoxelTypeBar           = new ZGameWindow_VoxelTypeBar;  VoxelTypeBar->SetGameEnv(this);
   GameWindow_Storage     = new ZGameWindow_Storage;       GameWindow_Storage->SetGameEnv(this);
   GameWindow_Programmable= new ZGameWindow_Programmable;  GameWindow_Programmable->SetGameEnv(this);
+  GameWindow_ProgRobot_Asm=new ZGameWindow_ProgRobot_Asm; GameWindow_ProgRobot_Asm->SetGameEnv(this);
   GameProgressBar        = new ZGameWindow_ProgressBar;   GameProgressBar->SetGameEnv(this);
   GameWindow_Advertising = new ZGameWindow_Advertising;   GameWindow_Advertising->SetGameEnv(this);
   GameWindow_UserTextureTransformer = new ZGameWindow_UserTextureTransformer; GameWindow_UserTextureTransformer->SetGameEnv(this);
   GameWindow_DisplayInfos= new ZGameWindow_DisplayInfos;  GameWindow_DisplayInfos->SetGameEnv(this);
   GameWindow_Sequencer   = new ZGameWindow_Sequencer;     GameWindow_Sequencer->SetGameEnv(this);
+  GameWindow_AsmDebug    = new ZGameWindow_AsmDebug;      GameWindow_AsmDebug->SetGameEnv(this);
+  GameWindow_AsmHardware = new ZGameWindow_AsmHardware;   GameWindow_AsmHardware->SetGameEnv(this);
 
   GameWindow_Advertising->Show();
   Initialized_GameWindows = true;
@@ -868,6 +872,7 @@ bool ZGame::Start_PersistGameEnv()
     Path_ActualUniverse = Path_Universes; Path_ActualUniverse.AddToPath(UniverseNum);
     Path_UserScripts    = Path_ActualUniverse; Path_UserScripts.AddToPath("Scripts");
     Path_UserScripts_Squirrel = Path_UserScripts; Path_UserScripts_Squirrel.AddToPath("Squirrel");
+    Path_UserScripts_Asm_1    = Path_UserScripts; Path_UserScripts_Asm_1.AddToPath("Asm_1");
     Path_UserScripts_UserData= Path_UserScripts; Path_UserScripts_UserData.AddToPath("UserData");
 
     // Create the directory for this universe if not exists.
@@ -875,6 +880,7 @@ bool ZGame::Start_PersistGameEnv()
     ZStream_File::Directory_CreateIfNotExists(Path_ActualUniverse.String);
     ZStream_File::Directory_CreateIfNotExists(Path_UserScripts.String);
     ZStream_File::Directory_CreateIfNotExists(Path_UserScripts_Squirrel.String);
+    ZStream_File::Directory_CreateIfNotExists(Path_UserScripts_Asm_1.String);
     ZStream_File::Directory_CreateIfNotExists(Path_UserScripts_UserData.String);
 
     // Loadind the worldinfo

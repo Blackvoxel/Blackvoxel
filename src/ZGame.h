@@ -112,6 +112,14 @@
 #  include "ZGameWindow_ProgressBar.h"
 #endif
 
+#ifndef Z_ZGAMEWINDOW_ASMDEBUG_H
+#  include "ZGameWindow_AsmDebug.h"
+#endif
+
+#ifndef Z_ZGAMEWINDOW_ASMHARDWARE_H
+#  include "ZGameWindow_AsmHardware.h"
+#endif
+
 #ifndef Z_ZTOOLS_H
 #  include "ZTools.h"
 #endif
@@ -130,6 +138,10 @@
 
 #ifndef Z_GAMEWINDOW_SEQUENCER_H
 #  include "ZGameWindow_Sequencer.h"
+#endif
+
+#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_ASM_H
+#  include "ZGameWindow_ZProgRobot_Asm.h"
 #endif
 
 #ifndef Z_ZGAMESTAT_H
@@ -207,6 +219,9 @@ class ZGame
              GameWindow_Programmable = 0;
              GameWindow_Inventory = 0;
              GameWindow_DisplayInfos = 0;
+             GameWindow_ProgRobot_Asm = 0;
+             GameWindow_AsmDebug = 0;
+             GameWindow_AsmHardware = 0;
              GameProgressBar = 0;
              Game_Run = false;
              screen = 0;
@@ -247,6 +262,7 @@ class ZGame
   ZString Path_UserTextures;
   ZString Path_UserScripts;
   ZString Path_UserScripts_Squirrel;
+  ZString Path_UserScripts_Asm_1;
   ZString Path_UserScripts_UserData;
 
   // Flags
@@ -291,10 +307,13 @@ class ZGame
   ZGameWindow_Storage                * GameWindow_Storage;
   ZGameWindow_Programmable           * GameWindow_Programmable;
   ZGameWindow_UserTextureTransformer * GameWindow_UserTextureTransformer;
+  ZGameWindow_ProgRobot_Asm          * GameWindow_ProgRobot_Asm;
   ZGameWindow_ProgressBar            * GameProgressBar;
   ZGameWindow_Advertising            * GameWindow_Advertising;
   ZGameWindow_DisplayInfos           * GameWindow_DisplayInfos;
   ZGameWindow_Sequencer              * GameWindow_Sequencer;
+  ZGameWindow_AsmDebug               * GameWindow_AsmDebug;
+  ZGameWindow_AsmHardware            * GameWindow_AsmHardware;
 
   bool Initialized_UserDataStorage;
   bool Initialized_Settings;
