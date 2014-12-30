@@ -317,7 +317,7 @@ class ZGenericByteCanva
       {
         SetSize(Image->Width, Image->Height);
       }
-      else if (!Canva || ((ULong)Image->Width) < Width || ((ULong)Image->Height) < Height ) return;
+      else if (!Canva || ((ULong)Image->Width) < (ULong)Width || ((ULong)Image->Height) < (ULong)Height ) return;
 
       Offset = 0;
       for (y=0;y<Height;y++)
@@ -327,7 +327,6 @@ class ZGenericByteCanva
           Canva[Offset++] = Image->BitmapMemory[ ((x + y * Image->Width) * Image->BytesPerPixel) + Channel ];
         }
       }
-
 
     }
 
