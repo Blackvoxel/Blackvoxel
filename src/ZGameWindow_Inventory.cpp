@@ -48,10 +48,19 @@ void ZGameWindow_Inventory::Show()
   MainWindow_Pos.x = ((float)GameEnv->ScreenResolution.x - MainWindow_Size.x) / 2.0f;
   MainWindow_Pos.y = ((float)GameEnv->ScreenResolution.y - MainWindow_Size.y) / 2.0f;
 
-  MainWindow.SetPosition( MainWindow_Pos.x, MainWindow_Pos.y );
-  MainWindow.SetSize(MainWindow_Size.x,MainWindow_Size.y);
-  MainWindow.SetTexture(8);
-  GameEnv->GuiManager.AddFrame(&MainWindow);
+  MainWindow->SetPosition( MainWindow_Pos.x, MainWindow_Pos.y );
+  MainWindow->SetSize(MainWindow_Size.x,MainWindow_Size.y);
+  MainWindow->SetTexture(8);
+  GameEnv->GuiManager.AddFrame(MainWindow);
+
+  // CloseBox
+
+  Size.x = 32.0f; Size.y = 32.0f;
+  CloseBox.SetPosition(MainWindow_Size.x - Size.x - 5.0f, 5.0f);
+  CloseBox.SetSize(Size.x, Size.y);
+  CloseBox.SetTileSet(GameEnv->GuiTileset);
+  CloseBox.SetTile(11);
+  MainWindow->AddFrame(&CloseBox);
 
   // Inventory main title
 
@@ -61,7 +70,7 @@ void ZGameWindow_Inventory::Show()
   MainTitle.SetPosition(MainWindow_Size.x / 2.0f - Size.x / 2.0f ,Rp.y);
   MainTitle.SetSize(Size.x,Size.y);
   MainTitle.SetColor(255.0f,255.0f,255.0f);
-  MainWindow.AddFrame(&MainTitle);
+  MainWindow->AddFrame(&MainTitle);
   Rp.y += Size.y + 20.0f;
 
   // Tools Title
@@ -72,7 +81,7 @@ void ZGameWindow_Inventory::Show()
   ToolTitle.SetPosition(Rp.x ,Rp.y);
   ToolTitle.SetSize(Size.x,Size.y);
   ToolTitle.SetColor(255.0f,255.0f,255.0f);
-  MainWindow.AddFrame(&ToolTitle);
+  MainWindow->AddFrame(&ToolTitle);
   Rp.y += Size.y + 5.0f;
 
   // Tools
@@ -88,7 +97,7 @@ void ZGameWindow_Inventory::Show()
     MainInventory[Indice].SetVoxelType(&Entry->VoxelType);
     MainInventory[Indice].SetQuantity(&Entry->Quantity);
     MainInventory[Indice].SetColor(255.0f,255.0f,255.0f);
-    MainWindow.AddFrame(&MainInventory[Indice]);
+    MainWindow->AddFrame(&MainInventory[Indice]);
   }
   Rp.y += 64.0f + 12.0f;
 
@@ -100,7 +109,7 @@ void ZGameWindow_Inventory::Show()
   InventoryTitle.SetPosition(Rp.x ,Rp.y);
   InventoryTitle.SetSize(Size.x,Size.y);
   InventoryTitle.SetColor(255.0f,255.0f,255.0f);
-  MainWindow.AddFrame(&InventoryTitle);
+  MainWindow->AddFrame(&InventoryTitle);
   Rp.y += Size.y + 5.0f;
 
 
@@ -119,7 +128,7 @@ void ZGameWindow_Inventory::Show()
       MainInventory[Indice].SetVoxelType(&Entry->VoxelType);
       MainInventory[Indice].SetQuantity(&Entry->Quantity);
       MainInventory[Indice].SetColor(128.0f,128.0f,128.0f);
-      MainWindow.AddFrame(&MainInventory[Indice]);
+      MainWindow->AddFrame(&MainInventory[Indice]);
     }
     Rp.y += 64.0f + 6.0f;
   }
@@ -133,7 +142,7 @@ void ZGameWindow_Inventory::Show()
   PowerTitle.SetPosition(Rp.x ,Rp.y);
   PowerTitle.SetSize(Size.x,Size.y);
   PowerTitle.SetColor(255.0f,255.0f,255.0f);
-  MainWindow.AddFrame(&PowerTitle);
+  MainWindow->AddFrame(&PowerTitle);
   Rp.y += Size.y + 5.0f;
 
   // Powers
@@ -149,7 +158,7 @@ void ZGameWindow_Inventory::Show()
     MainInventory[Indice].SetVoxelType(&Entry->VoxelType);
     MainInventory[Indice].SetQuantity(&Entry->Quantity);
     MainInventory[Indice].SetColor(255.0f,255.0f,255.0f);
-    MainWindow.AddFrame(&MainInventory[Indice]);
+    MainWindow->AddFrame(&MainInventory[Indice]);
   }
   Rp.y += 64.0f + 12.0f;
 
@@ -162,12 +171,27 @@ void ZGameWindow_Inventory::Show()
   Flag_Shown = true;
 }
 
+
+
 void ZGameWindow_Inventory::Hide()
 {
-  GameEnv->GuiManager.RemoveFrame(&MainWindow);
+  GameEnv->GuiManager.RemoveFrame(MainWindow);
   SDL_ShowCursor(SDL_DISABLE);
   SDL_WM_GrabInput(SDL_GRAB_ON);
   GameEnv->Game_Events->SetEnableMouseEvents();
   Flag_Shown = false;
-
 }
+
+Bool ZGameWindow_Inventory::MouseButtonClick(UShort nButton, Short Absolute_x, Short Absolute_y)
+{
+  Bool Res;
+  Res = ZFrame::MouseButtonClick(nButton, Absolute_x, Absolute_y);
+
+  if (CloseBox.Is_MouseClick(true))
+  {
+    Hide();
+  }
+
+  return (Res);
+}
+

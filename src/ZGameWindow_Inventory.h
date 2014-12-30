@@ -42,18 +42,23 @@
 #  include "ZGui_FontFrame.h"
 #endif
 
+#ifndef Z_ZGUI_TILEFRAME_H
+#  include "ZGui_TileFrame.h"
+#endif
+
 class ZGame;
 
-class ZGameWindow_Inventory
+class ZGameWindow_Inventory : public ZFrame
 {
   protected:
-    ZFrame        MainWindow;
+    ZFrame *      MainWindow;
     ZInventoryBox IBox;
     ZInventoryBox IBox2;
     ZInventoryBox IBox3;
     ZGame * GameEnv;
     bool Flag_Shown;
 
+    ZTileFrame       CloseBox;
     ZFrame_FontFrame MainTitle;
     ZFrame_FontFrame ToolTitle;
     ZFrame_FontFrame InventoryTitle;
@@ -72,12 +77,16 @@ class ZGameWindow_Inventory
 
   ZGameWindow_Inventory()
   {
+    GameEnv = 0;
+    MainWindow = this;
     MainInventory = new ZInventoryBox[128];
     Flag_Shown = false;
     Text_MainTitle = "INVENTORY";
     Text_ToolTitle = "TOOLS";
     Text_InventoryTitle = "INVENTORY";
     Text_PowerTitle = "POWERS";
+    i1 = i2 = i3 = 0;
+    Q1 = Q2 = Q3 = 0;
   }
 
   ~ZGameWindow_Inventory()
@@ -91,9 +100,9 @@ class ZGameWindow_Inventory
 
 
   void Hide();
-
-
   bool Is_Shown() {return(Flag_Shown);}
+
+  Bool MouseButtonClick(UShort nButton, Short Absolute_x, Short Absolute_y);
 
 };
 
