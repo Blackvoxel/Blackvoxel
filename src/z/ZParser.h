@@ -293,6 +293,7 @@ class ZParser
       return(Result);
     }
 
+    void  StripUToEol();
     void Set_NoErrorOnEof(bool Flag) { NoErrorOnEof = Flag; }
   private:
     void  StripLeadBlank();
@@ -326,6 +327,7 @@ class ZParser
     bool ParseConst;
     bool ParseIdent;
     bool NoErrorOnEof;
+
 };
 
 #endif

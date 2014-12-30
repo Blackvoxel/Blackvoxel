@@ -179,7 +179,7 @@ Bool ZParser::GetAlphaConst(ZString &Const)
         Tp = Txt;
         return(true);
       }
-      Const<<*Txt;
+      Const.Append_char(*Txt);
       Txt++;Len--;
     }
   }
@@ -226,7 +226,7 @@ Bool ZParser::GetIdentifier(ZString &Ident)
   if (SeparatorSet_Identifier != *Txt) return(false);
   do
   {
-    Ident<<*Txt;
+    Ident.Append_char(*Txt);
     Len--;
     Txt++;
   } while(Len && SeparatorSet_Identifier==*Txt);
@@ -383,4 +383,11 @@ Bool ZParser::GetToken(ZParser_Token &Token)
   return(false);
 }
 
+void ZParser::StripUToEol()
+{
+  while (RLen && SeparatorSet_NextLine != *Tp)
+  {
+    RLen--;Tp++;
+  }
+}
 
