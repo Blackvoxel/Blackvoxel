@@ -88,12 +88,16 @@ class ZSimpleHash
 
     inline void AddItem(char const * String, Type * Data)
     {
-      ZMemSize Hash;
+      ZMemSize Hash,i;
 
       Hash = ComputeHash(String);
       if (Hash >= HashSize) return;
 
-      Table[Hash] = Data;
+      for(i=0;i<HashSize; i++)
+      {
+        if (!Table[Hash]) { Table[Hash] = Data; return; }
+        Hash = (Hash+1) & Mask;
+      }
     }
 
     inline Type * FindItem(char const * String, ZMemSize & FoundHash)
