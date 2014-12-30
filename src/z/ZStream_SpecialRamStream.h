@@ -86,6 +86,9 @@ class ZStream_SpecialRamStream
     return( (ReadCount) ? true : false );
   }
 
+  bool OpenRead(ZString * String);
+
+
   inline ZMemSize GetOffset() { return(Pointer); }
 
   bool inline FlushBuffer()
@@ -169,6 +172,12 @@ class ZStream_SpecialRamStream
     ZMemSize i;
 
     for (i=0;i<ZoneLen;i++) Buffer[Pointer++]= ((char*)Zone)[i];
+  }
+
+  inline void Put (ZString const &String)
+  {
+    Put((UELong)String.Len);
+    PutZone(String.String, String.Len);
   }
 
   inline void PutString(char const * String)
@@ -302,6 +311,17 @@ class ZStream_SpecialRamStream
 
     return(true);
   }
+
+  inline bool Get(ZString &String)
+  {
+    UELong Len;
+    if (!Get(Len)) return(false);
+    String.SetLen((ZMemSize)Len);
+    if (!GetZone(String.String, String.Len)) return(false);
+
+    return(true);
+  }
+
 
   inline bool GetStringFixedLen(char * String, ULong Len)
   {

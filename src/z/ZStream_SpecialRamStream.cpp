@@ -55,3 +55,13 @@ void ZStream_SpecialRamStream::BufferToString(ZString & OutputString)
   OutputString.SetLen(Pointer);
   memcpy(OutputString.String, Buffer, Pointer);
 }
+
+bool ZStream_SpecialRamStream::OpenRead(ZString * String)
+{
+  if (String->Len>=BufferSize) return(false);
+
+  memcpy(Buffer, String->String, String->Len);
+  ReadCount = String->Len;
+
+  return(true);
+}
