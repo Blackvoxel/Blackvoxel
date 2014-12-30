@@ -44,17 +44,18 @@ class ZGame;
 class ZGameWindow_ProgressBar
 {
   protected:
-    ZFrame        MainWindow;
-    ZGame * GameEnv;
-    bool Flag_Shown;
+    ZFrame   MainWindow;
+    ZGame    * GameEnv;
+    bool     Flag_Shown;
 
     ZFrame_ProgressBar  Bar;
 
   public:
 
-    ZGameWindow_ProgressBar()
+  ZGameWindow_ProgressBar()
   {
     Flag_Shown = false;
+    GameEnv = 0;
   }
 
   ~ZGameWindow_ProgressBar()
