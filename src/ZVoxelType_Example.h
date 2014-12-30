@@ -90,13 +90,13 @@ class ZVoxelType_Example : public ZVoxelType
     virtual void  ActiveProcess( ZActiveVoxelInterface * AvData)
     {
       ZVector3L Loc, Loc2;
-      VoxelLocation Location;
+      // VoxelLocation Location;
 
       Loc = Loc2 = AvData->Coords;
       Loc.x ++;
       Loc2.x --;
 
-      AvData->MoveThis(&Loc, ZActiveVoxelInterface::CHANGE_IMPORTANT);
+      AvData->MoveThis_Abs(&Loc, ZActiveVoxelInterface::CHANGE_IMPORTANT);
       //AvData->ExchangeVoxels(&Loc, &Loc2, ZActiveVoxelInterface::CHANGE_IMPORTANT);
       //AvData->MoveVoxel(&Loc, &Loc2, ZActiveVoxelInterface::CHANGE_IMPORTANT);
       //AvData->SetVoxel(&Loc, 49, ZActiveVoxelInterface::CHANGE_IMPORTANT);
