@@ -86,9 +86,9 @@ struct StatusRegister_BCPU
   bool  NegativeFlag:1;
   bool  OverflowFlag:1;
   bool  CarryFlag:1;
-  bool  pad:20;
-  UByte InterruptLevel:4;
-};
+  unsigned int pad:20;
+  unsigned int InterruptLevel:4;
+}; //__attribute__((packed));
 
 
 
@@ -146,6 +146,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
     StepCount = 0;
     IsRunning = false;
     BreakRun  = false;
+    if (sizeof(StatusRegister_BCPU) != 4)  printf("Warning : Size of the 'StatusRegister_BCPU' structure is not 4 bytes. Programmable assembly robot won't work properly.\n");
   }
 
   virtual ~BlackCPU()
@@ -162,6 +163,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
     ProgramCounter = 0;
     ElapsedCycles = 0;
     FrameCycles = 0;
+    Interrupt_Pending = 0;
     for (i=0;i<16;i++) GeneralRegister[i].Reg_ULargest = 0;
     StatusRegister.WholeRegister = 0;
   }
@@ -397,7 +399,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
         OPCODE_RTS,
         OPCODE_RTI,
         OPCODE_EXT_BW,
-
+        OPCODE_RSR,
 
 
         // Word forms (or sometime opcode variations).
@@ -434,6 +436,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
         //OPCODE_RTS
         //OPCODE_RTI
         OPCODE_EXT_BL         = OPCODE_EXT_BW             + 64,
+        OPCODE_WSR            = OPCODE_RSR                + 64,
 
         // Long forms (or sometime opcode variations).
 
@@ -533,11 +536,14 @@ class BlackCPU : public ZVCPU_Chip_Interface
         {
           register int NumInt;
           NumInt = 32 - __builtin_clz(Interrupt_Pending);
-          if (NumInt > StatusRegister.Flags.InterruptLevel)
+          if (NumInt > Status.Flags.InterruptLevel)
           {
+            Interrupt_Pending &= ~ (1<<(NumInt-1));
             PushStack_32(ProgramCounter);
-            PushStack_32(StatusRegister.WholeRegister);
-            ProgramCounter = ReadMemory_32((NumInt<<2)+1024);
+            PushStack_32(Status.WholeRegister);
+            ProgramCounter = ReadMemory_32((NumInt<<2));
+            Status.Flags.InterruptLevel = NumInt;
+            if (StepMode) {ChipManagementCount = CycleLimit = ElapsedCycles;  break; }
           }
         }
 
@@ -1303,6 +1309,30 @@ class BlackCPU : public ZVCPU_Chip_Interface
           case OPCODE_EXT_WL:           // ext.wl reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         GeneralRegister[Op1&0xf].Reg_SLong = (Short)GeneralRegister[Op1&0xf].Reg_SWord;
+                                        ElapsedCycles += 6;
+                                        break;
+
+          case OPCODE_RSR:              Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                        switch( (Op1&0xf0) >> 4)
+                                        {
+                                          case 0:  GeneralRegister[Op1&0xf].Reg_ULong = 0x00010001;     break;
+                                          case 1:  GeneralRegister[Op1&0xf].Reg_ULong = Status.WholeRegister;         break;
+                                          case 2:  GeneralRegister[Op1&0xf].Reg_ULong = ProgramCounter; break;
+                                          case 3:  GeneralRegister[Op1&0xf].Reg_ULong = Interrupt_Pending; break;
+                                          default: GeneralRegister[Op1&0xf].Reg_ULong = 0;              break;
+                                        }
+                                        ElapsedCycles += 6;
+                                        break;
+
+          case OPCODE_WSR:              Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                        switch( (Op1&0xf0) >> 4)
+                                        {
+                                          case 0:  break;
+                                          case 1:  Status.WholeRegister = GeneralRegister[Op1&0xf].Reg_ULong; break;
+                                          case 2:  ProgramCounter       = GeneralRegister[Op1&0xf].Reg_ULong; break;
+                                          case 3:  Interrupt_Pending    = GeneralRegister[Op1&0xf].Reg_ULong; break;
+                                          default: break;
+                                        }
                                         ElapsedCycles += 6;
                                         break;
 

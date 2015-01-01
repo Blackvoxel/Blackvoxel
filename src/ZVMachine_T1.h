@@ -93,6 +93,7 @@ class ZVMachine_T1 : public ZVMachine
      CPU.SetVMachine(this); Running = false;
      PIA_1.SetVMachine(this);
      PIA_1.SetCPUInterruptLineNumber(3);
+     PIA_1.SetCPU(&CPU);
      HasMoved = false;
      VoxelInterface = 0;
      DisassemblyTags.InitSize(ZVMACHINE_MEMSIZE);

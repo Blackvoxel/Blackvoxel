@@ -150,6 +150,8 @@ void ZChip_Parallel_Interface_Servo::DoChipManagement()
                            | (( Vm->VoxelInterface->Coords.z & 1) ? ZCHIP_PI_SERVO_Z_RETURN : 0 ) );
   //printf("ZChip_Parallel_Interface_Servo::DoChipManagement(a) ");PrintStatus();
 
+  if (Control_Register & ZCHIP_PI_CR_INTERRUPT_TRIGGERED) TriggerInterrupt();
+
 }
 
 void ZChip_Parallel_Interface_Servo::Reset()

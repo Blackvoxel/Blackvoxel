@@ -70,6 +70,8 @@ class ZChip_Parallel_Interface : public ZChip
   public:
     ZChip_Parallel_Interface()
     {
+      Cpu = 0;
+      Cpu_Interrupt_Line = 1;
       Reset();
     }
 
@@ -82,8 +84,6 @@ class ZChip_Parallel_Interface : public ZChip
       Control_Register = 0;
       In = 0xFFFFFFFF;
       Out = 0;
-      Cpu = 0;
-      Cpu_Interrupt_Line = 1;
       Out_Changed = 0;
     }
 
@@ -154,6 +154,7 @@ class ZChip_Parallel_Interface : public ZChip
       if (     (Control_Register & ZCHIP_PI_CR_INTERRUPT_ENABLE)
              &&((In ^ Value) & (~(Value ^ Interrupt_Level)) & Interrupt_EnableMask ) )
       {
+        Control_Register |= ZCHIP_PI_CR_INTERRUPT_TRIGGERED;
         TriggerInterrupt();
       }
 
@@ -171,6 +172,11 @@ class ZChip_Parallel_Interface : public ZChip
     inline void SetCPUInterruptLineNumber(ULong InterruptLine)
     {
       Cpu_Interrupt_Line = InterruptLine;
+    }
+
+    inline void SetCPU(ZVCPU_Chip_Interface * CPU)
+    {
+      this->Cpu = CPU;
     }
 
     inline void  DoChipManagement()

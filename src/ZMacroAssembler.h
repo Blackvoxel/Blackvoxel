@@ -207,6 +207,8 @@ class ZMacroAssembler
          KW_OP_EXT_BW,
          KW_OP_EXT_BL,
          KW_OP_EXT_WL,
+         KW_OP_RSR,
+         KW_OP_WSR,
 
          KW_SZ_BYTE,
          KW_SZ_WORD,
@@ -306,7 +308,8 @@ class ZMacroAssembler
     Ks->AddKeyWord("ext.bw",     KW_OP_EXT_BW  );
     Ks->AddKeyWord("ext.bl",     KW_OP_EXT_BL  );
     Ks->AddKeyWord("ext.wl",     KW_OP_EXT_WL  );
-
+    Ks->AddKeyWord("rsr",        KW_OP_RSR     );
+    Ks->AddKeyWord("wsr",        KW_OP_WSR     );
     Ks->AddKeyWord(".b",         KW_SZ_BYTE    );
     Ks->AddKeyWord(".w",         KW_SZ_WORD    );
     Ks->AddKeyWord(".l",         KW_SZ_LONG    );
@@ -1257,6 +1260,7 @@ class ZMacroAssembler
       case KW_OP_PUSHREGS:   Ok = AssembleSection_Token_PushPopRegs(Asd, BlackCPU<int>::OPCODE_PUSHREGS);           break;
       case KW_OP_POPREGS:    Ok = AssembleSection_Token_PushPopRegs(Asd, BlackCPU<int>::OPCODE_POPREGS);            break;
       case KW_OP_INC:        Ok = AssembleSection_Token_NibbleImm(Asd,   BlackCPU<int>::OPCODE_INC);                break;
+      case KW_OP_DEC:        Ok = AssembleSection_Token_NibbleImm(Asd,   BlackCPU<int>::OPCODE_DEC);                break;
       case KW_OP_ADD:        Ok = AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU<int>::OPCODE_ADD_B );   break;
       case KW_OP_SUB:        Ok = AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU<int>::OPCODE_SUB_B );   break;
       case KW_OP_AND:        Ok = AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU<int>::OPCODE_AND_B );   break;
@@ -1273,7 +1277,6 @@ class ZMacroAssembler
       case KW_OP_CMP:        Ok = AssembleSection_Token_TwoParameterAritmetic(Asd, BlackCPU<int>::OPCODE_CMP_B );   break;
       case KW_OP_JMP:        Ok = AssembleSection_Token_IndirectJump(Asd, BlackCPU<int>::OPCODE_JMP_IND );          break;
       case KW_OP_JSR:        Ok = AssembleSection_Token_IndirectJump(Asd, BlackCPU<int>::OPCODE_JSR_IND );          break;
-
       case KW_OP_BRA:        Ok = AssembleSection_Token_ConditionalBranch(Asd, Token, BlackCPU<int>::OPCODE_BRANCH_BRA ); break;
       case KW_OP_BEQ:        Ok = AssembleSection_Token_ConditionalBranch(Asd, Token, BlackCPU<int>::OPCODE_BRANCH_BEQ ); break;
       case KW_OP_BNE:        Ok = AssembleSection_Token_ConditionalBranch(Asd, Token, BlackCPU<int>::OPCODE_BRANCH_BNE ); break;
@@ -1289,12 +1292,14 @@ class ZMacroAssembler
       case KW_OP_BLO_S:      Ok = AssembleSection_Token_ConditionalBranch(Asd, Token, BlackCPU<int>::OPCODE_BRANCH_BLO_S);break;
       case KW_OP_BHI_S:      Ok = AssembleSection_Token_ConditionalBranch(Asd, Token, BlackCPU<int>::OPCODE_BRANCH_BHI_S);break;
       case KW_OP_BLE_S:      Ok = AssembleSection_Token_ConditionalBranch(Asd, Token, BlackCPU<int>::OPCODE_BRANCH_BLE_S);break;
-
       case KW_OP_RTS:        Ok = AssembleSection_Token_SingleInstruction(Asd, BlackCPU<int>::OPCODE_RTS);         break;
       case KW_OP_RTI:        Ok = AssembleSection_Token_SingleInstruction(Asd, BlackCPU<int>::OPCODE_RTI);         break;
       case KW_OP_EXT_BW:     Ok = AssembleSection_Token_OneParameterAritmetic(Asd, BlackCPU<int>::OPCODE_EXT_BW);  break;
       case KW_OP_EXT_BL:     Ok = AssembleSection_Token_OneParameterAritmetic(Asd, BlackCPU<int>::OPCODE_EXT_BL);  break;
       case KW_OP_EXT_WL:     Ok = AssembleSection_Token_OneParameterAritmetic(Asd, BlackCPU<int>::OPCODE_EXT_WL);  break;
+      case KW_OP_RSR:        Ok = AssembleSection_Token_NibbleImm(Asd,   BlackCPU<int>::OPCODE_RSR);                break;
+      case KW_OP_WSR:        Ok = AssembleSection_Token_NibbleImm(Asd,   BlackCPU<int>::OPCODE_WSR);                break;
+
 
       default: Ok = false; break;
     }
