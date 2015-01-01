@@ -53,6 +53,15 @@ void ZGameWindow_UserTextureTransformer::Show()
   this->SetTexture(8);
   GameEnv->GuiManager.AddFrame(this);
 
+  // CloseBox
+
+  Size.x = 32.0f; Size.y = 32.0f;
+  CloseBox.SetPosition(MainWindow_Size.x - Size.x - 5.0f, 5.0f);
+  CloseBox.SetSize(Size.x, Size.y);
+  CloseBox.SetTileSet(GameEnv->GuiTileset);
+  CloseBox.SetTile(11);
+  this->AddFrame(&CloseBox);
+
   // Main title
 
   MainTitle.SetStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_3));
@@ -250,8 +259,11 @@ Bool ZGameWindow_UserTextureTransformer::MouseButtonClick  (UShort nButton, Shor
               }
           }
     }
+  }
 
-
+  if (CloseBox.Is_MouseClick(true))
+  {
+    Hide();
   }
   return (Res);
 }

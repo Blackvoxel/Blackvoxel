@@ -54,6 +54,15 @@ void ZGameWindow_Sequencer::Show()
   MainWindow->SetTexture(8);
   GameEnv->GuiManager.AddFrame(MainWindow);
 
+  // CloseBox
+
+  Size.x = 32.0f; Size.y = 32.0f;
+  CloseBox.SetPosition(MainWindow_Size.x - Size.x - 5.0f, 5.0f);
+  CloseBox.SetSize(Size.x, Size.y);
+  CloseBox.SetTileSet(GameEnv->GuiTileset);
+  CloseBox.SetTile(11);
+  MainWindow->AddFrame(&CloseBox);
+
   // Window Main Title
 
   MainTitle.SetStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_3));
@@ -223,6 +232,12 @@ Bool ZGameWindow_Sequencer::MouseButtonClick  (UShort nButton, Short Absolute_x,
     VoxelExtension_Sequencer->OutputLocation = floor(OutputNum.GetValue());
     if (VoxelExtension_Sequencer->OutputLocation > 5) VoxelExtension_Sequencer->OutputLocation =5;
   }
+
+  if (CloseBox.Is_MouseClick(true))
+  {
+    Hide();
+  }
+
   return (Res);
 }
 

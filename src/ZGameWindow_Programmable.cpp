@@ -56,7 +56,14 @@ void ZGameWindow_Programmable::Show()
   MainWindow->SetTexture(8);
   GameEnv->GuiManager.AddFrame(MainWindow);
 
+  // CloseBox
 
+  Size.x = 32.0f; Size.y = 32.0f;
+  CloseBox.SetPosition(MainWindow_Size.x - Size.x - 5.0f, 5.0f);
+  CloseBox.SetSize(Size.x, Size.y);
+  CloseBox.SetTileSet(GameEnv->GuiTileset);
+  CloseBox.SetTile(11);
+  MainWindow->AddFrame(&CloseBox);
 
   // Inventory main title
 
@@ -212,6 +219,12 @@ Bool ZGameWindow_Programmable::MouseButtonClick  (UShort nButton, Short Absolute
     // VoxelExtension->SetScriptNum(floor(RobotProgramNum.GetValue()));
     VoxelExtension->CompileAndRunScript(ZVoxelExtension_Programmable::CONTEXT_PROGRAMCHANGE, floor(RobotProgramNum.GetValue()));
   }
+
+  if (CloseBox.Is_MouseClick())
+  {
+    Hide();
+  }
+
   return (Res);
 }
 

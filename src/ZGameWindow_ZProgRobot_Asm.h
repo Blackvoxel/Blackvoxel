@@ -63,7 +63,9 @@ class ZGame;
 class ZGameWindow_ProgRobot_Asm : public ZFrame
 {
   protected:
-    ZFrame        * MainWindow;
+    ZFrame         * MainWindow;
+    ZTileFrame       CloseBox;
+
     ZInventoryBox IBox;
     ZInventoryBox IBox2;
     ZInventoryBox IBox3;

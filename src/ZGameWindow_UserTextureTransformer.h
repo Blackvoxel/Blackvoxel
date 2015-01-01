@@ -70,9 +70,10 @@ class ZGameWindow_UserTextureTransformer : public ZFrame
 {
   protected:
     //ZFrame        MainWindow;
-    ZInventoryBox IBox;
-    ZInventoryBox IBox2;
-    ZInventoryBox IBox3;
+    ZTileFrame       CloseBox;
+    ZInventoryBox    IBox;
+    ZInventoryBox    IBox2;
+    ZInventoryBox    IBox3;
     ZGame * GameEnv;
     bool Flag_Shown;
 

@@ -63,12 +63,13 @@ class ZGame;
 class ZGameWindow_Programmable : public ZFrame
 {
   protected:
-    ZFrame        * MainWindow;
-    ZInventoryBox IBox;
-    ZInventoryBox IBox2;
-    ZInventoryBox IBox3;
-    ZGame * GameEnv;
-    bool Flag_Shown;
+    ZFrame         * MainWindow;
+    ZTileFrame       CloseBox;
+    ZInventoryBox    IBox;
+    ZInventoryBox    IBox2;
+    ZInventoryBox    IBox3;
+    ZGame          * GameEnv;
+    bool             Flag_Shown;
 
     ZFrame_FontFrame MainTitle;
     ZFrame_FontFrame RobotProgramTitle;

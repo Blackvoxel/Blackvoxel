@@ -42,6 +42,10 @@
 #  include "ZGui_FontFrame.h"
 #endif
 
+#ifndef Z_ZGUI_TILEFRAME_H
+#  include "ZGui_TileFrame.h"
+#endif
+
 #ifndef Z_ZVOXELTYPEMANAGER_H
 #  include "ZVoxelTypeManager.h"
 #endif
@@ -52,15 +56,16 @@
 
 class ZGame;
 
-class ZGameWindow_Storage
+class ZGameWindow_Storage : public ZFrame
 {
   protected:
-    ZFrame        MainWindow;
-    ZInventoryBox IBox;
-    ZInventoryBox IBox2;
-    ZInventoryBox IBox3;
-    ZGame * GameEnv;
-    bool Flag_Shown;
+    ZFrame         * MainWindow;
+    ZTileFrame       CloseBox;
+    ZInventoryBox    IBox;
+    ZInventoryBox    IBox2;
+    ZInventoryBox    IBox3;
+    ZGame          * GameEnv;
+    bool             Flag_Shown;
 
     ZFrame_FontFrame MainTitle;
     ZFrame_FontFrame StorageTitle;
@@ -80,12 +85,16 @@ class ZGameWindow_Storage
 
   ZGameWindow_Storage()
   {
+    MainWindow = this;
     MainStorage = new ZInventoryBox[128];
     Flag_Shown = false;
     Text_MainTitle = "STORAGE";
     Text_StorageTitle = "STORAGE";
     Text_InventoryTitle = "INVENTORY";
     VoxelExtension_Storage = 0;
+    i1 = i2 = i3 = 0;
+    Q1 = Q2 = Q3 = 0;
+    GameEnv = 0;
   }
 
   ~ZGameWindow_Storage()
@@ -102,6 +111,9 @@ class ZGameWindow_Storage
 
 
   bool Is_Shown() {return(Flag_Shown);}
+
+  Bool MouseButtonClick(UShort nButton, Short Absolute_x, Short Absolute_y);
+
 
 };
 
