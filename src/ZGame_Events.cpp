@@ -825,11 +825,12 @@ void ZGame_Events::Process_StillEvents()
       Keyboard_Matrix[SDLK_i] = 0;
 
 
-      if      (GameEnv->GameWindow_Storage->Is_Shown()) {GameEnv->GameWindow_Storage->Hide();}
-      else if (GameEnv->GameWindow_Programmable->Is_Shown()) {GameEnv->GameWindow_Programmable->Hide();}
-      else if (GameEnv->GameWindow_ProgRobot_Asm->Is_Shown()) { GameEnv->GameWindow_ProgRobot_Asm->Hide();}
+      if      (GameEnv->GameWindow_Storage->Is_Shown())           { GameEnv->GameWindow_Storage->Hide();}
+      else if (GameEnv->GameWindow_Programmable->Is_Shown())      { GameEnv->GameWindow_Programmable->Hide();}
+      else if (GameEnv->GameWindow_ProgRobot_Asm->Is_Shown())     { GameEnv->GameWindow_ProgRobot_Asm->Hide();}
       else if (GameEnv->GameWindow_UserTextureTransformer->Is_Shown()) {GameEnv->GameWindow_UserTextureTransformer->Hide();}
-      else if (GameEnv->GameWindow_Sequencer->Is_Shown()) { GameEnv->GameWindow_Sequencer->Hide();}
+      else if (GameEnv->GameWindow_Sequencer->Is_Shown())         { GameEnv->GameWindow_Sequencer->Hide();}
+      else if (GameEnv->GameWindow_AsmDebug->Is_Shown())          { GameEnv->GameWindow_AsmDebug->Hide(); if (GameEnv->GameWindow_AsmHardware->Is_Shown()) GameEnv->GameWindow_AsmHardware->Hide(); }
       else
       {
         GameEnv->GameWindow_Inventory->SetGameEnv(GameEnv);
