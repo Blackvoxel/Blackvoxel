@@ -49,35 +49,35 @@
 //
 // (0) TK_NONE
 //
-// -Erreur de syntaxe
+// -No token recognized.
 //
 // (1) TK_EOF
 //
-// -Fin de fichier
+// -End Of file
 //
 // (2) TK_KEYWORD
 //
-// KeyWordId = Num�ro de mot cl�.
+// KeyWordId = Keyword number.
 // 
 // (3) TK_CONST
 //
-// ConstType = Type de la constante parmi:
+// ConstType = Constant type:
 //
-//      CT_INTEG  = valeur dans: ConstValue.ValInteger 
-//      CT_ULONG  = valeur dans: ConstValue.ValULong (*Pas encore support�*)
-//      CT_LONG   = valeur dans: ConstValue.ValLong  (*Pas encore support�*)
-//      CT_USHORT = valeur dans: ConstValue.ValUShort(*Pas encore support�*)
-//      CT_SHORT  = valeur dans: ConstValue.ValShort (*Pas encore support�*)
-//      CT_UBYTE  = valeur dans: ConstValue.ValUByte (*Pas encore support�*)
-//      CT_BYTE   = valeur dans: ConstValue.ValByte  (*Pas encore support�*)
-//      CT_FLOAT  = valeur dans: ConstValue.ValFloat (*Pas encore support�*)
-//      CT_DOUBLE = valeur dans: ConstValue.ValDouble(*Pas encore support�*)
-//      CT_ALPHA  = valeur dans: AlphaValue
+//      CT_INTEG  = value in: ConstValue.ValInteger
+//      CT_ULONG  = value in: ConstValue.ValULong
+//      CT_LONG   = value in: ConstValue.ValLong
+//      CT_USHORT = value in: ConstValue.ValUShort
+//      CT_SHORT  = value in: ConstValue.ValShort
+//      CT_UBYTE  = value in: ConstValue.ValUByte
+//      CT_BYTE   = value in: ConstValue.ValByte
+//      CT_FLOAT  = value in: ConstValue.ValFloat
+//      CT_DOUBLE = value in: ConstValue.ValDouble
+//      CT_ALPHA  = value in: AlphaValue
 //
 //
 // (4) TK_IDENTIFIER
 //
-// AlphaValue = Nom de l'identificateur.
+// AlphaValue = Identifier name.
 //
 
 
