@@ -70,7 +70,7 @@ void ZCPURegisters::AddedToFrameCallback(ZFrame * Frame)
 void ZCPURegisters::Render(Frame_Dimensions * ParentPosition)
 {
   ZString Text, Opcode, Args, RegisterName, RegisterValue;
-  ULong i,j, Slot;
+  ULong i,j, Slot, RegisterNum, Pad;
   ULong RegisterCount;
 
   RegisterValue.Set_DisplayBase(16);
@@ -80,19 +80,26 @@ void ZCPURegisters::Render(Frame_Dimensions * ParentPosition)
   for (i=0;i<RegisterCount;i++)
   {
     Slot = i >> 1;
-    if (!(i&1)) DisplayText[Slot].Clear();
-    else        DisplayText[Slot] << " ";
-    if (VMachine->GetCPURegister_Alpha(0,i,RegisterName, RegisterValue))
+    RegisterNum = Slot + ((i&1) ? 8 : 0);
+    if (!(i&1)) {DisplayText[Slot].Clear(); Pad = 2;}
+    else        {DisplayText[Slot] << "  "; Pad = 3;}
+    if (VMachine->GetCPURegister_Alpha(0,RegisterNum,RegisterName, RegisterValue))
     {
-      RegisterName.PadUptoLen(' ',3);
+      RegisterName.PadUptoLen(' ',Pad);
       DisplayText[Slot] << RegisterName << " : " << RegisterValue;
     }
+
     Display[i].SetColor(1.0f, 1.0f, 1.0f);
     Display[i].SetDisplayText(DisplayText[i].String);
   }
 
+  // Program counter;
   Slot++;DisplayText[Slot].Clear();
+  VMachine->GetCPURegister_Alpha(2,RegisterNum,RegisterName, RegisterValue);
+  DisplayText[Slot]<<RegisterName<<" : "<<RegisterValue;
   Slot++;
+  //
+
   RegisterCount = VMachine->GetCPURegisterCount(1);
   DisplayText[Slot].Clear();
   RegisterValue.Set_DisplayTrailingZero(false);

@@ -126,6 +126,16 @@ void ZFrame_FontFrame::GetTextDisplaySize(ZVector2f * OutSize)
   }
 }
 
+float ZFrame_FontFrame::GetStandardLineHeight()
+{
+  if (TileStyle)
+  {
+    return(TileStyle->TileSet->GetTileHeight(32));
+  }
+
+  return(0.0f);
+}
+
 
 
 

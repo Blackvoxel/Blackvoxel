@@ -64,8 +64,12 @@ void ZDisassemblerFrame::Render(Frame_Dimensions * ParentPosition)
   ZString Text, Opcode, Args;
   ZMemSize Pc,StartPc, i;
   ULong RewindLines;
+  ZNumberFormat Fmt;
 
   StartPc = Pc = VMachine->GetProgramCounter();
+  Fmt.Base = 16;
+  Fmt.DisplayTrailingZero=true;
+  Fmt.MaxDigits = 6;
 
   // Try to rewind some instructions backward to show global program view.
 
@@ -82,7 +86,7 @@ void ZDisassemblerFrame::Render(Frame_Dimensions * ParentPosition)
     DisplayText[i].Set_DisplayBase(16);
     DisplayText[i].Set_DisplayTrailingZero(true);
     DisplayText[i].Clear();
-    DisplayText[i] << (ULong)Pc;
+    DisplayText[i].Append_Formated_ULong(Pc,&Fmt);
     if (Pc == StartPc) Display[i].SetColor(1.0f, 0.4f, 0.4f);
     else                         Display[i].SetColor(1.0f, 1.0f, 1.0f);
     VMachine->GetDisassembly(Pc, Opcode, Args);
