@@ -84,7 +84,7 @@ void ZChip_Parallel_Interface_Servo::DoChipManagement()
 
     Moved = false;
     Mv.x = Mv.y = Mv.z = 0;
-    if (Out & ZCHIP_PI_SERVO_XPOWER)
+    if (!(Out & ZCHIP_PI_SERVO_XPOWER))
     {
       if (Out & ZCHIP_PI_SERVO_XDIRECTION)
       {
@@ -97,7 +97,7 @@ void ZChip_Parallel_Interface_Servo::DoChipManagement()
         if (Vm->Servo_MovePos.x <-ZCHIP_PI_SERVO_MOTORTHRESHOLD) { Mv.x = -1; Moved = true; Vm->Servo_MovePos.x = 0;  }
       }
 
-      if (Out & ZCHIP_PI_SERVO_YPOWER)
+      if (!(Out & ZCHIP_PI_SERVO_YPOWER))
       {
         if (Out & ZCHIP_PI_SERVO_YDIRECTION)
         {
@@ -111,7 +111,7 @@ void ZChip_Parallel_Interface_Servo::DoChipManagement()
         }
       }
 
-      if (Out & ZCHIP_PI_SERVO_ZPOWER)
+      if (!(Out & ZCHIP_PI_SERVO_ZPOWER))
       {
         if (Out & ZCHIP_PI_SERVO_ZDIRECTION)
         {

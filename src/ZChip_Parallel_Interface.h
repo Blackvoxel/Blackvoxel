@@ -77,13 +77,13 @@ class ZChip_Parallel_Interface : public ZChip
 
     void  Reset()
     {
-      Data      = 0;
+      Data      = 0xFFFFFFFF;
       Direction = 0; // Read
       Interrupt_EnableMask = 0;
       Interrupt_Level = 0;
       Control_Register = 0;
       In = 0xFFFFFFFF;
-      Out = 0;
+      Out = 0xFFFFFFFF;
       Out_Changed = 0;
     }
 

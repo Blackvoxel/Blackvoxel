@@ -34,8 +34,6 @@
 #endif
 
 
-#define ZCHIP_PI_SERVO_MOTORTHRESHOLD 5000
-
 void ZChip_Display_Controller::Reset()
 {
   DisplayMode = 0;
