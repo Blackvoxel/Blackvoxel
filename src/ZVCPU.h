@@ -86,7 +86,9 @@ struct StatusRegister_BCPU
   bool  NegativeFlag:1;
   bool  OverflowFlag:1;
   bool  CarryFlag:1;
-  unsigned int pad:20;
+  unsigned int pad:4;
+  unsigned int LastReg:6;
+  unsigned int pad2:10;
   unsigned int InterruptLevel:4;
 }; //__attribute__((packed));
 
@@ -120,6 +122,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
   UShort           Interrupt_Pending;
   ZVMachine      * VMachine;
 
+
   // Step Mode - When set, ignore run unless StepCount 'account' is reloaded.
 
   bool StepMode;
@@ -147,6 +150,18 @@ class BlackCPU : public ZVCPU_Chip_Interface
     IsRunning = false;
     BreakRun  = false;
     if (sizeof(StatusRegister_BCPU) != 4)  printf("Warning : Size of the 'StatusRegister_BCPU' structure is not 4 bytes. Programmable assembly robot won't work properly.\n");
+
+    // Format for disassembler display (Displacement numbers)
+    Format_Op_Displacement.AlwaysDisplaySign = false;
+    Format_Op_Displacement.Base = 16;
+    Format_Op_Displacement.DisplayTrailingZero = false;
+    Format_Op_Displacement.MaxDecimals = 0;
+    Format_Op_Displacement.MaxDigits = 4;
+    Format_Op_NoopNumber.AlwaysDisplaySign = false;
+    Format_Op_NoopNumber.Base = 16;
+    Format_Op_NoopNumber.DisplayTrailingZero = true;
+    Format_Op_NoopNumber.MaxDecimals = 0;
+    Format_Op_NoopNumber.MaxDigits = 2;
   }
 
   virtual ~BlackCPU()
@@ -205,7 +220,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
     switch(InfoType)
     {
       case 0: return(16);
-      case 1: return(5);
+      case 1: return(6);
       case 2: return(0);
       default: return(0);
     }
@@ -240,9 +255,31 @@ class BlackCPU : public ZVCPU_Chip_Interface
                 case 4: RegisterName << "I";
                         RegisterValue << (ULong)StatusRegister.Flags.InterruptLevel;
                         return(true);
+                case 5: RegisterName << "LR";
+                        RegisterValue << (ULong)StatusRegister.Flags.LastReg;
+                        return(true);
                 default:return(false);
               }
               return(false);
+
+      case 2: RegisterName << "PC";
+              RegisterValue << ProgramCounter;
+              return(true);
+
+              // Same as 0 but in binary format.
+      case 16:if (RegisterNum>15) return(false);
+              RegisterName<<"R"<<RegisterNum;
+              RegisterValue.Append_BinaryNumber_ULong(GeneralRegister[RegisterNum].Reg_ULong);
+              return(true);
+      case 17:// Status register in binary format
+              RegisterName << "....IIII..........SSRRRR....CVNZ";
+              RegisterValue.Append_BinaryNumber_ULong(StatusRegister.WholeRegister);
+              return(true);
+
+      case 18:// PC in binary format
+              RegisterName << "PC";
+              RegisterValue.Append_BinaryNumber_ULong(ProgramCounter);
+              return(true);
 
       default:return(false);
     }
@@ -366,22 +403,24 @@ class BlackCPU : public ZVCPU_Chip_Interface
         // Byte forms (or unique opcode).
 
         OPCODE_NOOP = 0,
-        OPCODE_BREAK,
+        OPCODE_NOP,
         OPCODE_MOVE_IMM_B,
         OPCODE_MOVE_IND_REG_B,
         OPCODE_MOVE_REG_IND_B,
         OPCODE_MOVE_REG_REG_B,
+        OPCODE_MOVE_REG_INDDEP_B,
+        OPCODE_MOVE_INDDEP_REG_B,
+        OPCODE_MOVE_REG_INDDEPOFF_B,
+        OPCODE_MOVE_INDDEPOFF_REG_B,
         OPCODE_MOVEX_IMM_SB,
         OPCODE_MOVEX_IMM_UB,
         OPCODE_PUSHREGS,
-        OPCODE_POPREGS,
         OPCODE_INC,
         OPCODE_ADD_B,
         OPCODE_SUB_B,
         OPCODE_AND_B,
         OPCODE_OR_B,
         OPCODE_XOR_B,
-        OPCODE_ASL_B,
         OPCODE_ASR_B,
         OPCODE_LSL_B,
         OPCODE_LSR_B,
@@ -391,34 +430,36 @@ class BlackCPU : public ZVCPU_Chip_Interface
         OPCODE_SMUL_B,
         OPCODE_CMP_B,
         OPCODE_JMP_IND,
-        OPCODE_JSR_IND,
-        OPCODE_BRANCH_BRA,
-        OPCODE_BRANCH_BCC,
-        OPCODE_BRANCH_BVC,
-        OPCODE_BRANCH_BLO_S,
-        OPCODE_RTS,
-        OPCODE_RTI,
+        OPCODE_BRANCH_BEQ,
+        OPCODE_BRANCH_BNE,
+        OPCODE_BRANCH_BPL,
+        OPCODE_BRANCH_BMI,
+        OPCODE_BRANCH_BSO,
         OPCODE_EXT_BW,
-        OPCODE_RSR,
+        OPCODE_BCND,
 
 
         // Word forms (or sometime opcode variations).
 
+        OPCODE_RSR            = OPCODE_NOOP               + 64,
+        OPCODE_BREAK          = OPCODE_NOP                + 64,
         OPCODE_MOVE_IMM_W     = OPCODE_MOVE_IMM_B         + 64,
         OPCODE_MOVE_IND_REG_W = OPCODE_MOVE_IND_REG_B     + 64,
         OPCODE_MOVE_REG_IND_W = OPCODE_MOVE_REG_IND_B     + 64,
         OPCODE_MOVE_REG_REG_W = OPCODE_MOVE_REG_REG_B     + 64,
+        OPCODE_MOVE_REG_INDDEP_W= OPCODE_MOVE_REG_INDDEP_B+ 64,
+        OPCODE_MOVE_INDDEP_REG_W= OPCODE_MOVE_INDDEP_REG_B+ 64,
+        OPCODE_MOVE_REG_INDDEPOFF_W=OPCODE_MOVE_REG_INDDEPOFF_B+64,
+        OPCODE_MOVE_INDDEPOFF_REG_W=OPCODE_MOVE_INDDEPOFF_REG_B+64,
         OPCODE_MOVEX_IMM_SW   = OPCODE_MOVEX_IMM_SB       + 64,
         OPCODE_MOVEX_IMM_UW   = OPCODE_MOVEX_IMM_UB       + 64,
-        // OPCODE_PUSHREGS
-        // OPCODE_POPREGS
+        OPCODE_POPREGS        = OPCODE_PUSHREGS + 64,
         OPCODE_DEC            = OPCODE_INC                + 64,
         OPCODE_ADD_W          = OPCODE_ADD_B              + 64,
         OPCODE_SUB_W          = OPCODE_SUB_B              + 64,
         OPCODE_AND_W          = OPCODE_AND_B              + 64,
         OPCODE_OR_W           = OPCODE_OR_B               + 64,
         OPCODE_XOR_W          = OPCODE_XOR_B              + 64,
-        OPCODE_ASL_W          = OPCODE_ASL_B              + 64,
         OPCODE_ASR_W          = OPCODE_ASR_B              + 64,
         OPCODE_LSL_W          = OPCODE_LSL_B              + 64,
         OPCODE_LSR_W          = OPCODE_LSR_B              + 64,
@@ -427,33 +468,39 @@ class BlackCPU : public ZVCPU_Chip_Interface
         OPCODE_UMUL_W         = OPCODE_UMUL_B             + 64,
         OPCODE_SMUL_W         = OPCODE_SMUL_B             + 64,
         OPCODE_CMP_W          = OPCODE_CMP_B              + 64,
-        //OPCODE_JMP_IND
-        OPCODE_BRANCH_BEQ     = OPCODE_BRANCH_BRA         + 64,
-        OPCODE_BRANCH_BMI     = OPCODE_BRANCH_BCC         + 64,
-        OPCODE_BRANCH_BHI_U   = OPCODE_BRANCH_BVC         + 64,
-        OPCODE_BRANCH_BHI_S   = OPCODE_BRANCH_BLO_S       + 64,
+        OPCODE_JSR_IND        = OPCODE_JMP_IND            + 64,
+        OPCODE_BRANCH_BVC     = OPCODE_BRANCH_BEQ         + 64,
+        OPCODE_BRANCH_BVS     = OPCODE_BRANCH_BNE         + 64,
+        OPCODE_BRANCH_BCC     = OPCODE_BRANCH_BPL         + 64,
+        OPCODE_BRANCH_BCS     = OPCODE_BRANCH_BMI         + 64,
+        OPCODE_BRANCH_BRA     = OPCODE_BRANCH_BSO         + 64,
         //OPCODE_JSR_IND
         //OPCODE_RTS
         //OPCODE_RTI
         OPCODE_EXT_BL         = OPCODE_EXT_BW             + 64,
-        OPCODE_WSR            = OPCODE_RSR                + 64,
+        OPCODE_BNCND          = OPCODE_BCND               + 64,
 
         // Long forms (or sometime opcode variations).
 
+        OPCODE_WSR            = OPCODE_NOOP               + 128,
+        OPCODE_SLEEP          = OPCODE_NOP                + 128,
         OPCODE_MOVE_IMM_L     = OPCODE_MOVE_IMM_B         + 128,
         OPCODE_MOVE_IND_REG_L = OPCODE_MOVE_IND_REG_B     + 128,
         OPCODE_MOVE_REG_IND_L = OPCODE_MOVE_REG_IND_B     + 128,
         OPCODE_MOVE_REG_REG_L = OPCODE_MOVE_REG_REG_B     + 128,
+        OPCODE_MOVE_REG_INDDEP_L=OPCODE_MOVE_REG_INDDEP_B + 128,
+        OPCODE_MOVE_INDDEP_REG_L=OPCODE_MOVE_INDDEP_REG_B + 128,
+        OPCODE_MOVE_REG_INDDEPOFF_L=OPCODE_MOVE_REG_INDDEPOFF_B+128,
+        OPCODE_MOVE_INDDEPOFF_REG_L=OPCODE_MOVE_INDDEPOFF_REG_B+128,
         OPCODE_MOVEX_IMM_SN   = OPCODE_MOVEX_IMM_SB       + 128,
         OPCODE_MOVEX_IMM_UN   = OPCODE_MOVEX_IMM_UB       + 128,
-        // OPCODE_PUSHREGS
-        // OPCODE_POPREGS
+
+        OPCODE_INCLR          = OPCODE_INC                + 128,
         OPCODE_ADD_L          = OPCODE_ADD_B              + 128,
         OPCODE_SUB_L          = OPCODE_SUB_B              + 128,
         OPCODE_AND_L          = OPCODE_AND_B              + 128,
         OPCODE_OR_L           = OPCODE_OR_B               + 128,
         OPCODE_XOR_L          = OPCODE_XOR_B              + 128,
-        OPCODE_ASL_L          = OPCODE_ASL_B              + 128,
         OPCODE_ASR_L          = OPCODE_ASR_B              + 128,
         OPCODE_LSL_L          = OPCODE_LSL_B              + 128,
         OPCODE_LSR_L          = OPCODE_LSR_B              + 128,
@@ -462,21 +509,24 @@ class BlackCPU : public ZVCPU_Chip_Interface
         OPCODE_UMUL_L         = OPCODE_UMUL_B             + 128,
         OPCODE_SMUL_L         = OPCODE_SMUL_B             + 128,
         OPCODE_CMP_L          = OPCODE_CMP_B              + 128,
-        //OPCODE_JMP_IND
-        OPCODE_BRANCH_BNE     = OPCODE_BRANCH_BRA         + 128,
-        OPCODE_BRANCH_BPL     = OPCODE_BRANCH_BCC         + 128,
-        OPCODE_BRANCH_BLE_U   = OPCODE_BRANCH_BVC         + 128,
-        OPCODE_BRANCH_BLE_S   = OPCODE_BRANCH_BLO_S       + 128,
+        OPCODE_RTS            = OPCODE_JMP_IND            + 128,
+        OPCODE_BRANCH_BHI_U   = OPCODE_BRANCH_BEQ         + 128,
+        OPCODE_BRANCH_BHS_U   = OPCODE_BRANCH_BNE         + 128,
+        OPCODE_BRANCH_BLS_U   = OPCODE_BRANCH_BPL         + 128,
+        OPCODE_BRANCH_BLO_U   = OPCODE_BRANCH_BMI         + 128,
         //OPCODE_JSR_IND
         //OPCODE_RTS
         //OPCODE_RTI
         OPCODE_EXT_WL         = OPCODE_EXT_BW             + 128,
 
         // 2xLong form (or sometime opcode variation)
-        OPCODE_BRANCH_BCS     = OPCODE_BRANCH_BRA         + 192,
-        OPCODE_BRANCH_BVS     = OPCODE_BRANCH_BCC         + 192,
-        OPCODE_BRANCH_BHE_S   = OPCODE_BRANCH_BVC         + 192,
-        OPCODE_BRANCH_BXX     = OPCODE_BRANCH_BLO_S       + 192,
+        OPCODE_DECLR          = OPCODE_INC                + 192,
+        OPCODE_RTI            = OPCODE_JMP_IND            + 192,
+        OPCODE_BRANCH_BHI_S   = OPCODE_BRANCH_BEQ         + 192,
+        OPCODE_BRANCH_BHS_S   = OPCODE_BRANCH_BNE         + 192,
+        OPCODE_BRANCH_BLS_S   = OPCODE_BRANCH_BPL         + 192,
+        OPCODE_BRANCH_BLO_S   = OPCODE_BRANCH_BMI         + 192,
+
 
         // End opcode
         OPCODE_END = 255
@@ -556,10 +606,18 @@ class BlackCPU : public ZVCPU_Chip_Interface
 
         switch(Opcode)
         {
+          case OPCODE_NOP:
+                                        ElapsedCycles += 2;
+                                        break;
+
           case OPCODE_BREAK:            this->StepCount = 0;
                                         this->StepMode = true;
                                         ChipManagementCount = CycleLimit = ElapsedCycles; // Break actual quantum
                                         break;
+
+          case OPCODE_SLEEP:            ChipManagementCount = CycleLimit = ElapsedCycles; // Break actual quantum
+                                        break;
+
 
   // ---------------- MOVE
 
@@ -589,42 +647,42 @@ class BlackCPU : public ZVCPU_Chip_Interface
 
           case OPCODE_MOVE_IND_REG_B:   // move.b (reg),reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte = ReadMemory_8(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
+                                        Status_Test_ZN_8( GeneralRegister[Op1 & 0x0f].Reg_UByte = ReadMemory_8(GeneralRegister[Status.Flags.LastReg = (Op1&0xf0)>>4].Reg_ULargest)
                                                           ,Status );
                                         ElapsedCycles += 8;
                                         break;
 
           case OPCODE_MOVE_IND_REG_W:   // move.w (reg),reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord = ReadMemory_16(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
+                                        Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_UWord = ReadMemory_16(GeneralRegister[Status.Flags.LastReg = (Op1&0xf0)>>4].Reg_ULargest)
                                                            ,Status );
                                         ElapsedCycles += 10;
                                         break;
 
           case OPCODE_MOVE_IND_REG_L:   // move.l (reg),reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong = ReadMemory_32(GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest)
+                                        Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong = ReadMemory_32(GeneralRegister[Status.Flags.LastReg = (Op1&0xf0)>>4].Reg_ULargest)
                                                            ,Status );
                                         ElapsedCycles += 14;
                                         break;
 
           case OPCODE_MOVE_REG_IND_B:   // move.b reg,(reg)
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        WriteMemory_8(GeneralRegister[Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_UByte);
+                                        WriteMemory_8(GeneralRegister[Status.Flags.LastReg =  Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_UByte);
                                         Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)>>4].Reg_UByte ,Status );
                                         ElapsedCycles += 8;
                                         break;
 
           case OPCODE_MOVE_REG_IND_W:   // move.w reg,(reg)
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        WriteMemory_16(GeneralRegister[Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_UWord);
+                                        WriteMemory_16(GeneralRegister[Status.Flags.LastReg = Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_UWord);
                                         Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)>>4].Reg_UWord ,Status );
                                         ElapsedCycles += 10;
                                         break;
 
           case OPCODE_MOVE_REG_IND_L:   // move.b reg,(reg)
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        WriteMemory_32(GeneralRegister[Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_ULong);
+                                        WriteMemory_32(GeneralRegister[Status.Flags.LastReg = Op1 & 0x0f].Reg_ULargest, GeneralRegister[(Op1&0xf0)>>4].Reg_ULong);
                                         Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest ,Status );
                                         ElapsedCycles += 14;
                                         break;
@@ -650,12 +708,228 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         ElapsedCycles += 6;
                                         break;
 
+          case OPCODE_MOVE_REG_INDDEP_B: // move.b reg, displacement(register)
+                                        {
+                                          register ULong Address;
+                                          register UByte Value;
+                                          Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                          Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2;
+                                          Address = GeneralRegister[Status.Flags.LastReg = Op1 & 0x0f].Reg_ULargest + (ULong)((Long)((Short)Op2));
+                                          Value   = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
+                                          WriteMemory_8(Address, Value);
+                                          Status_Test_ZN_8( Value ,Status );
+                                          ElapsedCycles += 10;
+                                        }
+                                        break;
+
+          case OPCODE_MOVE_REG_INDDEP_W: // move.w reg, displacement(register)
+                                        {
+                                          register ULong Address;
+                                          register UShort Value;
+                                          Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                          Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2;
+                                          Address = GeneralRegister[Status.Flags.LastReg = Op1 & 0x0f].Reg_ULargest + (ULong)((Long)((Short)Op2));
+                                          Status.Flags.LastReg |= 0x10;
+                                          Value   = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord;
+                                          WriteMemory_16(Address, Value);
+                                          Status_Test_ZN_16( Value ,Status );
+                                          ElapsedCycles += 12;
+                                        }
+                                        break;
+
+          case OPCODE_MOVE_REG_INDDEP_L: // move.l reg, displacement(register)
+                                        {
+                                          register ULong Address;
+                                          register ULong Value;
+                                          Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                          Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2;
+                                          Address = GeneralRegister[Status.Flags.LastReg = Op1 & 0x0f].Reg_ULargest + (ULong)((Long)((Short)Op2));
+                                          Status.Flags.LastReg |= 0x20;
+                                          Value   = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong;
+                                          WriteMemory_32(Address, Value);
+                                          Status_Test_ZN_32( Value ,Status );
+                                          ElapsedCycles += 16;
+                                        }
+                                        break;
+
+          case OPCODE_MOVE_INDDEP_REG_B: // move.b displacement(register), reg
+                                        {
+                                          register ULong Address;
+                                          register UByte Value;
+                                          Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                          Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2;
+                                          Address = GeneralRegister[Status.Flags.LastReg = (Op1&0xf0)>>4].Reg_ULargest + (ULong)((Long)((Short)Op2));
+                                          Value = ReadMemory_8(Address);
+                                          GeneralRegister[Op1&0xf].Reg_UByte = Value;
+                                          Status_Test_ZN_8( Value ,Status );
+                                          ElapsedCycles += 10;
+                                        }
+                                        break;
+
+          case OPCODE_MOVE_INDDEP_REG_W: // move.w displacement(register), reg
+                                        {
+                                          register ULong Address;
+                                          register UShort Value;
+                                          Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                          Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2;
+                                          Address = GeneralRegister[Status.Flags.LastReg = (Op1&0xf0)>>4].Reg_ULargest + (ULong)((Long)((Short)Op2));
+                                          Status.Flags.LastReg |= 0x10;
+                                          Value = ReadMemory_16(Address);
+                                          GeneralRegister[Op1&0xf].Reg_UWord = Value;
+                                          Status_Test_ZN_16( Value ,Status );
+                                          ElapsedCycles += 12;
+                                        }
+                                        break;
+
+          case OPCODE_MOVE_INDDEP_REG_L: // move.l displacement(register), reg
+                                        {
+                                          register ULong Address;
+                                          register ULong Value;
+                                          Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                          Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2;
+                                          Address = GeneralRegister[Status.Flags.LastReg = (Op1&0xf0)>>4].Reg_ULargest + (ULong)((Long)((Short)Op2));
+                                          Status.Flags.LastReg |= 0x20;
+                                          Value = ReadMemory_32(Address);
+                                          GeneralRegister[Op1&0xf].Reg_ULong = Value;
+                                          Status_Test_ZN_32( Value ,Status );
+                                          ElapsedCycles += 16;
+                                        }
+                                        break;
+
+          case OPCODE_MOVE_INDDEPOFF_REG_B: // move.b reg, displacement(register+register*x)
+                                        {
+                                          register ULong Address;
+                                          register UByte Value;
+                                          register int   Op3;
+                                          Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                          Op3 = FetchOperand_8(ProgramCounter++); //
+                                          Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2;
+
+                                          Address = GeneralRegister[Op1 & 0x0f].Reg_ULargest + (ULong)((Long)((Short)Op2)) + (GeneralRegister[Status.Flags.LastReg = Op3 & 0x0f].Reg_ULargest << (Op3 >> 6) );
+                                          switch(Op3 & 0x30)
+                                          {
+                                            case 0x10: GeneralRegister[Op3 & 0x0f].Reg_ULargest ++; break;
+                                            case 0x20: GeneralRegister[Op3 & 0x0f].Reg_ULargest --; break;
+                                          }
+                                          Value   = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
+                                          WriteMemory_8(Address, Value);
+                                          Status_Test_ZN_8( Value ,Status );
+                                          ElapsedCycles += 12;
+                                        }
+                                        break;
+
+          case OPCODE_MOVE_INDDEPOFF_REG_W: // move.w reg, displacement(register+register*x)
+                                        {
+                                          register ULong Address;
+                                          register UByte Value;
+                                          register int   Op3;
+                                          Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                          Op3 = FetchOperand_8(ProgramCounter++);
+                                          Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2;
+
+                                          Address = GeneralRegister[Op1 & 0x0f].Reg_ULargest + (ULong)((Long)((Short)Op2)) + (GeneralRegister[Status.Flags.LastReg = Op3 & 0x0f].Reg_ULargest << (Op3 >> 6) );
+                                          Status.Flags.LastReg |= 0x10;
+                                          switch(Op3 & 0x30)
+                                          {
+                                            case 0x10: GeneralRegister[Op3 & 0x0f].Reg_ULargest ++; break;
+                                            case 0x20: GeneralRegister[Op3 & 0x0f].Reg_ULargest --; break;
+                                          }
+                                          Value   = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord;
+                                          WriteMemory_16(Address, Value);
+                                          Status_Test_ZN_16( Value ,Status );
+                                          ElapsedCycles += 14;
+                                        }
+                                        break;
+
+          case OPCODE_MOVE_INDDEPOFF_REG_L: // move.l reg, displacement(register+register*x)
+                                        {
+                                          register ULong Address;
+                                          register UByte Value;
+                                          register int   Op3;
+                                          Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                          Op3 = FetchOperand_8(ProgramCounter++);
+                                          Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2;
+
+                                          Address = GeneralRegister[Op1 & 0x0f].Reg_ULargest + (ULong)((Long)((Short)Op2)) + (GeneralRegister[Status.Flags.LastReg = Op3 & 0x0f].Reg_ULargest << (Op3 >> 6) );
+                                          Status.Flags.LastReg |= 0x20;
+                                          switch(Op3 & 0x30)
+                                          {
+                                            case 0x10: GeneralRegister[Op3 & 0x0f].Reg_ULargest ++; break;
+                                            case 0x20: GeneralRegister[Op3 & 0x0f].Reg_ULargest --; break;
+                                          }
+                                          Value   = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong;
+                                          WriteMemory_32(Address, Value);
+                                          Status_Test_ZN_32( Value ,Status );
+                                          ElapsedCycles += 18;
+                                        }
+                                        break;
+
+          case OPCODE_MOVE_REG_INDDEPOFF_B: // move.b displacement(register+register*x), rx
+                                        {
+                                          register ULong Address;
+                                          register UByte Value;
+                                          register int   Op3;
+                                          Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                          Op3 = FetchOperand_8(ProgramCounter++);
+                                          Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2;
+
+                                          Address = GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest + (ULong)((Long)((Short)Op2)) + (GeneralRegister[Status.Flags.LastReg = Op3 & 0x0f].Reg_ULargest << (Op3 >> 6) );
+                                          switch(Op3 & 0x30)
+                                          {
+                                            case 0x10: GeneralRegister[Op3 & 0x0f].Reg_ULargest ++; break;
+                                            case 0x20: GeneralRegister[Op3 & 0x0f].Reg_ULargest --; break;
+                                          }
+
+                                          Value = ReadMemory_8(Address);
+                                          GeneralRegister[Op1&0xf].Reg_UByte = Value;
+                                          Status_Test_ZN_8( Value ,Status );
+                                          ElapsedCycles += 12;
+                                        }
+                                        break;
+
+          case OPCODE_MOVE_REG_INDDEPOFF_W: // move.w displacement(register+register*x), rx
+                                        {
+                                          register ULong Address;
+                                          register UByte Value;
+                                          register int   Op3;
+                                          Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                          Op3 = FetchOperand_8(ProgramCounter++);
+                                          Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2;
+
+                                          Address = GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest + (ULong)((Long)((Short)Op2)) + (GeneralRegister[Status.Flags.LastReg = Op3 & 0x0f].Reg_ULargest << (Op3 >> 6) );
+                                          if (!(Op3 >> 6)) Status.Flags.LastReg |= 0x10;
+                                          Value = ReadMemory_16(Address);
+                                          GeneralRegister[Op1&0xf].Reg_UWord = Value;
+                                          Status_Test_ZN_16( Value ,Status );
+                                          ElapsedCycles += 14;
+                                        }
+                                        break;
+
+          case OPCODE_MOVE_REG_INDDEPOFF_L: // move.l displacement(register+register*x), rx
+                                        {
+                                          register ULong Address;
+                                          register UByte Value;
+                                          register int   Op3;
+                                          Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                          Op3 = FetchOperand_8(ProgramCounter++);
+                                          Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2;
+
+                                          Address = GeneralRegister[(Op1&0xf0)>>4].Reg_ULargest + (ULong)((Long)((Short)Op2)) + (GeneralRegister[Status.Flags.LastReg = Op3 & 0x0f].Reg_ULargest << (Op3 >> 6) );
+                                          if (!(Op3 >> 6)) Status.Flags.LastReg |= 0x20;
+
+                                          Value = ReadMemory_32(Address);
+                                          GeneralRegister[Op1&0xf].Reg_ULong = Value;
+                                          Status_Test_ZN_32( Value ,Status );
+                                          ElapsedCycles += 18;
+                                        }
+                                        break;
+
           case OPCODE_MOVEX_IMM_SN:     // movex.un #imm,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         GeneralRegister[Op1 & 0x0f].Reg_ULargest = (Op1 & 0x80) ? 0xfffffff0 : 0x00000000 ;
                                         GeneralRegister[Op1 & 0x0f].Reg_ULargest |= (Op1 >> 4);
                                         Status_Test_ZN_8(GeneralRegister[Op1 & 0x0f].Reg_UByte,Status);
-                                        ElapsedCycles += 6;
+                                        ElapsedCycles += 4;
                                         break;
 
           case OPCODE_MOVEX_IMM_SB:     // movex.sb #imm,reg
@@ -663,7 +937,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         Op2 = FetchOperand_8(ProgramCounter++);  // Immediate value
                                         GeneralRegister[Op1 & 0x0f].Reg_SLargest = (Byte)Op2;
                                         Status_Test_ZN_8(Op2,Status);
-                                        ElapsedCycles += 8;
+                                        ElapsedCycles += 6;
                                         break;
 
           case OPCODE_MOVEX_IMM_SW:     // movex.sw #imm,reg
@@ -678,16 +952,15 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         GeneralRegister[Op1 & 0x0f].Reg_ULargest = (Op1 >> 4);
                                         Status_Test_ZN_8(Op1 >> 4,Status);
-                                        ElapsedCycles += 6;
+                                        ElapsedCycles += 4;
                                         break;
-
 
           case OPCODE_MOVEX_IMM_UB:     // movex.ub #imm,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         Op2 = FetchOperand_8(ProgramCounter++);  // Immediate value
                                         GeneralRegister[Op1 & 0x0f].Reg_ULargest = (UByte)Op2;
                                         Status_Test_ZN_8(Op2,Status);
-                                        ElapsedCycles += 8;
+                                        ElapsedCycles += 6;
                                         break;
 
           case OPCODE_MOVEX_IMM_UW:     // movex.uw #imm,reg
@@ -695,16 +968,12 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Immediate value
                                         GeneralRegister[Op1 & 0x0f].Reg_ULargest = (UShort)Op2;
                                         Status_Test_ZN_16(Op2,Status);
-                                        ElapsedCycles += 10;
+                                        ElapsedCycles += 8;
                                         break;
-
-
-
-
 
           case OPCODE_PUSHREGS:         // pushregs R0-R14(reg)
                                         {
-                                          Op1 = FetchOperand_16(ProgramCounter++); // Register
+                                          Op1 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Register
                                           ElapsedCycles += 8;
                                           for(i=0;i<15;i++)
                                           {
@@ -715,11 +984,11 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         break;
 
           case OPCODE_POPREGS:          // popregs R0-R15
-                                        Op1 = FetchOperand_16(ProgramCounter++); // Register
+                                        Op1 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Register
                                         ElapsedCycles += 8;
-                                        for(i=14;i<15;i--)
+                                        for(i=14;i>=0;i--)
                                         {
-                                          if (Op1&0x04000) {GeneralRegister[i].Reg_ULargest = PopStack_32(); ElapsedCycles += 4; }
+                                          if (Op1&0x4000) {GeneralRegister[i].Reg_ULargest = PopStack_32(); ElapsedCycles += 4; }
                                           Op1<<=1;
                                         }
                                         break;
@@ -728,10 +997,10 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         {
                                           register Long Data, OldData;
                                           OldData = GeneralRegister[Op1&0xf].Reg_ULargest;
-                                          Data = GeneralRegister[Op1&0xf].Reg_ULargest+= Op1 >> 4;
+                                          Data = GeneralRegister[Op1&0xf].Reg_ULargest+= (Op1 >> 4) + 1;
                                           Status.Flags.ZeroFlag     = !Data;
-                                          Status.Flags.OverflowFlag =  ((Long)OldData)<0 && (((Long)(Data ^ OldData)) < 0) ;
-                                          Status.Flags.NegativeFlag =  ((Long)Data) < 0;
+                                          Status.Flags.OverflowFlag = (OldData >= 0) && ((Data ^ OldData) < 0) ;
+                                          Status.Flags.NegativeFlag = Data < 0;
                                           ElapsedCycles += 6;
                                         }
 
@@ -740,11 +1009,33 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         {
                                           register Long Data, OldData;
                                           OldData = GeneralRegister[Op1&0xf].Reg_ULargest;
-                                          Data = GeneralRegister[Op1&0xf].Reg_ULargest-= Op1 >> 4;
+                                          Data = GeneralRegister[Op1&0xf].Reg_ULargest-= (Op1 >> 4) + 1;
                                           Status.Flags.ZeroFlag     = !Data;
-                                          Status.Flags.OverflowFlag =  ((Long)OldData)>=0 && ((Long)(Data ^ OldData)) < 0;
-                                          Status.Flags.NegativeFlag =  ((Long)Data) < 0;
+                                          Status.Flags.OverflowFlag = (OldData<0) && ((Data ^ OldData) < 0);
+                                          Status.Flags.NegativeFlag = Data < 0;
                                           ElapsedCycles += 6;
+                                        }
+                                        break;
+
+          case OPCODE_INCLR:             {
+                                          register Long Data, OldData;
+                                          OldData = GeneralRegister[Status.Flags.LastReg].Reg_ULargest;
+                                          Data = (GeneralRegister[Status.Flags.LastReg & 0xf].Reg_ULargest) += (1 << (Status.Flags.LastReg >> 4));
+                                          Status.Flags.ZeroFlag     = !Data;
+                                          Status.Flags.OverflowFlag =  ((Long)OldData)<0 && (((Long)(Data ^ OldData)) < 0) ;
+                                          Status.Flags.NegativeFlag =  ((Long)Data) < 0;
+                                          ElapsedCycles += 2;
+                                        }
+                                        break;
+
+          case OPCODE_DECLR:             {
+                                          register Long Data, OldData;
+                                          OldData = GeneralRegister[Status.Flags.LastReg].Reg_ULargest;
+                                          Data = GeneralRegister[Status.Flags.LastReg & 0xf].Reg_ULargest-= (1 << (Status.Flags.LastReg >> 4));
+                                          Status.Flags.ZeroFlag     = !Data;
+                                          Status.Flags.OverflowFlag =  ((Long)OldData)<0 && (((Long)(Data ^ OldData)) < 0) ;
+                                          Status.Flags.NegativeFlag =  ((Long)Data) < 0;
+                                          ElapsedCycles += 2;
                                         }
                                         break;
 
@@ -756,7 +1047,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           D2 = GeneralRegister[Op1&0xf].Reg_UByte;
                                           D3 = D1+D2;
                                           GeneralRegister[Op1&0xf].Reg_UByte = D3;
-                                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
+                                          Status.Flags.CarryFlag = D3<D1;
                                           Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
                                           Status.Flags.ZeroFlag = (!D3);
                                           Status.Flags.NegativeFlag = ((Byte)D3 < 0);
@@ -772,7 +1063,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           D2 = GeneralRegister[Op1&0xf].Reg_UWord;
                                           D3 = D1+D2;
                                           GeneralRegister[Op1&0xf].Reg_UWord = D3;
-                                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
+                                          Status.Flags.CarryFlag = D3<D1;
                                           Status.Flags.OverflowFlag = ((Short)((D1^D3) & (~(D1^D2))) < 0);
                                           Status.Flags.ZeroFlag = (!D3);
                                           Status.Flags.NegativeFlag = ((Short)D3 < 0);
@@ -788,7 +1079,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           D2 = GeneralRegister[Op1&0xf].Reg_ULong;
                                           D3 = D1+D2;
                                           GeneralRegister[Op1&0xf].Reg_ULong = D3;
-                                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
+                                          Status.Flags.CarryFlag = D3<D1;
                                           Status.Flags.OverflowFlag = ((Long)((D1^D3) & (~(D1^D2))) < 0);
                                           Status.Flags.ZeroFlag = (!D3);
                                           Status.Flags.NegativeFlag = ((Long)D3 < 0);
@@ -802,9 +1093,10 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           register UByte D1,D2,D3;
                                           D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
                                           D2 = GeneralRegister[Op1&0xf].Reg_UByte;
-                                          D3 = D1-D2;
-                                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-                                          Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
+                                          D3 = D2-D1;
+                                          GeneralRegister[Op1&0xf].Reg_UByte = D3;
+                                          Status.Flags.CarryFlag = D3>D2;
+                                          Status.Flags.OverflowFlag = ((Byte)((D2^D3) & (D1^D2)) < 0);
                                           Status.Flags.ZeroFlag = (!D3);
                                           Status.Flags.NegativeFlag = ((Byte)D3 < 0);
                                           ElapsedCycles += 6;
@@ -814,14 +1106,15 @@ class BlackCPU : public ZVCPU_Chip_Interface
           case OPCODE_SUB_W:            // sub.w reg,reg (No carry)
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         {
-                                          register UByte D1,D2,D3;
+                                          register UShort D1,D2,D3;
                                           D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord;
                                           D2 = GeneralRegister[Op1&0xf].Reg_UWord;
-                                          D3 = D1-D2;
-                                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-                                          Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
+                                          D3 = D2-D1;
+                                          GeneralRegister[Op1&0xf].Reg_UWord = D3;
+                                          Status.Flags.CarryFlag = D3>D2;
+                                          Status.Flags.OverflowFlag = ((Short)((D2^D3) & (D1^D2)) < 0);
                                           Status.Flags.ZeroFlag = (!D3);
-                                          Status.Flags.NegativeFlag = ((Byte)D3 < 0);
+                                          Status.Flags.NegativeFlag = ((Short)D3 < 0);
                                           ElapsedCycles += 6;
                                         }
                                         break;
@@ -829,14 +1122,15 @@ class BlackCPU : public ZVCPU_Chip_Interface
           case OPCODE_SUB_L:            // sub.l reg,reg (No carry)
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         {
-                                          register UByte D1,D2,D3;
+                                          register ULong D1,D2,D3;
                                           D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong;
                                           D2 = GeneralRegister[Op1&0xf].Reg_ULong;
-                                          D3 = D1-D2;
-                                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-                                          Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
+                                          D3 = D2-D1;
+                                          GeneralRegister[Op1&0xf].Reg_ULong = D3;
+                                          Status.Flags.CarryFlag = D3>D2;
+                                          Status.Flags.OverflowFlag = ((Long)((D2^D3) & (D1^D2)) < 0);
                                           Status.Flags.ZeroFlag = (!D3);
-                                          Status.Flags.NegativeFlag = ((Byte)D3 < 0);
+                                          Status.Flags.NegativeFlag = ((Long)D3 < 0);
                                           ElapsedCycles += 6;
                                         }
                                         break;
@@ -899,31 +1193,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
 
           case OPCODE_XOR_L:            // xor.l reg.reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        Status_Test_ZN_16( GeneralRegister[Op1 & 0x0f].Reg_ULong ^= GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
-                                                           ,Status );
-                                        ElapsedCycles += 6;
-                                        break;
-
-          case OPCODE_ASL_B:            // asl.b reg,reg
-                                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
-                                        Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_SByte = (GeneralRegister[(Op1&0xf0)].Reg_SByte << GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SByte & 0x80)
-                                                          ,Status );
-                                        ElapsedCycles += 6;
-                                        break;
-
-          case OPCODE_ASL_W:            // asl.w reg,reg
-                                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
-                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_SWord = (GeneralRegister[(Op1&0xf0)].Reg_SWord << GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SWord & 0x8000)
-                                                           ,Status );
-                                        ElapsedCycles += 6;
-                                        break;
-
-          case OPCODE_ASL_L:            // asl.l reg,reg
-                                        Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
-                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_SLong = (GeneralRegister[(Op1&0xf0)].Reg_SLong << GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SLong & 0x80000000UL)
+                                        Status_Test_ZN_32( GeneralRegister[Op1 & 0x0f].Reg_ULong ^= GeneralRegister[(Op1&0xf0)>>4].Reg_ULong
                                                            ,Status );
                                         ElapsedCycles += 6;
                                         break;
@@ -1028,7 +1298,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           register bool Carry;
                                           Carry = Status.Flags.CarryFlag;
                                           Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
-                                          Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_ULong = GeneralRegister[(Op1&0xf0)].Reg_ULong >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                          Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_ULong = GeneralRegister[(Op1&0xf0)].Reg_ULong >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
                                                              ,Status );
                                           ElapsedCycles += 6;
                                         }
@@ -1052,7 +1322,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           register bool Carry;
                                           Carry = Status.Flags.CarryFlag;
                                           Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord | 1;
-                                          Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_UWord = GeneralRegister[(Op1&0xf0)].Reg_UWord >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                          Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_UWord = GeneralRegister[(Op1&0xf0)].Reg_UWord >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
                                                             ,Status );
                                           ElapsedCycles += 6;
                                         }
@@ -1064,7 +1334,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           register bool Carry;
                                           Carry = Status.Flags.CarryFlag;
                                           Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong | 1;
-                                          Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_ULong = GeneralRegister[(Op1&0xf0)].Reg_ULong >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                          Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_ULong = GeneralRegister[(Op1&0xf0)].Reg_ULong >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
                                                             ,Status );
                                           ElapsedCycles += 6;
                                         }
@@ -1092,7 +1362,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           UELong Tmp;
                                           Tmp = GeneralRegister[(Op1&0xf0)].Reg_ULong * GeneralRegister[Op1&0xf].Reg_ULong;
                                           GeneralRegister[(Op1&0xf0)].Reg_ULong = (ULong)Tmp;
-                                          GeneralRegister[((Op1+0x10)&0xf0)].Reg_ULong = (ULong)(Tmp>>16);
+                                          GeneralRegister[((Op1+0x10)&0xf0)].Reg_ULong = (ULong)(Tmp>>32);
                                           Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_ULong != 0;
                                           Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_ULong ,Status );
                                           ElapsedCycles += 150;
@@ -1121,7 +1391,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           ELong Tmp;
                                           Tmp = GeneralRegister[(Op1&0xf0)].Reg_SLong * GeneralRegister[Op1&0xf].Reg_SLong;
                                           GeneralRegister[(Op1&0xf0)].Reg_ULong = (ULong)Tmp;
-                                          GeneralRegister[((Op1+0x10)&0xf0)].Reg_ULong = (ULong)(Tmp>>16);
+                                          GeneralRegister[((Op1+0x10)&0xf0)].Reg_ULong = (ULong)(Tmp>>32);
                                           Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong != 0;
                                           Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_ULong ,Status );
                                           ElapsedCycles += 150;
@@ -1135,12 +1405,13 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UByte;
                                           D2 = GeneralRegister[Op1&0xf].Reg_UByte;
                                           D3 = D1-D2;
-                                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-                                          Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
+                                          Status.Flags.CarryFlag = D3>D2;
+                                          Status.Flags.OverflowFlag = ((Byte)((D2^D3) & (D1^D2)) < 0);
                                           Status.Flags.ZeroFlag = (!D3);
                                           Status.Flags.NegativeFlag = ((Byte)D3 < 0);
                                           ElapsedCycles += 6;
                                         }
+
                                         break;
 
           case OPCODE_CMP_W:            // cmp.w reg,reg
@@ -1150,10 +1421,10 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord;
                                           D2 = GeneralRegister[Op1&0xf].Reg_UWord;
                                           D3 = D1-D2;
-                                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-                                          Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
+                                          Status.Flags.CarryFlag = D3>D2;
+                                          Status.Flags.OverflowFlag = ((Short)((D2^D3) & (D1^D2)) < 0);
                                           Status.Flags.ZeroFlag = (!D3);
-                                          Status.Flags.NegativeFlag = ((Byte)D3 < 0);
+                                          Status.Flags.NegativeFlag = ((Short)D3 < 0);
                                           ElapsedCycles += 6;
                                         }
                                         break;
@@ -1165,10 +1436,10 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           D1 = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong;
                                           D2 = GeneralRegister[Op1&0xf].Reg_ULong;
                                           D3 = D1-D2;
-                                          Status.Flags.CarryFlag = (D1&D2&0x80) != 0;
-                                          Status.Flags.OverflowFlag = ((Byte)((D1^D3) & (~(D1^D2))) < 0);
+                                          Status.Flags.CarryFlag = D3>D2;
+                                          Status.Flags.OverflowFlag = ((Long)((D2^D3) & (D1^D2)) < 0);
                                           Status.Flags.ZeroFlag = (!D3);
-                                          Status.Flags.NegativeFlag = ((Byte)D3 < 0);
+                                          Status.Flags.NegativeFlag = ((Long)D3 < 0);
                                           ElapsedCycles += 6;
                                         }
                                         break;
@@ -1197,15 +1468,9 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         ElapsedCycles += 8;
                                         break;
 
-          case OPCODE_BRANCH_BCS :      // bcs #imm bhe.u #imm
+          case OPCODE_BRANCH_BPL :      // bpl #imm
                                         Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-                                        if (Status.Flags.CarryFlag) ProgramCounter += Op1;
-                                        ElapsedCycles += 8;
-                                        break;
-
-          case OPCODE_BRANCH_BCC :      // bcc #imm blo.u #imm
-                                        Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-                                        if (!Status.Flags.CarryFlag) ProgramCounter += Op1;
+                                        if (!Status.Flags.NegativeFlag) ProgramCounter += Op1;
                                         ElapsedCycles += 8;
                                         break;
 
@@ -1215,9 +1480,9 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         ElapsedCycles += 8;
                                         break;
 
-          case OPCODE_BRANCH_BPL :      // bpl #imm
+          case OPCODE_BRANCH_BVC :      // bvc #imm
                                         Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-                                        if (!Status.Flags.NegativeFlag) ProgramCounter += Op1;
+                                        if (!Status.Flags.OverflowFlag) ProgramCounter += Op1;
                                         ElapsedCycles += 8;
                                         break;
 
@@ -1227,33 +1492,40 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         ElapsedCycles += 8;
                                         break;
 
-          case OPCODE_BRANCH_BVC :      // bvc #imm
+          case OPCODE_BRANCH_BCC :      // bcc #imm blo.u #imm
                                         Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-                                        if (!Status.Flags.OverflowFlag) ProgramCounter += Op1;
+                                        if (!Status.Flags.CarryFlag) ProgramCounter += Op1;
                                         ElapsedCycles += 8;
                                         break;
 
-          case OPCODE_BRANCH_BHI_U :    // bhi.u #imm
+          case OPCODE_BRANCH_BCS :      // bcs #imm
+                                        Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                        if (Status.Flags.CarryFlag) ProgramCounter += Op1;
+                                        ElapsedCycles += 8;
+                                        break;
+
+
+          case OPCODE_BRANCH_BHI_U :    // bhi #imm
                                         Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
                                         if (Status.Flags.CarryFlag && (!Status.Flags.ZeroFlag)) ProgramCounter += Op1;
                                         ElapsedCycles += 8;
                                         break;
 
-          case OPCODE_BRANCH_BLE_U :    // ble.u #imm
+          case OPCODE_BRANCH_BHS_U :    // bhs #imm (same as bcs #imm)
                                         Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-                                        if (Status.Flags.CarryFlag && (!Status.Flags.ZeroFlag)) ProgramCounter += Op1;
+                                        if (Status.Flags.CarryFlag) ProgramCounter += Op1;
                                         ElapsedCycles += 8;
                                         break;
 
-          case OPCODE_BRANCH_BHE_S :    // bhe.s #imm
+          case OPCODE_BRANCH_BLS_U :    // bls #imm
                                         Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-                                        if (Status.Flags.NegativeFlag == Status.Flags.OverflowFlag) ProgramCounter += Op1;
+                                        if ( (!Status.Flags.CarryFlag) || (Status.Flags.ZeroFlag)) ProgramCounter += Op1;
                                         ElapsedCycles += 8;
                                         break;
 
-          case OPCODE_BRANCH_BLO_S :    // blo.s #imm
+          case OPCODE_BRANCH_BLO_U :    // blo #imm (same as bcc)
                                         Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-                                        if (Status.Flags.NegativeFlag != Status.Flags.OverflowFlag) ProgramCounter += Op1;
+                                        if (!Status.Flags.CarryFlag) ProgramCounter += Op1;
                                         ElapsedCycles += 8;
                                         break;
 
@@ -1263,17 +1535,31 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         ElapsedCycles += 8;
                                         break;
 
-          case OPCODE_BRANCH_BLE_S :    // ble.s #imm
+          case OPCODE_BRANCH_BHS_S :    // bhs.s #imm
                                         Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-                                        if ((Status.Flags.ZeroFlag) && (Status.Flags.NegativeFlag != Status.Flags.OverflowFlag)) ProgramCounter += Op1;
+                                        if (Status.Flags.NegativeFlag == Status.Flags.OverflowFlag) ProgramCounter += Op1;
                                         ElapsedCycles += 8;
                                         break;
 
-          case OPCODE_BRANCH_BXX :      // bra #imm
+          case OPCODE_BRANCH_BLS_S :    // ble.s #imm
                                         Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
-                                        ProgramCounter += Op1;
+                                        if ((Status.Flags.ZeroFlag) || (Status.Flags.NegativeFlag != Status.Flags.OverflowFlag)) ProgramCounter += Op1;
                                         ElapsedCycles += 8;
                                         break;
+
+          case OPCODE_BRANCH_BLO_S :    // blo.s #imm
+                                        Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                        if (Status.Flags.NegativeFlag != Status.Flags.OverflowFlag) ProgramCounter += Op1;
+                                        ElapsedCycles += 8;
+                                        break;
+
+          case OPCODE_BRANCH_BSO:       // bso #imm (For use with LSL)
+                                        Op1 = (int)((Short)FetchOperand_16(ProgramCounter));  ProgramCounter+=2; // Register
+                                        if (Status.Flags.NegativeFlag != Status.Flags.CarryFlag) ProgramCounter += Op1;
+                                        ElapsedCycles += 8;
+                                        break;
+
+
 
           case OPCODE_JSR_IND:          // jsr (reg)
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
@@ -1315,11 +1601,12 @@ class BlackCPU : public ZVCPU_Chip_Interface
           case OPCODE_RSR:              Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         switch( (Op1&0xf0) >> 4)
                                         {
-                                          case 0:  GeneralRegister[Op1&0xf].Reg_ULong = 0x00010001;     break;
-                                          case 1:  GeneralRegister[Op1&0xf].Reg_ULong = Status.WholeRegister;         break;
-                                          case 2:  GeneralRegister[Op1&0xf].Reg_ULong = ProgramCounter; break;
-                                          case 3:  GeneralRegister[Op1&0xf].Reg_ULong = Interrupt_Pending; break;
-                                          default: GeneralRegister[Op1&0xf].Reg_ULong = 0;              break;
+                                          case 0:  GeneralRegister[Op1&0xf].Reg_ULong = 0x00010001;           break;
+                                          case 1:  GeneralRegister[Op1&0xf].Reg_ULong = Status.WholeRegister; break;
+                                          case 2:  GeneralRegister[Op1&0xf].Reg_ULong = ProgramCounter;       break;
+                                          case 3:  GeneralRegister[Op1&0xf].Reg_ULong = Interrupt_Pending;    break;
+                                          case 4:  GeneralRegister[Op1&0xf].Reg_ULong = Status.Flags.LastReg; break;
+                                          default: GeneralRegister[Op1&0xf].Reg_ULong = 0;                    break;
                                         }
                                         ElapsedCycles += 6;
                                         break;
@@ -1331,12 +1618,40 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                           case 1:  Status.WholeRegister = GeneralRegister[Op1&0xf].Reg_ULong; break;
                                           case 2:  ProgramCounter       = GeneralRegister[Op1&0xf].Reg_ULong; break;
                                           case 3:  Interrupt_Pending    = GeneralRegister[Op1&0xf].Reg_ULong; break;
+                                          case 4:  Status.Flags.LastReg = GeneralRegister[Op1&0xf].Reg_UWord; break;
                                           default: break;
                                         }
                                         ElapsedCycles += 6;
                                         break;
 
-          case 255:                     ElapsedCycles +=10;
+          case OPCODE_BCND:             Op1 = FetchOperand_8(ProgramCounter++); // Condition codes
+                                        Op2 = (int)(short)FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Jump
+                                        if ( (((~(Status.WholeRegister ^ (Op1 & 0xf))) & (Op1 >> 4)) == (Op1 >> 4))) ProgramCounter += Op2;
+                                        ElapsedCycles += 8;
+                                        break;
+
+          case OPCODE_BNCND:            Op1 = FetchOperand_8(ProgramCounter++); // Condition codes
+                                        Op2 = (int)(short)FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Jump
+                                        if (
+                                              (
+                                                (
+                                                   (~( (Status.WholeRegister&0xf) ^ (Op1 & 0xf) ))
+                                                   & (Op1 >> 4)
+                                                )
+                                                !=
+                                                (Op1 >> 4)
+                                              )
+                                           ) ProgramCounter += Op2;
+                                        ElapsedCycles += 8;
+                                        break;
+
+
+
+
+          default:                      this->StepCount = 0;
+                                        this->StepMode = true;
+                                        ElapsedCycles += 2;
+                                        ChipManagementCount = CycleLimit = ElapsedCycles; // Break actual quantum
                                         break;
         }
 
@@ -1351,15 +1666,15 @@ class BlackCPU : public ZVCPU_Chip_Interface
     IsRunning = false;
   }
 
-
+  ZNumberFormat Format_Op_Displacement;
+  ZNumberFormat Format_Op_NoopNumber;
 
 
   bool Disassemble(ULong & ProgramCounter, ZString & Opc, ZString & Ope )
   {
     UByte Opcode;
     ULong Op1, Op2;
-    ZString RS,RD;
-
+    ZString RS,RD,RX;
     Ope.Set_DisplayBase(16);
 
     Opcode = FetchOpcode(ProgramCounter++);
@@ -1367,11 +1682,19 @@ class BlackCPU : public ZVCPU_Chip_Interface
     switch(Opcode)
     {
       case OPCODE_NOOP:             Opc = "[00]";
-                                    Ope = "";
+                                    Ope.Clear();
                                     return(false);
+
+      case OPCODE_NOP:              Opc = "nop";
+                                    Ope.Clear();
+                                    break;
 
       case OPCODE_BREAK:            Opc = "[brk]";
                                     Ope = "(BreakPoint)";
+                                    break;
+
+      case OPCODE_SLEEP:              Opc = "sleep";
+                                    Ope.Clear();
                                     break;
 
       case OPCODE_MOVE_IMM_B:       // move.b #imm,reg
@@ -1482,6 +1805,150 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                     Ope << "r" << RS << ",r" << RD;
                                     break;
 
+      case OPCODE_MOVE_REG_INDDEP_B:// move.b reg, disp(reg)
+                                    Opc = "move.b";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1 & 0x0f;
+                                    RS = (Op1&0xf0)>>4;
+                                    (Ope << "r" << RS << ",").Append_Formated_Long((Short)FetchOperand_16(ProgramCounter),&Format_Op_Displacement) << "(r" << RD << ")";
+                                    ProgramCounter+=2;
+                                    break;
+
+      case OPCODE_MOVE_REG_INDDEP_W:// move.w reg, disp(reg)
+                                    Opc = "move.w";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1 & 0x0f;
+                                    RS = (Op1&0xf0)>>4;
+                                    (Ope << "r" << RS << ",").Append_Formated_Long((Short)FetchOperand_16(ProgramCounter),&Format_Op_Displacement) << "(r" << RD << ")";
+                                    ProgramCounter+=2;
+                                    break;
+
+      case OPCODE_MOVE_REG_INDDEP_L:// move.l reg, disp(reg)
+                                    Opc = "move.l";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1 & 0x0f;
+                                    RS = (Op1&0xf0)>>4;
+                                    (Ope << "r" << RS << ",").Append_Formated_Long((Short)FetchOperand_16(ProgramCounter),&Format_Op_Displacement) << "(r" << RD << ")";
+                                    ProgramCounter+=2;
+                                    break;
+
+      case OPCODE_MOVE_INDDEP_REG_B:// move.b reg, disp(reg)
+                                    Opc = "move.b";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1 & 0x0f;
+                                    RS = (Op1&0xf0)>>4;
+                                    Ope.Append_Formated_Long((Short)FetchOperand_16(ProgramCounter),&Format_Op_Displacement) << "(r" << RS << ")," << "r" << RD;
+                                    ProgramCounter+=2;
+                                    break;
+
+      case OPCODE_MOVE_INDDEP_REG_W:// move.w reg, disp(reg)
+                                    Opc = "move.w";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1 & 0x0f;
+                                    RS = (Op1&0xf0)>>4;
+                                    Ope.Append_Formated_Long((Short)FetchOperand_16(ProgramCounter),&Format_Op_Displacement) << "(r" << RS << ")," << "r" << RD;
+                                    ProgramCounter+=2;
+                                    break;
+
+      case OPCODE_MOVE_INDDEP_REG_L:// move.l reg, disp(reg)
+                                    Opc = "move.l";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1 & 0x0f;
+                                    RS = (Op1&0xf0)>>4;
+                                    Ope.Append_Formated_Long((Short)FetchOperand_16(ProgramCounter),&Format_Op_Displacement) << "(r" << RS << ")," << "r" << RD;
+                                    ProgramCounter+=2;
+                                    break;
+
+      case OPCODE_MOVE_REG_INDDEPOFF_B:// move.b reg, disp(reg,reg*m)
+                                    Opc = "move.b";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    Op2 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1 & 0x0f;
+                                    RS = (Op1&0xf0)>>4;
+                                    RX = Op2 & 0xf;
+                                    (Ope  << "r" << RS << ",").Append_Formated_Long((Short)FetchOperand_16(ProgramCounter),&Format_Op_Displacement) << "(r" << RD << "+r" << RX;
+                                    if (Op2 & 0xC0) Ope << "*" << (1 << ((Op2 & 0xC0) >> 6));
+                                    Ope  << ")";
+                                    ProgramCounter+=2;
+                                    break;
+
+      case OPCODE_MOVE_REG_INDDEPOFF_W:// move.w reg, disp(reg,reg*m)
+                                    Opc = "move.w";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    Op2 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1 & 0x0f;
+                                    RS = (Op1&0xf0)>>4;
+                                    RX = Op2 & 0xf;
+                                    (Ope  << "r" << RS << ",").Append_Formated_Long((Short)FetchOperand_16(ProgramCounter),&Format_Op_Displacement) << "(r" << RD << "+r" << RX;
+                                    if (Op2 & 0xC0) Ope << "*" << (1 << ((Op2 & 0xC0) >> 6));
+                                    Ope  << ")";
+                                    ProgramCounter+=2;
+                                    break;
+
+      case OPCODE_MOVE_REG_INDDEPOFF_L:// move.l reg, disp(reg,reg*m)
+                                    Opc = "move.l";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    Op2 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1 & 0x0f;
+                                    RS = (Op1&0xf0)>>4;
+                                    RX = Op2 & 0xf;
+                                    (Ope  << "r" << RS << ",").Append_Formated_Long((Short)FetchOperand_16(ProgramCounter),&Format_Op_Displacement) << "(r" << RD << "+r" << RX;
+                                    if (Op2 & 0xC0) Ope << "*" << (1 << ((Op2 & 0xC0) >> 6));
+                                    Ope  << ")";
+                                    ProgramCounter+=2;
+                                    break;
+
+      case OPCODE_MOVE_INDDEPOFF_REG_B:// move.b reg, disp(reg,reg*m)
+                                    Opc = "move.b";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    Op2 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1 & 0x0f;
+                                    RS = (Op1&0xf0)>>4;
+                                    RX = Op2 & 0xf;
+                                    Ope.Append_Formated_Long((Short)FetchOperand_16(ProgramCounter),&Format_Op_Displacement) << "(r" << RS << "+r" << RX;
+                                    if (Op2 & 0xC0) Ope << "*" << (1 << ((Op2 & 0xC0) >> 6));
+                                    Ope  << "),r" << RS;
+                                    ProgramCounter += 2;
+                                    break;
+
+      case OPCODE_MOVE_INDDEPOFF_REG_W:// move.w reg, disp(reg,reg*m)
+                                    Opc = "move.b";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    Op2 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1 & 0x0f;
+                                    RS = (Op1&0xf0)>>4;
+                                    RX = Op2 & 0xf;
+                                    Ope.Append_Formated_Long((Short)FetchOperand_16(ProgramCounter),&Format_Op_Displacement) << "(r" << RS << "+r" << RX;
+                                    if (Op2 & 0xC0) Ope << "*" << (1 << ((Op2 & 0xC0) >> 6));
+                                    Ope  << "),r" << RS;
+                                    ProgramCounter+=2;
+                                    break;
+
+      case OPCODE_MOVE_INDDEPOFF_REG_L:// move.l reg, disp(reg,reg*m)
+                                    Opc = "move.l";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    Op2 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1 & 0x0f;
+                                    RS = (Op1&0xf0)>>4;
+                                    RX = Op2 & 0xf;
+                                    Ope.Append_Formated_Long((Short)FetchOperand_16(ProgramCounter),&Format_Op_Displacement) << "(r" << RS << "+r" << RX;
+                                    if (Op2 & 0xC0) Ope << "*" << (1 << ((Op2 & 0xC0) >> 6));
+                                    Ope  << "),r" << RS;
+                                    ProgramCounter+=2;
+                                    break;
+
       case OPCODE_MOVEX_IMM_SN:     // movex.un #imm,reg
                                     Opc = "movex.sn";
                                     Ope = "#";
@@ -1541,7 +2008,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
 
                                       Opc = "pushregs";
                                       Ope.Clear();
-                                      Op1 = FetchOperand_16(ProgramCounter++); // Register
+                                      Op1 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Register
 
                                       for(i=0, yet=false ; i<15 ; i++)
                                       {
@@ -1549,6 +2016,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         {
                                           if (yet) Ope <<"/";
                                           Ope<<"r"<<i;
+                                          yet=true;
                                         }
                                         Op1>>=1;
                                       }
@@ -1562,7 +2030,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
 
                                       Opc = "popregs";
                                       Ope.Clear();
-                                      Op1 = FetchOperand_16(ProgramCounter++); // Register
+                                      Op1 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Register
 
                                       for(i=0, yet=false ; i<15 ; i++)
                                       {
@@ -1570,6 +2038,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         {
                                           if (yet) Ope <<"/";
                                           Ope<<"r"<<i;
+                                          yet=true;
                                         }
                                         Op1>>=1;
                                       }
@@ -1577,19 +2046,29 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                     break;
 
       case OPCODE_INC:              // inc reg
-                                    Opc = "inc";
+                                    Opc = "inc.l";
                                     Ope.Clear();
                                     Op1 = FetchOperand_8(ProgramCounter++); // Register + Value
                                     RD = Op1 & 0xf;
-                                    Ope << "r" << RD;
+                                    Ope << "#" << ((Op1 & 0xf)+1) << ",r" << RD;
                                     break;
 
       case OPCODE_DEC:              // dec reg
-                                    Opc = "dec";
+                                    Opc = "dec.l";
                                     Ope.Clear();
                                     Op1 = FetchOperand_8(ProgramCounter++); // Register + Value
                                     RD = Op1 & 0xf;
-                                    Ope << "r" << RD;
+                                    Ope << "#" << ((Op1 & 0xf)+1) << ",r" << RD;
+                                    break;
+
+      case OPCODE_INCLR:            // inclr
+                                    Opc = "inclr";
+                                    Ope.Clear();
+                                    break;
+
+      case OPCODE_DECLR:            // declr
+                                    Opc = "declr";
+                                    Ope.Clear();
                                     break;
 
       case OPCODE_ADD_B:            // add.b reg,reg (No carry)
@@ -1721,33 +2200,6 @@ class BlackCPU : public ZVCPU_Chip_Interface
 
       case OPCODE_XOR_L:            // xor.l reg.reg
                                     Opc = "xor.l";
-                                    Ope.Clear();
-                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                    RD = Op1&0xf;
-                                    RS = (Op1&0xf0)>>4;
-                                    Ope << "r" << RS << ",r" << RD;
-                                    break;
-
-      case OPCODE_ASL_B:            // asl.b reg,reg
-                                    Opc = "asl.b";
-                                    Ope.Clear();
-                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                    RD = Op1&0xf;
-                                    RS = (Op1&0xf0)>>4;
-                                    Ope << "r" << RS << ",r" << RD;
-                                    break;
-
-      case OPCODE_ASL_W:            // asl.w reg,reg
-                                    Opc = "asl.w";
-                                    Ope.Clear();
-                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                    RD = Op1&0xf;
-                                    RS = (Op1&0xf0)>>4;
-                                    Ope << "r" << RS << ",r" << RD;
-                                    break;
-
-      case OPCODE_ASL_L:            // asl.l reg,reg
-                                    Opc = "asl.l";
                                     Ope.Clear();
                                     Op1 = FetchOperand_8(ProgramCounter++); // Register
                                     RD = Op1&0xf;
@@ -2042,29 +2494,29 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                     Ope << "0x" << ProgramCounter + (Short)Op1;
                                     break;
 
-      case OPCODE_BRANCH_BHI_U :    // bhi.u #imm
-                                    Opc = "bhi.u";
+      case OPCODE_BRANCH_BHI_U :    // bhi #imm
+                                    Opc = "bhi";
                                     Ope.Clear();
                                     Op1 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Displacement
                                     Ope << "0x" << ProgramCounter + (Short)Op1;
                                     break;
 
-      case OPCODE_BRANCH_BLE_U :    // ble.u #imm
-                                    Opc = "ble.u";
+      case OPCODE_BRANCH_BHS_U :    // bhs.u #imm
+                                    Opc = "bhs";
                                     Ope.Clear();
                                     Op1 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Displacement
                                     Ope << "0x" << ProgramCounter + (Short)Op1;
                                     break;
 
-      case OPCODE_BRANCH_BHE_S :    // bhe.s #imm
-                                    Opc = "bhe.s";
+      case OPCODE_BRANCH_BLS_U :    // bls #imm
+                                    Opc = "bls";
                                     Ope.Clear();
                                     Op1 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Displacement
                                     Ope << "0x" << ProgramCounter + (Short)Op1;
                                     break;
 
-      case OPCODE_BRANCH_BLO_S :    // blo.s #imm
-                                    Opc = "blo.s";
+      case OPCODE_BRANCH_BLO_U :    // blo #imm
+                                    Opc = "blo";
                                     Ope.Clear();
                                     Op1 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Displacement
                                     Ope << "0x" << ProgramCounter + (Short)Op1;
@@ -2077,26 +2529,42 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                     Ope << "0x" << ProgramCounter + (Short)Op1;
                                     break;
 
-      case OPCODE_BRANCH_BLE_S :    // ble.s #imm
-                                    Opc = "ble.s";
+      case OPCODE_BRANCH_BHS_S :    // bhs.s #imm
+                                    Opc = "bhs.s";
                                     Ope.Clear();
                                     Op1 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Displacement
                                     Ope << "0x" << ProgramCounter + (Short)Op1;
                                     break;
 
-      case OPCODE_BRANCH_BXX :      // bra #imm
-                                    Opc = "bxx";
+      case OPCODE_BRANCH_BLS_S :    // bls.s #imm
+                                    Opc = "bls.s";
                                     Ope.Clear();
                                     Op1 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Displacement
                                     Ope << "0x" << ProgramCounter + (Short)Op1;
                                     break;
+
+      case OPCODE_BRANCH_BLO_S :    // blo.s #imm
+                                    Opc = "bhi.u";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Displacement
+                                    Ope << "0x" << ProgramCounter + (Short)Op1;
+                                    break;
+
+      case OPCODE_BRANCH_BSO :      // bso #imm
+                                    Opc = "bso";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Displacement
+                                    Ope << "0x" << ProgramCounter + (Short)Op1;
+                                    break;
+
+
 
       case OPCODE_JSR_IND:          // jsr (reg)
                                     Opc = "jsr";
                                     Ope.Clear();
                                     Op1 = FetchOperand_8(ProgramCounter++); // Register
                                     RD = Op1&0xf;
-                                    Ope << "(" << RD << ")";
+                                    Ope << "(r" << RD << ")";
                                     break;
 
       case OPCODE_RTS:              // rts
@@ -2133,8 +2601,55 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                     Ope << "r" << RD;
                                     break;
 
+      case OPCODE_RSR:              // rsr.l
+                                    Opc = "rsr.l";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register and value
+                                    RD = Op1&0xf;
+                                    Ope << "r" << RD;
+                                    break;
+
+      case OPCODE_WSR:              // ext.wl reg
+                                    Opc = "ext.wl";
+                                    Ope.Clear();
+                                    Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                    RD = Op1&0xf;
+                                    Ope << "r" << RD;
+                                    break;
+
+      case OPCODE_BCND:             // bcnd ZNVC,ZNVC, label
+                                    {
+                                      bool Flag = false;
+                                      Opc = "bcnd";
+                                      Ope.Clear();
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Displacement
+                                      if ((Op1 >> 4) & 1) {                       Ope << ((Op1&1)?"Zs":"Zc"); Flag = true; }
+                                      if ((Op1 >> 4) & 2) { if (Flag) Ope << "/"; Ope << ((Op1&2)?"Ns":"Nc"); Flag = true; }
+                                      if ((Op1 >> 4) & 4) { if (Flag) Ope << "/"; Ope << ((Op1&4)?"Vs":"Vc"); Flag = true; }
+                                      if ((Op1 >> 4) & 8) { if (Flag) Ope << "/"; Ope << ((Op1&8)?"Cs":"Cc"); Flag = true; }
+                                      Ope << "," << ProgramCounter + (Short)Op2;
+                                    }
+                                    break;
+
+      case OPCODE_BNCND:            // bcnd ZNVC,ZNVC, label
+                                    {
+                                      bool Flag = false;
+                                      Opc = "bncnd";
+                                      Ope.Clear();
+                                      Op1 = FetchOperand_8(ProgramCounter++); // Register
+                                      Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Displacement
+                                      if ((Op1 >> 4) & 1) {                       Ope << ((Op1&1)?"Zs":"Zc"); Flag = true; }
+                                      if ((Op1 >> 4) & 2) { if (Flag) Ope << "/"; Ope << ((Op1&2)?"Ns":"Nc"); Flag = true; }
+                                      if ((Op1 >> 4) & 4) { if (Flag) Ope << "/"; Ope << ((Op1&4)?"Vs":"Vc"); Flag = true; }
+                                      if ((Op1 >> 4) & 8) { if (Flag) Ope << "/"; Ope << ((Op1&8)?"Cs":"Cc"); Flag = true; }
+                                      Ope << "," << ProgramCounter + (Short)Op2;
+                                    }
+                                    break;
+
+
       default:                      Opc.Clear();
-                                    Opc << "[" << (ULong)Opcode << "]";
+                                    (Opc << "[").Append_Formated_ULong((ULong)Opcode, &Format_Op_NoopNumber) << "]";
                                     Ope.Clear();
                                     Ope.Append_char(Opcode);
                                     return(false);
@@ -2147,7 +2662,9 @@ class BlackCPU : public ZVCPU_Chip_Interface
 
   protected:
 
-  ZString RegisterOpcode(ULong FormatInfo,
+
+  static ZString RegisterOpcode(void * DbInfo,
+                         ULong FormatInfo,
                          ULong Cycles,
                          ULong InstructionBytes,
                          ULong Opcode,
@@ -2179,6 +2696,28 @@ class BlackCPU : public ZVCPU_Chip_Interface
               Out.PadUptoLen(' ', 150);
               Out << "|\n";
               break;
+      case 1: Out << "INSERT INTO `bv_vcpu_opcodes` (`Key`, `Version`, `Opcode`, `Cycles`, `Bytes`, `Flags`, `InstructionName`, `Suffix`, `Operand`, `Encoding`, `Description`)";
+              Out << "VALUES (";
+              Out << "'" << OpcodeLabel << "',";
+              Out << "'1',";
+              Out << "'" << Opcode << "',";
+              Out << "'" << Cycles << "',";
+              Out << "'" << InstructionBytes << "',";
+              Out << "'" << Flags  << "',";
+              Out << "'" << OpcodeName << "',";
+              Out << "'" << Size << "',";
+              Out << "'" << Operand << "',";
+              Out << "'" << Encoding << "',";
+              Out << "'" << Description <<"'";
+              Out << ");\n";
+              break;
+      case 2: {
+                ZString * STable = (ZString *)DbInfo;
+
+                STable[Opcode].Clear();
+                STable[Opcode]<<OpcodeName<<Size<< " "<< Operand;
+              }
+              break;
     }
 
     return(Out);
@@ -2186,9 +2725,15 @@ class BlackCPU : public ZVCPU_Chip_Interface
 
   public:
 
-  ZString OutputOpcodeDatabase(ULong Fi)
+  // 0 = Opcode Tables in ascii format
+  // 1 = Opcode Tables in sql format
+  // 2 = Opcode Table in compact 2D html table.
+
+  static ZString OutputOpcodeDatabase(ULong Fi)
   {
     ZString Out, Str;
+    void * Db = 0;
+    ZMemSize i,j;
 
     switch(Fi)
     {
@@ -2197,98 +2742,154 @@ class BlackCPU : public ZVCPU_Chip_Interface
               Out << "|Op|Time|CVNZ| Instruction                    | Description                                                                                           |\n";
               Out << Str;
               break;
+      case 1: Out << "TRUNCATE bv_vcpu_opcodes;\n"; break;
+      case 2: Db = new ZString[256];
+              break;
+
     }
     //                                                                                CVNZ
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_MOVE_IMM_B,     "OPCODE_MOVE_IMM_B",     "  XX", "move",    ".b",   "#_8BitsImmediateValue, rx", "0000DDDD IIIIIIII",          "Move  8 bit immediate value to register" );
-    Out << RegisterOpcode(Fi, 10, 4, OPCODE_MOVE_IMM_W,     "OPCODE_MOVE_IMM_W",     "  XX", "move",    ".w",   "#16BitsImmediateValue, rx", "0000DDDD IIIIIIII IIIIIIII", "Move 16 bit immediate value to register" );
-    Out << RegisterOpcode(Fi, 14, 6, OPCODE_MOVE_IMM_L,     "OPCODE_MOVE_IMM_L",     "  XX", "move",    ".l",   "#32BitsImmediateValue, rx", "0000DDDD IIIIIIII IIIIIIII IIIIIIII IIIIIIII", "Move 32 bits immediate value to register" );
-    Out << RegisterOpcode(Fi,  8, 2, OPCODE_MOVE_IND_REG_B, "OPCODE_MOVE_IND_REG_B", "  XX", "move",    ".b",   "(rx),rx" , "SSSSDDDD", "Move 8 bits memory data pointed by source register to destination register" );
-    Out << RegisterOpcode(Fi, 10, 2, OPCODE_MOVE_IND_REG_W, "OPCODE_MOVE_IND_REG_W", "  XX", "move",    ".w",   "(rx),rx" , "SSSSDDDD", "Move 16 bits memory data pointed by source register to destination register" );
-    Out << RegisterOpcode(Fi, 14, 2, OPCODE_MOVE_IND_REG_L, "OPCODE_MOVE_IND_REG_L", "  XX", "move",    ".l",   "(rx),rx" , "SSSSDDDD", "Move 32 bits memory data pointed by source register to destination register" );
-    Out << RegisterOpcode(Fi,  8, 2, OPCODE_MOVE_REG_IND_B, "OPCODE_MOVE_REG_IND_B", "  XX", "move",    ".b",   "rx,(rx)" , "SSSSDDDD", "Move  8 bits from source register to memory pointed by destination register" );
-    Out << RegisterOpcode(Fi, 10, 2, OPCODE_MOVE_REG_IND_W, "OPCODE_MOVE_REG_IND_W", "  XX", "move",    ".w",   "rx,(rx)" , "SSSSDDDD", "Move 16 bits from source register to memory pointed by destination register" );
-    Out << RegisterOpcode(Fi, 14, 2, OPCODE_MOVE_REG_IND_L, "OPCODE_MOVE_REG_IND_L", "  XX", "move",    ".l",   "rx,(rx)" , "SSSSDDDD", "Move 32 bits from source register to memory pointed by destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_MOVE_REG_REG_B, "OPCODE_MOVE_REG_REG_B", "  XX", "move",    ".b",   "rx,rx"   , "SSSSDDDD", "Move  8 bits from source register to destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_MOVE_REG_REG_W, "OPCODE_MOVE_REG_REG_W", "  XX", "move",    ".w",   "rx,rx"   , "SSSSDDDD", "Move 16 bits from source register to destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_MOVE_REG_REG_L, "OPCODE_MOVE_REG_REG_L", "  XX", "move",    ".l",   "rx,rx"   , "SSSSDDDD", "Move 32 bits from source register to destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_MOVEX_IMM_SN,   "OPCODE_MOVEX_IMM_SN",   "  XX", "movex",   ".sn",  "#_4BitsSignedValue,rx" , "IIIIDDDD", "Move 4 bits immediate signed value expanded to 32 bits destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_MOVEX_IMM_UN,   "OPCODE_MOVEX_IMM_UN",   "  XX", "movex",   ".un",  "#_4BitsSignedValue,rx" , "IIIIDDDD", "Move 4 bits immediate unsigned value expanded to 32 bits destination register" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_MOVEX_IMM_SB,   "OPCODE_MOVEX_IMM_SB",   "  XX", "movex",   ".sb",  "#_8BitsSignedValue,rx" , "0000DDDD IIIIIIII", "Move  8 bits immediate signed value expanded to 32 bits destination register" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_MOVEX_IMM_UB,   "OPCODE_MOVEX_IMM_UB",   "  XX", "movex",   ".b",   "#8BitsUnsignedValue,rx", "0000DDDD IIIIIIII", "Move  8 bits immediate unsigned value expanded to 32 bits destination register" );
-    Out << RegisterOpcode(Fi,  8, 4, OPCODE_MOVEX_IMM_SW,   "OPCODE_MOVEX_IMM_SW",   "  XX", "movex",   ".sw",  "#16BitsSignedValue,rx" , "0000DDDD IIIIIIII IIIIIIII", "Move 16 bits immediate signed value expanded to 32 bits destination register" );
-    Out << RegisterOpcode(Fi, 10, 4, OPCODE_MOVEX_IMM_UW,   "OPCODE_MOVEX_IMM_UW",   "  XX", "movex",   ".w",   "#16BitsUnsignedValue,rx","0000DDDD IIIIIIII IIIIIIII", "Move 16 bits immediate unsigned value expanded to 32 bits destination register" );
-    Out << RegisterOpcode(Fi,1032,3, OPCODE_PUSHREGS,       "OPCODE_PUSHREGS",       "    ", "pushregs","",     "rx-rx/rx...",            "MMMMMMMM MMMMMMMM", "Push selected registers (by bitmask) to stack" );
-    Out << RegisterOpcode(Fi,1032,3, OPCODE_POPREGS,        "OPCODE_POPREGS",        "    ", "popregs", "",     "rx-rx/rx...",            "MMMMMMMM MMMMMMMM", "Pop selected registers (by bitmask) to stack" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_INC,            "OPCODE_INC",            " XXX", "inc",     ".l",   "#4BitValue,rx",          "IIIIDDDD", "Increment selected register with the immediate 4 bit value" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_DEC,            "OPCODE_DEC",            " XXX", "dec",     ".l",   "#4BitSignedValue,rx",    "IIIIDDDD", "Decrement selected register with the immediate 4 bit value" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ADD_B,          "OPCODE_ADD_B",          "XXXX", "add",     ".b",   "rx,rx",                  "SSSSDDDD", "8  bit Addition from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ADD_W,          "OPCODE_ADD_W",          "XXXX", "add",     ".w",   "rx,rx",                  "SSSSDDDD", "16 bit Addition from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ADD_L,          "OPCODE_ADD_L",          "XXXX", "add",     ".l",   "rx,rx",                  "SSSSDDDD", "32 bit Addition from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_SUB_B,          "OPCODE_SUB_B",          "XXXX", "sub",     ".b",   "rx,rx",                  "SSSSDDDD", "8  bit substraction from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_SUB_W,          "OPCODE_SUB_W",          "XXXX", "sub",     ".w",   "rx,rx",                  "SSSSDDDD", "16 bit substraction from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_SUB_L,          "OPCODE_SUB_L",          "XXXX", "sub",     ".l",   "rx,rx",                  "SSSSDDDD", "32 bit substraction from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_AND_B,          "OPCODE_AND_B",          "  XX", "and",     ".b",   "rx,rx",                  "SSSSDDDD", "8  bit boolean AND operation from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_AND_W,          "OPCODE_AND_W",          "  XX", "and",     ".w",   "rx,rx",                  "SSSSDDDD", "16  bit boolean AND operation from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_AND_L,          "OPCODE_AND_L",          "  XX", "and",     ".l",   "rx,rx",                  "SSSSDDDD", "32  bit boolean AND operation from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_OR_B,           "OPCODE_OR_B",           "  XX", "or",      ".b",   "rx,rx",                  "SSSSDDDD", "8   bit boolean OR operation from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_OR_W,           "OPCODE_OR_W",           "  XX", "or",      ".w",   "rx,rx",                  "SSSSDDDD", "16  bit boolean OR operation from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_OR_L,           "OPCODE_OR_L",           "  XX", "or",      ".l",   "rx,rx",                  "SSSSDDDD", "32  bit boolean OR operation from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_XOR_B,          "OPCODE_XOR_B",          "  XX", "xor",     ".b",   "rx,rx",                  "SSSSDDDD", "8   bit boolean XOR operation from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_XOR_W,          "OPCODE_XOR_W",          "  XX", "xor",     ".w",   "rx,rx",                  "SSSSDDDD", "16  bit boolean XOR operation from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_XOR_L,          "OPCODE_XOR_L",          "  XX", "xor",     ".l",   "rx,rx",                  "SSSSDDDD", "32  bit boolean XOR operation from the source register to the destination register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ASL_B,          "OPCODE_ASL_B",          "X XX", "asl",     ".b",   "rx,rx",                  "SSSSDDDD", "8   bit arithmetic shift left of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ASL_W,          "OPCODE_ASL_W",          "X XX", "asl",     ".w",   "rx,rx",                  "SSSSDDDD", "16  bit arithmetic shift left of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ASL_L,          "OPCODE_ASL_L",          "X XX", "asl",     ".l",   "rx,rx",                  "SSSSDDDD", "32   bit arithmetic shift left of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ASR_B,          "OPCODE_ASR_B",          "X XX", "asr",     ".b",   "rx,rx",                  "SSSSDDDD", "8   bit arithmetic shift right of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ASR_W,          "OPCODE_ASR_W",          "X XX", "asr",     ".w",   "rx,rx",                  "SSSSDDDD", "16  bit arithmetic shift right of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ASR_L,          "OPCODE_ASR_L",          "X XX", "asr",     ".l",   "rx,rx",                  "SSSSDDDD", "32  bit arithmetic shift right of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_LSL_B,          "OPCODE_LSL_B",          "X XX", "lsl",     ".b",   "rx,rx",                  "SSSSDDDD", "8   bit logical shift left of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_LSL_W,          "OPCODE_LSL_W",          "X XX", "lsl",     ".w",   "rx,rx",                  "SSSSDDDD", "16  bit logical shift left of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_LSL_L,          "OPCODE_LSL_L",          "X XX", "lsl",     ".l",   "rx,rx",                  "SSSSDDDD", "32  bit logical shift left of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_LSR_B,          "OPCODE_LSR_B",          "X XX", "lsr",     ".b",   "rx,rx",                  "SSSSDDDD", "8   bit logical shift right of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_LSR_W,          "OPCODE_LSR_W",          "X XX", "lsr",     ".w",   "rx,rx",                  "SSSSDDDD", "16  bit logical shift right of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_LSR_L,          "OPCODE_LSR_L",          "X XX", "lsr",     ".l",   "rx,rx",                  "SSSSDDDD", "32  bit logical shift right of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ROL_B,          "OPCODE_ROL_B",          "X XX", "rol",     ".b",   "rx,rx",                  "SSSSDDDD", "8   bit left rotation with carry of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ROL_W,          "OPCODE_ROL_W",          "X XX", "rol",     ".w",   "rx,rx",                  "SSSSDDDD", "16  bit left rotation with carry of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ROL_L,          "OPCODE_ROL_L",          "X XX", "rol",     ".l",   "rx,rx",                  "SSSSDDDD", "32  bit left rotation with carry of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ROR_B,          "OPCODE_ROR_B",          "X XX", "ror",     ".b",   "rx,rx",                  "SSSSDDDD", "8   bit right rotation with carry of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ROR_W,          "OPCODE_ROR_W",          "X XX", "ror",     ".w",   "rx,rx",                  "SSSSDDDD", "16  bit right rotation with carry of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_ROR_L,          "OPCODE_ROR_L",          "X XX", "ror",     ".l",   "rx,rx",                  "SSSSDDDD", "32  bit right rotation with carry of the destination register with shift count from the source register" );
-    Out << RegisterOpcode(Fi,150, 2, OPCODE_UMUL_B,         "OPCODE_UMUL_B",         "  XX", "umul",    ".b",   "rx,rx",                  "SSSSDDDD", "8   bit unsigned multiplication of the destination register with the source register" );
-    Out << RegisterOpcode(Fi,150, 2, OPCODE_UMUL_W,         "OPCODE_UMUL_W",         "  XX", "umul",    ".w",   "rx,rx",                  "SSSSDDDD", "16  bit unsigned multiplication of the destination register with the source register" );
-    Out << RegisterOpcode(Fi,150, 2, OPCODE_UMUL_L,         "OPCODE_UMUL_L",         "  XX", "umul",    ".l",   "rx,rx",                  "SSSSDDDD", "32  bit unsigned multiplication of the destination register with the source register" );
-    Out << RegisterOpcode(Fi,150, 2, OPCODE_SMUL_B,         "OPCODE_SMUL_B",         "  XX", "smul",    ".b",   "rx,rx",                  "SSSSDDDD", "8   bit signed multiplication of the destination register with the source register" );
-    Out << RegisterOpcode(Fi,150, 2, OPCODE_SMUL_W,         "OPCODE_SMUL_W",         "  XX", "smul",    ".w",   "rx,rx",                  "SSSSDDDD", "16  bit signed multiplication of the destination register with the source register" );
-    Out << RegisterOpcode(Fi,150, 2, OPCODE_SMUL_L,         "OPCODE_SMUL_L",         "  XX", "smul",    ".l",   "rx,rx",                  "SSSSDDDD", "32  bit signed multiplication of the destination register with the source register" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_CMP_B,          "OPCODE_CMP_B",          "XXXX", "cmp",     ".b",   "rx,rx",                  "SSSSDDDD", "8   bit compare of source and destination registers" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_CMP_W,          "OPCODE_CMP_W",          "XXXX", "cmp",     ".w",   "rx,rx",                  "SSSSDDDD", "16  bit compare of source and destination registers" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_CMP_L,          "OPCODE_CMP_L",          "XXXX", "cmp",     ".l",   "rx,rx",                  "SSSSDDDD", "32  bit compare of source and destination registers" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_JMP_IND,        "OPCODE_JMP_IND",        "    ", "jmp",     "",     "(rx)" ,                  "0000DDDD", "Jump to the location designed by the destination register" );
-    Out << RegisterOpcode(Fi, 14, 2, OPCODE_JSR_IND,        "OPCODE_JSR_IND",        "    ", "jsr",     "",     "(rx)" ,                  "0000DDDD", "Jump to the subroutine location designed by the destination register. Return address is on the stack." );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BRA,     "OPCODE_BRANCH_BRA",     "    ", "bra",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Jump to a location designed by relative immediate signed value" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BEQ,     "OPCODE_BRANCH_BEQ",     "    ", "beq",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if values are equal" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BNE,     "OPCODE_BRANCH_BNE",     "    ", "bne",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if values are not equal" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BCC,     "OPCODE_BRANCH_BCC",     "    ", "bcc",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if carry is clear" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BCS,     "OPCODE_BRANCH_BCS",     "    ", "bcs",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if carry is set" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BVC,     "OPCODE_BRANCH_BVC",     "    ", "bvc",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if no overflow" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BVS,     "OPCODE_BRANCH_BVS",     "    ", "bvs",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if overflow" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BMI,     "OPCODE_BRANCH_BMI",     "    ", "bmi",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if negative" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BPL,     "OPCODE_BRANCH_BPL",     "    ", "bpl",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if positive" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BLO_S,   "OPCODE_BRANCH_BLO_S",   "    ", "blo",     ".s",   "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if lower (signed)" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BHI_U,   "OPCODE_BRANCH_BHI_U",   "    ", "bhi",     ".u",   "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if higher" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BHI_S,   "OPCODE_BRANCH_BHI_S",   "    ", "bhi",     ".s",   "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if higher(signed)" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BLE_U,   "OPCODE_BRANCH_BLE_U",   "    ", "ble",     ".u",   "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if lower or equal" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BLE_S,   "OPCODE_BRANCH_BLE_S",   "    ", "ble",     ".s",   "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if lower or equal(signed)" );
-    Out << RegisterOpcode(Fi,  8, 3, OPCODE_BRANCH_BHE_S,   "OPCODE_BRANCH_BHE_S",   "    ", "bhe",     ".s",   "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if higher or same(signed)" );
-    Out << RegisterOpcode(Fi, 12, 1, OPCODE_RTS,            "OPCODE_RTS",            "    ", "rts",     "",     "",                       "",                  "Return from subroutine" );
-    Out << RegisterOpcode(Fi, 16, 1, OPCODE_RTI,            "OPCODE_RTI",            "XXXX", "rti",     "",     "",                       "",                  "Return from interrupt" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_EXT_BW,         "OPCODE_EXT_BW",         "  XX", "ext",     ".bw",  "rx",                     "0000DDDD",          "Expand first  8 bits (signed) of the destination register to 16 bits" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_EXT_BL,         "OPCODE_EXT_BL",         "  XX", "ext",     ".bl",  "rx",                     "0000DDDD",          "Expand first  8 bits (signed) of the destination register to 32 bits" );
-    Out << RegisterOpcode(Fi,  6, 2, OPCODE_EXT_WL,         "OPCODE_EXT_WL",         "  XX", "ext",     ".wl",  "rx",                     "0000DDDD",          "Expand first 16 bits (signed) of the destination register to 32 bits" );
+    Out << RegisterOpcode(Db, Fi,  2, 1, OPCODE_NOP,            "OPCODE_NOP",            "    ", "nop",     "",     "",                          "",                           "No operation. Do Nothing." );
+    Out << RegisterOpcode(Db, Fi,  2, 1, OPCODE_BREAK,          "OPCODE_BREAK",          "    ", "brk",     "",     "",                          "",                           "Stop CPU, switch to step mode" );
+    Out << RegisterOpcode(Db, Fi,  2, 1, OPCODE_SLEEP,          "OPCODE_SLEEP",          "    ", "sleep",   "",     "",                          "",                           "Break time quantum" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_MOVE_IMM_B,     "OPCODE_MOVE_IMM_B",     "  XX", "move",    ".b",   "#_8BitsImmediateValue, rx", "0000DDDD IIIIIIII",          "Move  8 bit immediate value to register" );
+    Out << RegisterOpcode(Db, Fi, 10, 4, OPCODE_MOVE_IMM_W,     "OPCODE_MOVE_IMM_W",     "  XX", "move",    ".w",   "#16BitsImmediateValue, rx", "0000DDDD IIIIIIII IIIIIIII", "Move 16 bit immediate value to register" );
+    Out << RegisterOpcode(Db, Fi, 14, 6, OPCODE_MOVE_IMM_L,     "OPCODE_MOVE_IMM_L",     "  XX", "move",    ".l",   "#32BitsImmediateValue, rx", "0000DDDD IIIIIIII IIIIIIII IIIIIIII IIIIIIII", "Move 32 bits immediate value to register" );
+    Out << RegisterOpcode(Db, Fi,  8, 2, OPCODE_MOVE_IND_REG_B, "OPCODE_MOVE_IND_REG_B", "  XX", "move",    ".b",   "(ry),rx" , "SSSSDDDD", "Move 8 bits memory data pointed by source register to destination register" );
+    Out << RegisterOpcode(Db, Fi, 10, 2, OPCODE_MOVE_IND_REG_W, "OPCODE_MOVE_IND_REG_W", "  XX", "move",    ".w",   "(ry),rx" , "SSSSDDDD", "Move 16 bits memory data pointed by source register to destination register" );
+    Out << RegisterOpcode(Db, Fi, 14, 2, OPCODE_MOVE_IND_REG_L, "OPCODE_MOVE_IND_REG_L", "  XX", "move",    ".l",   "(ry),rx" , "SSSSDDDD", "Move 32 bits memory data pointed by source register to destination register" );
+    Out << RegisterOpcode(Db, Fi,  8, 2, OPCODE_MOVE_REG_IND_B, "OPCODE_MOVE_REG_IND_B", "  XX", "move",    ".b",   "ry,(rx)" , "SSSSDDDD", "Move  8 bits from source register to memory pointed by destination register" );
+    Out << RegisterOpcode(Db, Fi, 10, 2, OPCODE_MOVE_REG_IND_W, "OPCODE_MOVE_REG_IND_W", "  XX", "move",    ".w",   "ry,(rx)" , "SSSSDDDD", "Move 16 bits from source register to memory pointed by destination register" );
+    Out << RegisterOpcode(Db, Fi, 14, 2, OPCODE_MOVE_REG_IND_L, "OPCODE_MOVE_REG_IND_L", "  XX", "move",    ".l",   "ry,(rx)" , "SSSSDDDD", "Move 32 bits from source register to memory pointed by destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_MOVE_REG_REG_B, "OPCODE_MOVE_REG_REG_B", "  XX", "move",    ".b",   "ry,rx"   , "SSSSDDDD", "Move  8 bits from source register to destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_MOVE_REG_REG_W, "OPCODE_MOVE_REG_REG_W", "  XX", "move",    ".w",   "ry,rx"   , "SSSSDDDD", "Move 16 bits from source register to destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_MOVE_REG_REG_L, "OPCODE_MOVE_REG_REG_L", "  XX", "move",    ".l",   "ry,rx"   , "SSSSDDDD", "Move 32 bits from source register to destination register" );
+    Out << RegisterOpcode(Db, Fi, 10, 4, OPCODE_MOVE_REG_INDDEP_B, "OPCODE_MOVE_REG_INDDEP_B", "  XX", "move",    ".b",   "ry,disp(rx)"   , "SSSSDDDD IIIIIIII IIIIIIII", "Move 8 bits from source register to memory pointed by destination register adding displacement" );
+    Out << RegisterOpcode(Db, Fi, 12, 4, OPCODE_MOVE_REG_INDDEP_W, "OPCODE_MOVE_REG_INDDEP_W", "  XX", "move",    ".w",   "ry,disp(rx)"   , "SSSSDDDD IIIIIIII IIIIIIII", "Move 16 bits from source register to memory pointed by destination register adding displacement" );
+    Out << RegisterOpcode(Db, Fi, 16, 4, OPCODE_MOVE_REG_INDDEP_L, "OPCODE_MOVE_REG_INDDEP_L", "  XX", "move",    ".l",   "ry,disp(rx)"   , "SSSSDDDD IIIIIIII IIIIIIII", "Move 32 bits from source register to memory pointed by destination register adding displacement" );
+    Out << RegisterOpcode(Db, Fi, 10, 4, OPCODE_MOVE_INDDEP_REG_B, "OPCODE_MOVE_INDDEP_REG_B", "  XX", "move",    ".b",   "disp(ry),rx"   , "SSSSDDDD IIIIIIII IIIIIIII", "Move 8 bits from memory data pointed by source register adding displacement to destination register" );
+    Out << RegisterOpcode(Db, Fi, 12, 4, OPCODE_MOVE_INDDEP_REG_W, "OPCODE_MOVE_INDDEP_REG_W", "  XX", "move",    ".w",   "disp(ry),rx"   , "SSSSDDDD IIIIIIII IIIIIIII", "Move 16 bits from memory data pointed by source register adding displacement to destination register" );
+    Out << RegisterOpcode(Db, Fi, 16, 4, OPCODE_MOVE_INDDEP_REG_L, "OPCODE_MOVE_INDDEP_REG_L", "  XX", "move",    ".l",   "disp(ry),rx"   , "SSSSDDDD IIIIIIII IIIIIIII", "Move 32 bits from memory data pointed by source register adding displacement to destination register." );
+    Out << RegisterOpcode(Db, Fi, 12, 4, OPCODE_MOVE_REG_INDDEPOFF_B, "OPCODE_MOVE_REG_INDDEPOFF_B", "  XX", "move",    ".b",   "ry,disp(rx+rz*m)"   , "SSSSDDDD MMxxOOOO IIIIIIII IIIIIIII", "Move 8 bits from source register to memory location pointed by the sum of source register + dispmacement + offset register * m" );
+    Out << RegisterOpcode(Db, Fi, 14, 4, OPCODE_MOVE_REG_INDDEPOFF_W, "OPCODE_MOVE_REG_INDDEPOFF_W", "  XX", "move",    ".w",   "ry,disp(rx+rz*m)"   , "SSSSDDDD MMxxOOOO IIIIIIII IIIIIIII", "Move 16 bits from source register to memory location pointed by the sum of source register + dispmacement + offset register * m" );
+    Out << RegisterOpcode(Db, Fi, 18, 4, OPCODE_MOVE_REG_INDDEPOFF_L, "OPCODE_MOVE_REG_INDDEPOFF_L", "  XX", "move",    ".l",   "ry,disp(rx+rz*m)"   , "SSSSDDDD MMxxOOOO IIIIIIII IIIIIIII", "Move 32 bits from source register to memory location pointed by the sum of source register + dispmacement + offset register * m" );
+    Out << RegisterOpcode(Db, Fi, 12, 4, OPCODE_MOVE_INDDEPOFF_REG_B, "OPCODE_MOVE_INDDEPOFF_REG_B", "  XX", "move",    ".b",   "disp(ry+rz*m),rx"   , "SSSSDDDD MMxxOOOO IIIIIIII IIIIIIII", "Move 8 bits from memory location pointed by the sum of source register + dispmacement + offset register * m to destination register" );
+    Out << RegisterOpcode(Db, Fi, 14, 4, OPCODE_MOVE_INDDEPOFF_REG_W, "OPCODE_MOVE_INDDEPOFF_REG_W", "  XX", "move",    ".w",   "disp(ry+rz*m),rx"   , "SSSSDDDD MMxxOOOO IIIIIIII IIIIIIII", "Move 16 bits from memory location pointed by the sum of source register + dispmacement + offset register * m to destination register" );
+    Out << RegisterOpcode(Db, Fi, 18, 4, OPCODE_MOVE_INDDEPOFF_REG_L, "OPCODE_MOVE_INDDEPOFF_REG_L", "  XX", "move",    ".l",   "disp(ry+rz*m),rx"   , "SSSSDDDD MMxxOOOO IIIIIIII IIIIIIII", "Move 32 bits from memory location pointed by the sum of source register + dispmacement + offset register * m to destination register" );
+    Out << RegisterOpcode(Db, Fi,  4, 2, OPCODE_MOVEX_IMM_UN,   "OPCODE_MOVEX_IMM_UN",   "  XX", "movex",   ".un",  "#_4BitsSignedValue,rx" , "IIIIDDDD", "Move 4 bits immediate unsigned value expanded to 32 bits destination register" );
+    Out << RegisterOpcode(Db, Fi,  4, 2, OPCODE_MOVEX_IMM_SN,   "OPCODE_MOVEX_IMM_SN",   "  XX", "movex",   ".sn",  "#_4BitsSignedValue,rx" , "IIIIDDDD", "Move 4 bits immediate signed value expanded to 32 bits destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 3, OPCODE_MOVEX_IMM_UB,   "OPCODE_MOVEX_IMM_UB",   "  XX", "movex",   ".b",   "#8BitsUnsignedValue,rx", "0000DDDD IIIIIIII", "Move  8 bits immediate unsigned value expanded to 32 bits destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 3, OPCODE_MOVEX_IMM_SB,   "OPCODE_MOVEX_IMM_SB",   "  XX", "movex",   ".sb",  "#_8BitsSignedValue,rx" , "0000DDDD IIIIIIII", "Move  8 bits immediate signed value expanded to 32 bits destination register" );
+    Out << RegisterOpcode(Db, Fi,  8, 4, OPCODE_MOVEX_IMM_UW,   "OPCODE_MOVEX_IMM_UW",   "  XX", "movex",   ".w",   "#16BitsUnsignedValue,rx","0000DDDD IIIIIIII IIIIIIII", "Move 16 bits immediate unsigned value expanded to 32 bits destination register" );
+    Out << RegisterOpcode(Db, Fi,  8, 4, OPCODE_MOVEX_IMM_SW,   "OPCODE_MOVEX_IMM_SW",   "  XX", "movex",   ".sw",  "#16BitsSignedValue,rx" , "0000DDDD IIIIIIII IIIIIIII", "Move 16 bits immediate signed value expanded to 32 bits destination register" );
+    Out << RegisterOpcode(Db, Fi,1032,3, OPCODE_PUSHREGS,       "OPCODE_PUSHREGS",       "    ", "pushregs","",     "rx-rx/rx...",            "0MMMMMMM MMMMMMMM", "Push selected registers (by bitmask) to stack" );
+    Out << RegisterOpcode(Db, Fi,1032,3, OPCODE_POPREGS,        "OPCODE_POPREGS",        "    ", "popregs", "",     "rx-rx/rx...",            "0MMMMMMM MMMMMMMM", "Pop selected registers (by bitmask) to stack" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_INC,            "OPCODE_INC",            " XXX", "inc",     ".l",   "#4BitSignedValue,rx",    "IIIIDDDD", "Increment selected register with the immediate 4 bit value" );
+    Out << RegisterOpcode(Db, Fi,  2, 1, OPCODE_INCLR,          "OPCODE_INCLR",          " XXX", "inclr",    ".l",   "",                      "", "Increment last used indirect register or offset" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_DEC,            "OPCODE_DEC",            " XXX", "dec",     ".l",   "#4BitSignedValue,rx",    "IIIIDDDD", "Decrement selected register with the immediate 4 bit value" );
+    Out << RegisterOpcode(Db, Fi,  2, 1, OPCODE_DECLR,          "OPCODE_DECLR",          " XXX", "declr",    ".l",   "",                      "", "Decrement last used indirect register or offset" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ADD_B,          "OPCODE_ADD_B",          "XXXX", "add",     ".b",   "ry,rx",                  "SSSSDDDD", "8  bit Addition from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ADD_W,          "OPCODE_ADD_W",          "XXXX", "add",     ".w",   "ry,rx",                  "SSSSDDDD", "16 bit Addition from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ADD_L,          "OPCODE_ADD_L",          "XXXX", "add",     ".l",   "ry,rx",                  "SSSSDDDD", "32 bit Addition from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_SUB_B,          "OPCODE_SUB_B",          "XXXX", "sub",     ".b",   "ry,rx",                  "SSSSDDDD", "8  bit substraction from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_SUB_W,          "OPCODE_SUB_W",          "XXXX", "sub",     ".w",   "ry,rx",                  "SSSSDDDD", "16 bit substraction from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_SUB_L,          "OPCODE_SUB_L",          "XXXX", "sub",     ".l",   "ry,rx",                  "SSSSDDDD", "32 bit substraction from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_AND_B,          "OPCODE_AND_B",          "  XX", "and",     ".b",   "ry,rx",                  "SSSSDDDD", "8  bit boolean AND operation from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_AND_W,          "OPCODE_AND_W",          "  XX", "and",     ".w",   "ry,rx",                  "SSSSDDDD", "16  bit boolean AND operation from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_AND_L,          "OPCODE_AND_L",          "  XX", "and",     ".l",   "ry,rx",                  "SSSSDDDD", "32  bit boolean AND operation from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_OR_B,           "OPCODE_OR_B",           "  XX", "or",      ".b",   "ry,rx",                  "SSSSDDDD", "8   bit boolean OR operation from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_OR_W,           "OPCODE_OR_W",           "  XX", "or",      ".w",   "ry,rx",                  "SSSSDDDD", "16  bit boolean OR operation from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_OR_L,           "OPCODE_OR_L",           "  XX", "or",      ".l",   "ry,rx",                  "SSSSDDDD", "32  bit boolean OR operation from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_XOR_B,          "OPCODE_XOR_B",          "  XX", "xor",     ".b",   "ry,rx",                  "SSSSDDDD", "8   bit boolean XOR operation from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_XOR_W,          "OPCODE_XOR_W",          "  XX", "xor",     ".w",   "ry,rx",                  "SSSSDDDD", "16  bit boolean XOR operation from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_XOR_L,          "OPCODE_XOR_L",          "  XX", "xor",     ".l",   "ry,rx",                  "SSSSDDDD", "32  bit boolean XOR operation from the source register to the destination register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ASR_B,          "OPCODE_ASR_B",          "X XX", "asr",     ".b",   "ry,rx",                  "SSSSDDDD", "8   bit arithmetic shift right of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ASR_W,          "OPCODE_ASR_W",          "X XX", "asr",     ".w",   "ry,rx",                  "SSSSDDDD", "16  bit arithmetic shift right of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ASR_L,          "OPCODE_ASR_L",          "X XX", "asr",     ".l",   "ry,rx",                  "SSSSDDDD", "32  bit arithmetic shift right of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_LSL_B,          "OPCODE_LSL_B",          "X XX", "lsl",     ".b",   "ry,rx",                  "SSSSDDDD", "8   bit logical shift left of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_LSL_W,          "OPCODE_LSL_W",          "X XX", "lsl",     ".w",   "ry,rx",                  "SSSSDDDD", "16  bit logical shift left of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_LSL_L,          "OPCODE_LSL_L",          "X XX", "lsl",     ".l",   "ry,rx",                  "SSSSDDDD", "32  bit logical shift left of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_LSR_B,          "OPCODE_LSR_B",          "X XX", "lsr",     ".b",   "ry,rx",                  "SSSSDDDD", "8   bit logical shift right of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_LSR_W,          "OPCODE_LSR_W",          "X XX", "lsr",     ".w",   "ry,rx",                  "SSSSDDDD", "16  bit logical shift right of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_LSR_L,          "OPCODE_LSR_L",          "X XX", "lsr",     ".l",   "ry,rx",                  "SSSSDDDD", "32  bit logical shift right of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ROL_B,          "OPCODE_ROL_B",          "X XX", "rol",     ".b",   "ry,rx",                  "SSSSDDDD", "8   bit left rotation with carry of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ROL_W,          "OPCODE_ROL_W",          "X XX", "rol",     ".w",   "ry,rx",                  "SSSSDDDD", "16  bit left rotation with carry of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ROL_L,          "OPCODE_ROL_L",          "X XX", "rol",     ".l",   "ry,rx",                  "SSSSDDDD", "32  bit left rotation with carry of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ROR_B,          "OPCODE_ROR_B",          "X XX", "ror",     ".b",   "ry,rx",                  "SSSSDDDD", "8   bit right rotation with carry of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ROR_W,          "OPCODE_ROR_W",          "X XX", "ror",     ".w",   "ry,rx",                  "SSSSDDDD", "16  bit right rotation with carry of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ROR_L,          "OPCODE_ROR_L",          "X XX", "ror",     ".l",   "ry,rx",                  "SSSSDDDD", "32  bit right rotation with carry of the destination register with shift count from the source register" );
+    Out << RegisterOpcode(Db, Fi,150, 2, OPCODE_UMUL_B,         "OPCODE_UMUL_B",         "  XX", "umul",    ".b",   "ry,rx",                  "SSSSDDDD", "8   bit unsigned multiplication of the destination register with the source register" );
+    Out << RegisterOpcode(Db, Fi,150, 2, OPCODE_UMUL_W,         "OPCODE_UMUL_W",         "  XX", "umul",    ".w",   "ry,rx",                  "SSSSDDDD", "16  bit unsigned multiplication of the destination register with the source register" );
+    Out << RegisterOpcode(Db, Fi,150, 2, OPCODE_UMUL_L,         "OPCODE_UMUL_L",         "  XX", "umul",    ".l",   "ry,rx",                  "SSSSDDDD", "32  bit unsigned multiplication of the destination register with the source register" );
+    Out << RegisterOpcode(Db, Fi,150, 2, OPCODE_SMUL_B,         "OPCODE_SMUL_B",         "  XX", "smul",    ".b",   "ry,rx",                  "SSSSDDDD", "8   bit signed multiplication of the destination register with the source register" );
+    Out << RegisterOpcode(Db, Fi,150, 2, OPCODE_SMUL_W,         "OPCODE_SMUL_W",         "  XX", "smul",    ".w",   "ry,rx",                  "SSSSDDDD", "16  bit signed multiplication of the destination register with the source register" );
+    Out << RegisterOpcode(Db, Fi,150, 2, OPCODE_SMUL_L,         "OPCODE_SMUL_L",         "  XX", "smul",    ".l",   "ry,rx",                  "SSSSDDDD", "32  bit signed multiplication of the destination register with the source register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_CMP_B,          "OPCODE_CMP_B",          "XXXX", "cmp",     ".b",   "ry,rx",                  "SSSSDDDD", "8   bit compare of source and destination registers" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_CMP_W,          "OPCODE_CMP_W",          "XXXX", "cmp",     ".w",   "ry,rx",                  "SSSSDDDD", "16  bit compare of source and destination registers" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_CMP_L,          "OPCODE_CMP_L",          "XXXX", "cmp",     ".l",   "ry,rx",                  "SSSSDDDD", "32  bit compare of source and destination registers" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_JMP_IND,        "OPCODE_JMP_IND",        "    ", "jmp",     "",     "(rx)" ,                  "0000DDDD", "Jump to the location designed by the destination register" );
+    Out << RegisterOpcode(Db, Fi, 14, 2, OPCODE_JSR_IND,        "OPCODE_JSR_IND",        "    ", "jsr",     "",     "(rx)" ,                  "0000DDDD", "Jump to the subroutine location designed by the destination register. Return address is on the stack." );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BRA,     "OPCODE_BRANCH_BRA",     "    ", "bra",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Jump to a location designed by relative immediate signed value" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BEQ,     "OPCODE_BRANCH_BEQ",     "    ", "beq",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if values are equal" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BNE,     "OPCODE_BRANCH_BNE",     "    ", "bne",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if values are not equal" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BCC,     "OPCODE_BRANCH_BCC",     "    ", "bcc",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if carry is clear" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BCS,     "OPCODE_BRANCH_BCS",     "    ", "bcs",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if carry is set" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BVC,     "OPCODE_BRANCH_BVC",     "    ", "bvc",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if no overflow" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BVS,     "OPCODE_BRANCH_BVS",     "    ", "bvs",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if overflow" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BMI,     "OPCODE_BRANCH_BMI",     "    ", "bmi",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if negative" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BPL,     "OPCODE_BRANCH_BPL",     "    ", "bpl",     "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if positive" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BHI_U,   "OPCODE_BRANCH_BHI_U",   "    ", "bhi",   "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if higher" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BHS_U,   "OPCODE_BRANCH_BHS_U",   "    ", "bhs",   "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if higher or same" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BLS_U,   "OPCODE_BRANCH_BLS_U",   "    ", "bls",   "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if lower or same" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BLO_U,   "OPCODE_BRANCH_BLO_U",   "    ", "blo",   "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if lower" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BHI_S,   "OPCODE_BRANCH_BHI_S",   "    ", "bhi.s", "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if higher(Signed)" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BHS_S,   "OPCODE_BRANCH_BHS_S",   "    ", "bhs.s", "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if higher or same (Signed)" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BLS_S,   "OPCODE_BRANCH_BLS_S",   "    ", "bls.s", "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if lower or same (Signed)" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BLO_S,   "OPCODE_BRANCH_BLO_S",   "    ", "blo.s", "",     "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump if lower (Signed)" );
+    Out << RegisterOpcode(Db, Fi,  8, 3, OPCODE_BRANCH_BSO,     "OPCODE_BRANCH_BSO",     "    ", "bso", "",       "#16BitsSignedValue",     "IIIIIIII IIIIIIII", "Conditionnal jump on shift overflow" );
+    Out << RegisterOpcode(Db, Fi, 12, 1, OPCODE_RTS,            "OPCODE_RTS",            "    ", "rts",     "",     "",                       "",                  "Return from subroutine" );
+    Out << RegisterOpcode(Db, Fi, 16, 1, OPCODE_RTI,            "OPCODE_RTI",            "XXXX", "rti",     "",     "",                       "",                  "Return from interrupt" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_EXT_BW,         "OPCODE_EXT_BW",         "  XX", "ext",     ".bw",  "rx",                     "0000DDDD",          "Expand first  8 bits (signed) of the destination register to 16 bits" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_EXT_BL,         "OPCODE_EXT_BL",         "  XX", "ext",     ".bl",  "rx",                     "0000DDDD",          "Expand first  8 bits (signed) of the destination register to 32 bits" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_EXT_WL,         "OPCODE_EXT_WL",         "  XX", "ext",     ".wl",  "rx",                     "0000DDDD",          "Expand first 16 bits (signed) of the destination register to 32 bits" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_RSR,            "OPCODE_RSR",            "    ", "rsr",     ".l",   "rx",                     "IIIIDDDD",          "Read from special register" );
+    Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_WSR,            "OPCODE_WSR",            "XXXX", "wsr",     ".l",   "rx",                     "IIIIDDDD",          "Write to special register" );
 
     switch(Fi)
     {
       case 0: Out << Str;
+              break;
+      case 1: break;
+      case 2: {
+                ZString * STable = (ZString *)Db;
+                ULong OpcodeCount = 0, Op;
+                ZNumberFormat Fmt;
+                Fmt.AlwaysDisplaySign = false; Fmt.Base = 16; Fmt.DisplayTrailingZero = true; Fmt.MaxDigits = 2; Fmt.MaxDecimals = 0;
+                Out << "<html>\n";
+                Out << "  <head>\n";
+                Out << "    <title>Blackvoxel VCPU 1.0 Compact Opcode Table</title>\n";
+                Out << "  </head>\n";
+                Out << "  <body>\n";
+                Out << "    <table border=\"1\">\n";
+                Out << "      <tr><th></th>";
+                for(i=0;i<4;i++)
+                {(Out<< "<th>").Append_Formated_ULong(i*64, &Fmt) << "</th>";}
+                Out << "</tr>\n";
+                for (i=0;i<64;i++)
+                {
+                  (Out << "      <tr><th>").Append_Formated_ULong(i, &Fmt) << "</th>";
+                  for (j=0;j<4;j++)
+                  {
+                    Op = i+(j*64);
+                    Out << "<td>" << STable[Op] << "</td>";
+                    if (STable[Op].Len) OpcodeCount++;
+                  }
+                  Out << "</tr>\n";
+                }
+                Out << "    </table>\n";
+                Out << "<p>Opcode Count : " << OpcodeCount << "</p>\n";
+                Out << "  </body>\n";
+                Out << "</html>";
+              }
               break;
     }
     return(Out);
