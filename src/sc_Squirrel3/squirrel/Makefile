@@ -59,7 +59,8 @@ sq64d:
 
 clean:
 	rm -f *.o
+	rm -f $(OUT)
 	
 mrproper: clean
-	rm -f $(OUT)
+	
 
