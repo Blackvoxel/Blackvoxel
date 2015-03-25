@@ -53,7 +53,8 @@
   typedef unsigned long long int UELong  ;  // 64 bits unsigned
   typedef unsigned long long int ZSize   ;  // Size of an object
 
-  typedef unsigned long          ZMemSize;
+  typedef unsigned long          ZMemSize;  // Data of pointer size
+  typedef          long          ZSMemSize; // Data of pointer size (signed);
 
   typedef unsigned long          UNum; // Unsigned integer of the standard size on the platform : 32 or 64 bits.
   typedef long                   SNum;
