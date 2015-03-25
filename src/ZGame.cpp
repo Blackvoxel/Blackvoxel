@@ -35,11 +35,19 @@
 #  include "z/ZStream_File.h"
 #endif
 
+#ifndef Z_ZGAME_DEVHELPERS_H
+#  include "ZGame_DevHelpers.h"
+#endif
+
 bool ZGame::Init_UserDataStorage(ZLog * InitLog)
 {
   ZString ErrorMsg;
 
   InitLog->Log( 1, ZLog::INFO, "Starting : UserDataStorage Initialization");
+
+  // Directory for Dev Helper out
+
+  Path_HelperFilesOut = "Out";
 
   // Directory for user data
 
@@ -253,8 +261,11 @@ bool ZGame::Init_TextureManager(ZLog * InitLog)
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/button_1_5.bmp");             Result = TextureManager.LoadBMPTexture(Path.String,10,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(13,ZLog::FAIL, Err); return(false); }
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_2_2.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,11,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(14,ZLog::FAIL, Err); return(false); }
   Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_3_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,12,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(15,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/contribute_1_1.bmp");         Result = TextureManager.LoadBMPTexture(Path.String,13,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(15,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/background_black.bmp");       Result = TextureManager.LoadBMPTexture(Path.String,14,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(15,ZLog::FAIL, Err); return(false); }
+  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/contribute_1_1.bmp");         Result = TextureManager.LoadBMPTexture(Path.String,13,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(16,ZLog::FAIL, Err); return(false); }
+  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/background_black.bmp");       Result = TextureManager.LoadBMPTexture(Path.String,14,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(17,ZLog::FAIL, Err); return(false); }
+  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/dialog_modalbox.bmp");        Result = TextureManager.LoadBMPTexture(Path.String,15,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(18,ZLog::FAIL, Err); return(false); }
+  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/font_symbols.bmp");           Result = TextureManager.LoadBMPTexture(Path.String,16,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(19,ZLog::FAIL, Err); return(false); }
+  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/buttonpushed.bmp");           Result = TextureManager.LoadBMPTexture(Path.String,17,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }
 
   Initialized_TextureManager = true;
   InitLog->Log(2, ZLog::INFO, "Ended Ok : Texture Manager Init");
@@ -317,6 +328,18 @@ bool ZGame::Init_TileSetsAndFonts(ZLog * InitLog)
   Font_1->SetTileOffset(0,0);
   Font_1->SetTilesPerLine(16);
   Font_1->ComputeTileCoords();
+
+  // Tile : Font Symbols
+
+  Font_Symbols = new ZTileSet;
+  Font_Symbols->SetTextureManager(&TextureManager);
+  Font_Symbols->SetTextureNum(16);
+  Font_Symbols->SetTextureSize(128,128);
+  Font_Symbols->SetTileSlotSize(8,8);
+  Font_Symbols->SetTileSize(8,8);
+  Font_Symbols->SetTileOffset(0,0);
+  Font_Symbols->SetTilesPerLine(16);
+  Font_Symbols->ComputeTileCoords();
 
   // Tile 2 Gui Tileset
 
@@ -818,8 +841,11 @@ bool ZGame::Start_GameWindows()
   GameWindow_Sequencer   = new ZGameWindow_Sequencer;     GameWindow_Sequencer->SetGameEnv(this);
   GameWindow_AsmDebug    = new ZGameWindow_AsmDebug;      GameWindow_AsmDebug->SetGameEnv(this);
   GameWindow_AsmHardware = new ZGameWindow_AsmHardware;   GameWindow_AsmHardware->SetGameEnv(this);
-
+  GameWindow_AsmExtendedRegisters = new ZGameWindow_AsmExtendedRegisters; GameWindow_AsmExtendedRegisters->SetGameEnv(this);
+  GameWindow_Compilation_Result = new ZGameWindow_Compilation_Result;     GameWindow_Compilation_Result->SetGameEnv(this);
+  GameWindow_ResumeRequest = new ZGameWindow_ResumeRequest; GameWindow_ResumeRequest->SetGameEnv(this);
   GameWindow_Advertising->Show();
+
   Initialized_GameWindows = true;
   return(true);
 }
@@ -921,4 +947,14 @@ bool ZGame::End_PersistGameEnv()
   Stream.Close();
 
   return(true);
+}
+
+bool ZGame::OutputHelperFiles()
+{
+  bool Ok;
+
+  Ok = true;
+  Ok &= ZGame_DevHelpers::OutputHelpers(Path_HelperFilesOut);
+
+  return(Ok);
 }

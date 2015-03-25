@@ -120,6 +120,18 @@
 #  include "ZGameWindow_AsmHardware.h"
 #endif
 
+#ifndef Z_ZGAMEWINDOW_ASMEXTENDEDREGISTERS_H
+#include "ZGameWindow_AsmExtendedRegisters.h"
+#endif
+
+#ifndef ZGAMEWINDOW_COMPILATION_RESULT_H
+#  include "ZGameWindow_Compilation_Result.h"
+#endif
+
+#ifndef Z_ZGAMEWINDOW_RESUMEREQUEST_H
+#  include "ZGameWindow_ResumeRequest.h"
+#endif
+
 #ifndef Z_ZTOOLS_H
 #  include "ZTools.h"
 #endif
@@ -222,6 +234,9 @@ class ZGame
              GameWindow_ProgRobot_Asm = 0;
              GameWindow_AsmDebug = 0;
              GameWindow_AsmHardware = 0;
+             GameWindow_AsmExtendedRegisters = 0;
+             GameWindow_Compilation_Result = 0;
+             GameWindow_ResumeRequest = 0;
              GameProgressBar = 0;
              Game_Run = false;
              screen = 0;
@@ -242,6 +257,7 @@ class ZGame
              VFov = 63.597825649;
              Machine_Serial = 1;
              Stop_Programmable_Robots = false;
+             Previous_GameVersion = 0;
    }
   ~ZGame() { UniverseNum = 0; }
 
@@ -256,6 +272,7 @@ class ZGame
 
   ZString Path_GameFiles;
   ZString Path_UserData;
+  ZString Path_HelperFilesOut;
 
   ZString Path_Universes;
   ZString Path_ActualUniverse;
@@ -314,6 +331,9 @@ class ZGame
   ZGameWindow_Sequencer              * GameWindow_Sequencer;
   ZGameWindow_AsmDebug               * GameWindow_AsmDebug;
   ZGameWindow_AsmHardware            * GameWindow_AsmHardware;
+  ZGameWindow_AsmExtendedRegisters   * GameWindow_AsmExtendedRegisters;
+  ZGameWindow_Compilation_Result     * GameWindow_Compilation_Result;
+  ZGameWindow_ResumeRequest          * GameWindow_ResumeRequest;
 
   bool Initialized_UserDataStorage;
   bool Initialized_Settings;
@@ -499,6 +519,7 @@ class ZGame
   // TileSets
 
   ZTileSet * Font_1;
+  ZTileSet * Font_Symbols;
   ZTileSet * GuiTileset;
 
   enum {FONTSIZE_1 = 0,
@@ -550,6 +571,7 @@ class ZGame
     PhysicEngine->GetSelectedActor()->SetPosition(NewLocation);
   }
 
+  bool OutputHelperFiles();
 
 };
 
