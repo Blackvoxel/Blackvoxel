@@ -117,6 +117,23 @@
       glEnd();
     }
 
+    bool _FastParseHex(char const * Text, ULong &Offset, ULong & Result)
+    {
+
+      char c;
+
+      for (;;)
+      {
+        c = Text[Offset]; if (!c) return(false);
+        if      (c >= '0' && c <= '9' ) c-=48;
+        else if (c >= 'A' && c <= 'F' ) c-='A'+10;
+        else return(true);
+        Result <<= 4;
+        Result += c;
+        Offset++;
+      }
+      return(false);
+    }
 
     void ZTileSet::RenderFont(ZTileStyle const * TileStyle , ZBox3f const * DrawBox, char const * TextToRender, ZColor3f * Color=0)
     {
@@ -140,24 +157,49 @@
       glColor3f(Color->r, Color->v, Color->b);
       for (i=0; (c = (UByte)(TextToRender[i])) ;i++)
       {
+        // Instructions
+
+        if (c == '~')
+        {
+          i++;
+          ULong Cmd, Value;
+          Cmd = 0; Value = 0;
+          if (!_FastParseHex(TextToRender, i, Cmd)) return;
+          c=(UByte)(TextToRender[i++]);
+          if (c!=':') return;
+          switch(Cmd)
+          {
+            case 1: if (!_FastParseHex(TextToRender, i, Value)) return;
+                    glColor3d((Value>>16) & 0xff, (Value >> 8) & 0xff, Value & 0xff );
+                    break;
+            default: return;
+          }
+          c=(UByte)(TextToRender[i]);
+          if (c!=':') return;
+          continue;
+        }
+        //
+
+
         Coord = &TileSet->CoordTable[c];
         DimX = Coord->Tile_Width * TileStyle->HSizeFactor;
         DimY = Coord->Tile_Height* TileStyle->VSizeFactor;
         xp = x + DimX;
         yp = y + DimY;
-        if (xp > LimitX)
+        if (xp > LimitX || c==0x0A)
         {
           x = DrawBox->Position_x;
           y+= DimY + TileStyle->Interligne_sup;
           xp = x + DimX;
           yp = y + DimY;
+          if (c==0x0A) continue;
         }
         glBegin(GL_TRIANGLES);
           glTexCoord2f(Coord->TopLeft_x     , Coord->TopLeft_y    ); glVertex3f(x , y , DrawBox->Position_z);
           glTexCoord2f(Coord->BottomRight_x , Coord->TopLeft_y    ); glVertex3f(xp, y , DrawBox->Position_z);
           glTexCoord2f(Coord->BottomRight_x , Coord->BottomRight_y); glVertex3f(xp, yp, DrawBox->Position_z);
           glTexCoord2f(Coord->BottomRight_x , Coord->BottomRight_y); glVertex3f(xp, yp, DrawBox->Position_z);
-          glTexCoord2f(Coord->TopLeft_x     , Coord->BottomRight_y    ); glVertex3f(x , yp, DrawBox->Position_z);
+          glTexCoord2f(Coord->TopLeft_x     , Coord->BottomRight_y); glVertex3f(x , yp, DrawBox->Position_z);
           glTexCoord2f(Coord->TopLeft_x     , Coord->TopLeft_y    ); glVertex3f(x , y , DrawBox->Position_z);
         glEnd();
 
@@ -166,6 +208,7 @@
       }
       glColor3f(1.0,1.0,1.0);
     }
+
 
 
     void  ZTileSet::GetFontRenderSize(ZTileStyle const * TileStyle , char const * TextToRender, ZVector2f * OutSize)
