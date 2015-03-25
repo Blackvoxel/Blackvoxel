@@ -46,6 +46,10 @@
 #  include "ZVoxelExtensionType_VoxelFluid.h"
 #endif
 
+#ifndef Z_ZOS_SPECIFIC_VIEWDOC_H
+#  include "ZOs_Specific_ViewDoc.h"
+#endif
+
 
 Bool ZGame_Events::KeyDown( UShort KeySym )
 {
@@ -186,6 +190,34 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
 
     // THE "FEAR KEY" : Always the best way to destroy your world...
 
+
+    case SDLK_F1:
+                  {
+                    VoxelLocation Loc;
+                    Long x,y,z;
+
+                    SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE);
+
+                    x = GameEnv->PhysicEngine->GetSelectedActor()->PointedVoxel.PointedVoxel.x;
+                    y = GameEnv->PhysicEngine->GetSelectedActor()->PointedVoxel.PointedVoxel.y;
+                    z = GameEnv->PhysicEngine->GetSelectedActor()->PointedVoxel.PointedVoxel.z;
+
+                    if (GameEnv->World->GetVoxelLocation(&Loc, x,y,z))
+                    {
+                      ZViewDoc::ViewDocPage(GameEnv->VoxelTypeManager.VoxelTable[ Loc.Sector->Data[Loc.Offset] ]->Documentation_PageNum,false);
+                    }
+                    else ZViewDoc::ViewDocPage(0,false);
+
+                    ZString Message;
+                    Message = "Click to Resume";
+                    GameEnv->GameWindow_ResumeRequest->SetGameEnv(GameEnv);
+                    GameEnv->GameWindow_ResumeRequest->SetMessage("CLICK TO RESUME GAME");
+                    GameEnv->GameWindow_ResumeRequest->Show();
+                  }
+
+                  break;
+
+
     case SDLK_F10:
                   if ( Keyboard_Matrix[SDLK_LSHIFT])
                   {
@@ -198,6 +230,9 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                     }
                   }
                   break;
+
+
+
   }
   return(true);
 }
@@ -673,8 +708,20 @@ void ZGame_Events::Process_StillEvents()
       Keyboard_Matrix[SDLK_KP_MINUS] = 0;
     }
     if ( Keyboard_Matrix[SDLK_t] && COMPILEOPTION_DEBUGFACILITY )        { ZInventory::Entry * Entry = Actor->Inventory->GetSlotRef(Actor->Inventory->GetActualItemSlotNum()); Entry->VoxelType = Actor->BuildingMaterial; Entry->Quantity = 8192*1; }
-    if ( Keyboard_Matrix[SDLK_F1] )   { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE); }
-    if ( Keyboard_Matrix[SDLK_F2] )   { SDL_WM_GrabInput(SDL_GRAB_ON); SDL_ShowCursor(SDL_DISABLE); }
+
+    if ( Keyboard_Matrix[SDLK_F2] )
+    {
+      if (!SDL_WM_GrabInput(SDL_GRAB_QUERY))
+      {
+        SDL_WM_GrabInput(SDL_GRAB_ON); SDL_ShowCursor(SDL_DISABLE);
+      }
+      else
+      {
+        SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE);
+      }
+      Keyboard_Matrix[SDLK_F2] = 0;
+    }
+
     if ( Keyboard_Matrix[SDLK_F3] && COMPILEOPTION_DEBUGFACILITY )   { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_DISABLE); }
     if ( Keyboard_Matrix[SDLK_F5] )   { GameEnv->World->Save(); }
     if ( Keyboard_Matrix[SDLK_F4] )
