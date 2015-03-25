@@ -90,8 +90,10 @@ class ZBitmapImage : public ZGeneralObject
       Offset = (x + (Width * y)) * BytesPerPixel;
 
       return( *(reinterpret_cast<ULong *>(BitmapMemory + Offset)) );
-
     }
+
+    void Clear();
+
 
     void inline SetPixel( ULong x, ULong y, UByte R, UByte G, UByte B, UByte A)
     {
@@ -157,6 +159,7 @@ class ZBitmapImage : public ZGeneralObject
 
 
     bool LoadBMP( const char * FileName );
+    bool SaveBMP( const char * FileName );
 };
 
 #endif

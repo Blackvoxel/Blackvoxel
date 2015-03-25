@@ -18,7 +18,9 @@
 */
 #include "ZBitmapImage.h"
 
-#include "stdio.h"
+#include <stdio.h>
+#include <string.h>
+
 
     ZBitmapImage::ZBitmapImage()
     {
@@ -222,3 +224,110 @@
       FlipY();
       return(true);
     }
+
+
+    bool ZBitmapImage::SaveBMP( const char * FileName )
+
+    {
+      FILE * fh;
+
+      ULong  BMPFileSize, DataOffset, HeaderSize,Data_ULong, BitmapSize;
+      UShort Data_UShort;
+
+      // Compute Size of file parts
+
+      BitmapSize  = Width * Height * BytesPerPixel;
+      DataOffset = 54;
+      HeaderSize = 40;
+      BMPFileSize = DataOffset + BitmapSize;
+
+      // Open Filename
+
+      if (! (fh = fopen(FileName, "wb"))) return(false);
+
+      // BMP Magic number
+
+/*00*/fputc('B',fh); fputc('M',fh);
+
+      // BMP File Size
+
+/*02*/if ( 1 != fwrite(&BMPFileSize, 4, 1, fh)) {fclose(fh); return(false); }
+
+      // Application specific
+
+/*06*/Data_ULong = 0; if ( 1 != fwrite(&Data_ULong, 4, 1, fh)) {fclose(fh); return(false); }  // nBitPlanes
+
+      // Data Offset
+
+/*10*/if ( 1 != fwrite(&DataOffset, 4, 1, fh)) {fclose(fh); return(false); }
+
+      // Header Size
+
+/*14*/if ( 1 != fwrite(&HeaderSize, 4, 1, fh)) {fclose(fh); return(false); }
+
+      // Image Width
+
+/*18*/if ( 1 != fwrite(&Width, 4, 1, fh)) {fclose(fh); return(false); }
+
+      // Image Height
+
+/*22*/if ( 1 != fwrite(&Height, 4, 1, fh)) {fclose(fh); return(false); }
+
+      // nBitplanes
+
+/*26*/Data_UShort = 1; if ( 1 != fwrite(&Data_UShort, 2, 1, fh)) {fclose(fh); return(false); }  // nBitPlanes
+
+      // nBitsPerPixels
+
+/*28*/Data_UShort = BitsPerPixel; if ( 1 != fwrite(&Data_UShort, 2, 1, fh)) {fclose(fh); return(false); }  // nBitsPerPixel
+
+      // Compression
+
+/*30*/Data_ULong  = 0; if ( 1 != fwrite(&Data_ULong,  4, 1, fh)) {fclose(fh); return(false); }  // no pixel array compression used
+
+      // Bitmap Size
+
+/*34*/if ( 1 != fwrite(&BitmapSize,  4, 1, fh)) {fclose(fh); return(false); }  // Bitmap Size
+
+      // Print resolution of image (Horizontal)
+
+/*38*/Data_ULong  = 300; if ( 1 != fwrite(&Data_ULong,  4, 1, fh)) {fclose(fh); return(false); }  // Print Resolution of image (Horizontal)
+
+      // Print resolution of image (Vertical)
+
+/*42*/Data_ULong  = 300; if ( 1 != fwrite(&Data_ULong,  4, 1, fh)) {fclose(fh); return(false); }  // Print Resolution of image (Vertical)
+
+     // Coloros in the palette
+
+/*46*/Data_ULong  = 0;   if ( 1 != fwrite(&Data_ULong,  4, 1, fh)) {fclose(fh); return(false); }  // Colors in the palette
+
+    // Important colors
+
+/*50*/Data_ULong  = 0;   if ( 1 != fwrite(&Data_ULong,  4, 1, fh)) {fclose(fh); return(false); }  // Important colors
+
+    // Pixel Array
+
+    Long y;
+    ULong LineBytes = BytesPerPixel * Width;
+
+    for (y=(Long)(Height-1) ; y>=0 ; y--)
+    {
+      if ( 1 != fwrite(BitmapMemory+LineBytes*y, LineBytes, 1, fh)) {fclose(fh); return(false); }
+    }
+
+    // close
+
+    fclose(fh);
+
+    // End
+
+    return(true);
+}
+
+void ZBitmapImage::Clear()
+{
+  if ( BitmapMemory )
+  {
+    memset(BitmapMemory, 0, BitmapMemorySize);
+  }
+}
