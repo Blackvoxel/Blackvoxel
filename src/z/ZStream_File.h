@@ -109,6 +109,7 @@ class ZStream_File : public ZStream
     static bool Directory_Create(const char * NewDir);
     static bool Directory_Destroy(const char * DirectoryToRemove);
     static bool Directory_IsExists(const char * DirectoryName);
+    static bool File_IsExists(const char * FileName);
 
     void AddToSavedLen(ULong &Len, ULong x);
     void AddToSavedLen(ULong &Len, Long x);

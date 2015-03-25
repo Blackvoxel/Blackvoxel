@@ -702,6 +702,34 @@ bool ZStream_File::Directory_IsExists(const char * DirectoryName)
 #endif
 }
 
+bool ZStream_File::File_IsExists(const char * FileName)
+{
+#ifdef ZENV_OS_LINUX
+
+  int Result;
+  struct stat StatInfo;
+
+  Result = stat(FileName, &StatInfo);
+
+  if (Result!=0) return(false);
+  if (StatInfo.st_mode & S_IFREG) return(true);
+  return(false);
+
+#endif
+#ifdef ZENV_OS_WINDOWS
+
+  DWORD Result;
+
+  Result = GetFileAttributesA(FileName);
+
+  if (Result == INVALID_FILE_ATTRIBUTES) return(false);
+  if (Result & FILE_ATTRIBUTE_NORMAL) return(true);
+  return(false);
+
+#endif
+}
+
+
 bool ZStream_File::Directory_CreateIfNotExists(const char * NewDir)
 {
   if (Directory_IsExists(NewDir)) return(true);
