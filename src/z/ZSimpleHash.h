@@ -163,7 +163,7 @@ class ZSimpleHash
          Data |= c;
        }
        Hash ^= Data;
-       Hash = Hash * 1099511628211;
+       Hash = Hash * 1099511628211ull;
 
      } while (c);
      return(Hash);
