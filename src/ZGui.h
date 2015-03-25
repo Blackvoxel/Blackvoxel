@@ -176,9 +176,19 @@ class ZFrame : public ZObject
     }
 
     virtual void AddedToFrameCallback(ZFrame * Frame) {};
+
     virtual void AddFrame( ZFrame * Frame )
     {
       SubFrameList.AddToHead(Frame);
+      Frame->GuiManager = GuiManager;
+      Frame->ParentFrame = this;
+      Frame->Dimensions.Position_z = this->Dimensions.Position_z + 1.0f;
+      Frame->AddedToFrameCallback(this);
+    }
+
+    virtual void AddFrame_ToTail( ZFrame * Frame )
+    {
+      SubFrameList.AddToTail(Frame);
       Frame->GuiManager = GuiManager;
       Frame->ParentFrame = this;
       Frame->Dimensions.Position_z = this->Dimensions.Position_z + 1.0f;
@@ -268,6 +278,11 @@ class ZGraphicUserManager : public ZEventConsumer
     ZGraphicUserManager();
    ~ZGraphicUserManager();
 
+    // Modal stack size
+
+    ZFrame ** Modal_Stack;
+    ZMemSize  Modal_StackSize;
+
     // Mouse over imbrication stack tables
 
     ZFrame ** Actual_PointedStack;
@@ -299,10 +314,11 @@ class ZGraphicUserManager : public ZEventConsumer
     void SetScreenDimensions(float OriginX,float OriginY, float Width, float Height);
 
     void AddFrame(ZFrame * Frame);
-
+    void AddFrame_ToTail(ZFrame * Frame);
     void RemoveFrame(ZFrame * Frame);
-
     void RemoveAllFrames(); // Clear Screen
+    void Frame_PushModal(ZFrame * Frame);
+    void Frame_PopModal();
 
     void Render();
 

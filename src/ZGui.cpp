@@ -42,10 +42,12 @@ ZGraphicUserManager::ZGraphicUserManager()
   Previous_PointedStack = new ZFrame *[1024];
   Actual_FocusStack     = new ZFrame *[1024];
   Previous_FocusStack    = new ZFrame *[1024];
+  Modal_Stack            = new ZFrame *[256];
   Actual_StackSize = 0;
   Previous_StackSize = 0;
   Actual_FocusStackSize = 0;
   Previous_FocusStackSize = 0;
+  Modal_StackSize = 0;
   DragingFrame = 0;
 }
 
@@ -55,10 +57,12 @@ ZGraphicUserManager::~ZGraphicUserManager()
   if (Previous_PointedStack)delete [] Previous_PointedStack;
   if (Actual_FocusStack)    delete [] Actual_FocusStack;
   if (Previous_FocusStack)  delete [] Previous_FocusStack;
+  if (Modal_Stack)          delete [] Modal_Stack;
   Actual_StackSize = 0;
   Previous_StackSize = 0;
   Actual_FocusStackSize = 0;
   Previous_FocusStackSize = 0;
+  Modal_StackSize = 0;
 }
 
 void ZGraphicUserManager::MouseOverStack_SwapAndReset()
@@ -101,8 +105,14 @@ void ZGraphicUserManager::AddFrame(ZFrame * Frame)
 {
   FirstFrame->AddFrame(Frame);
   Frame->SetZPosition(0.0);
-  // Frame->SetTexture(1);
 }
+
+void ZGraphicUserManager::AddFrame_ToTail(ZFrame * Frame)
+{
+  FirstFrame->AddFrame_ToTail(Frame);
+  Frame->SetZPosition(0.0);
+}
+
 
 void ZGraphicUserManager::RemoveFrame(ZFrame * Frame)
 {
@@ -116,6 +126,7 @@ void ZGraphicUserManager::RemoveAllFrames()
   Previous_StackSize = 0;
   Actual_FocusStackSize = 0;
   Previous_FocusStackSize = 0;
+  Modal_StackSize = 0;
 }
 
 void RemoveFrame(ZFrame * Frame)
@@ -194,6 +205,8 @@ Bool ZGraphicUserManager::MouseButtonClick  (UShort nButton, Short Absolute_x, S
 {
   ULong i;
 
+  if (Modal_StackSize) {Modal_Stack[Modal_StackSize]->MouseButtonClick( nButton, Absolute_x, Absolute_y ); return(true);}
+
   FocusStack_SwapAndReset();
   FirstFrame->MouseButtonClick( nButton, Absolute_x, Absolute_y );
 
@@ -256,6 +269,21 @@ void ZGraphicUserManager::Render()
   //glEnable (GL_BLEND); glBlendFunc (GL_SRC_ALPHA, GL_SRC_ALPHA);
   //glEnable (GL_BLEND); glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   FirstFrame->Render(&Dimensions);
+}
+
+void ZGraphicUserManager::Frame_PushModal(ZFrame * Frame)
+{
+  Modal_Stack[Modal_StackSize+1]=Frame;
+  Modal_StackSize++;
+}
+
+void ZGraphicUserManager::Frame_PopModal()
+{
+  if (Modal_StackSize)
+  {
+    Modal_StackSize--;
+    Modal_Stack[Modal_StackSize+1]=0;
+  }
 }
 
 void ZFrame::Render(Frame_Dimensions * ParentPosition)
@@ -423,7 +451,6 @@ Bool ZFrame::MouseButtonRelease(UShort nButton, Short Absolute_x, Short Absolute
   } while ((Item = SubFrameList.GetNext(Item)));
   return true;
 }
-
 
 
 
