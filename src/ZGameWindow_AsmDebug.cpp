@@ -45,7 +45,7 @@ void ZGameWindow_AsmDebug::Show()
   // Main Window
 
   ZVector2f MainWindow_Pos,MainWindow_Size;
-  MainWindow_Size.x = 250.0f; MainWindow_Size.y = 600.0f;
+  MainWindow_Size.x = 250.0f+8.0f; MainWindow_Size.y = 600.0f;
   MainWindow_Pos.x = 0.0f;
   MainWindow_Pos.y = ((float)GameEnv->ScreenResolution.y - MainWindow_Size.y) / 2.0f;
   MainWindow->SetPosition( MainWindow_Pos.x, MainWindow_Pos.y );
@@ -117,6 +117,17 @@ void ZGameWindow_AsmDebug::Show()
   Button_HardwarePannel.SetPosition(Rp.x,Rp.y);
   Button_HardwarePannel.SetSize(Size.x,Size.y);
   MainWindow->AddFrame(&Button_HardwarePannel);
+  // Rp.y += Size.y + 5.0f;
+  // Rp.x = Ip.x;
+  Rp.x += Size.x + 2.0f;
+
+  // Registers pannel Button
+  Button_RegistersPannel.SetDisplayText(Text_Button_RegistersPannel.String);
+  Button_RegistersPannel.SetTextStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_1));
+  Button_RegistersPannel.GetEffectiveDisplaySize(&Size);
+  Button_RegistersPannel.SetPosition(Rp.x,Rp.y);
+  Button_RegistersPannel.SetSize(Size.x,Size.y);
+  MainWindow->AddFrame(&Button_RegistersPannel);
   Rp.y += Size.y + 5.0f;
   Rp.x = Ip.x;
 
@@ -184,6 +195,13 @@ void ZGameWindow_AsmDebug::Hide()
   Flag_Shown = false;
 }
 
+void ZGameWindow_AsmDebug::CloseAllPanels()
+{
+  if (GameEnv->GameWindow_AsmHardware->Is_Shown()) { GameEnv->GameWindow_AsmHardware->Hide(); }
+  if (GameEnv->GameWindow_AsmExtendedRegisters->Is_Shown()) { GameEnv->GameWindow_AsmExtendedRegisters->Hide(); }
+}
+
+
 Bool ZGameWindow_AsmDebug::MouseButtonClick(UShort nButton, Short Absolute_x, Short Absolute_y)
 {
   Bool Res;
@@ -216,14 +234,23 @@ Bool ZGameWindow_AsmDebug::MouseButtonClick(UShort nButton, Short Absolute_x, Sh
   {
     GameEnv->GameWindow_AsmHardware->SetVoxelExtension(VoxelExtension);
     if (GameEnv->GameWindow_AsmHardware->Is_Shown()) { GameEnv->GameWindow_AsmHardware->Hide(); }
-    else                                             { GameEnv->GameWindow_AsmHardware->Show(); }
+    else                                             { CloseAllPanels(); GameEnv->GameWindow_AsmHardware->Show(); }
   }
+
+  if (Button_RegistersPannel.Is_MouseClick(true))
+  {
+    GameEnv->GameWindow_AsmExtendedRegisters->SetVoxelExtension(VoxelExtension);
+    if (GameEnv->GameWindow_AsmExtendedRegisters->Is_Shown()) { GameEnv->GameWindow_AsmExtendedRegisters->Hide(); }
+    else                                                      { CloseAllPanels(); GameEnv->GameWindow_AsmExtendedRegisters->Show(); }
+  }
+
 
   if (CloseBox.Is_MouseClick(true))
   {
+    CloseAllPanels();
     Hide();
-    if (GameEnv->GameWindow_AsmHardware->Is_Shown()) { GameEnv->GameWindow_AsmHardware->Hide(); }
   }
+
 
   return (Res);
 }

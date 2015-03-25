@@ -28,9 +28,37 @@
 #  include "ZGameWindow_ZProgRobot_Asm.h"
 #endif
 
+#ifndef Z_ZOS_SPECIFIC_VIEWDOC_H
+#  include "ZOs_Specific_ViewDoc.h"
+#endif
+
+#ifndef Z_ZOS_SPECIFIC_EDITCODE_H
+#  include "ZOs_Specific_EditCode.h"
+#endif
+
 #include "ZGame.h"
 #include "ZActorPhysics.h"
 #include "SDL/SDL.h"
+
+
+void ZGameWindow_ProgRobot_Asm::DisplayProgramName()
+{
+  ZStream_File Stream;
+  ZString      FileName,FileSpec,File, Keyword, KeywordValue;
+  FileName << (ULong)floor(RobotProgramNum.GetValue()) << ".asm";
+  (FileSpec = GameEnv->Path_UserScripts_Asm_1).AddToPath(FileName);
+  Stream.SetFileName(FileSpec.String);
+  if (Stream.GetFileContent(File))
+  {
+    Keyword = ";";
+    File.GetKeywordValue(&Keyword,KeywordValue);
+    Text_ProgramName = KeywordValue;
+    Text_ProgramName.StripLeading(' ');
+    if (Text_ProgramName.Len > 60) Text_ProgramName.SetLen(60);
+  }
+  else Text_ProgramName.Clear();
+  ProgramName.SetDisplayText(Text_ProgramName.String);
+}
 
 void ZGameWindow_ProgRobot_Asm::Show()
 {
@@ -101,7 +129,20 @@ void ZGameWindow_ProgRobot_Asm::Show()
 
   MainWindow->AddFrame(&RobotProgramNum);
   Rp.x += Size.x + 20.0f;
-  Rp.y -= 15.0f;
+  Rp.y -= 28.0f;
+
+  float Alignment = Rp.x;
+
+  // Robot program Edit
+
+  RobotProgramEdit.SetDisplayText(Text_RobotProgramEdit.String);
+  RobotProgramEdit.SetTextStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_2));
+  RobotProgramEdit.GetEffectiveDisplaySize(&Size);
+  RobotProgramEdit.SetPosition(Rp.x,Rp.y + (32.0 - Size.y / 2.0f));
+  RobotProgramEdit.SetSize(Size.x,Size.y);
+  //GetButton.SetColor(1.0f,0.0f,0.0f);
+  MainWindow->AddFrame(&RobotProgramEdit);
+  Rp.x += Size.x + 10.0f;
 
   // Robot program Load/Compile
 
@@ -112,7 +153,7 @@ void ZGameWindow_ProgRobot_Asm::Show()
   RobotProgramLoad.SetSize(Size.x,Size.y);
   //GetButton.SetColor(1.0f,0.0f,0.0f);
   MainWindow->AddFrame(&RobotProgramLoad);
-  Rp.x += Size.x + 20.0f;
+  Rp.x += Size.x + 10.0f;
 
   // Robot program Load/Debug
 
@@ -123,11 +164,25 @@ void ZGameWindow_ProgRobot_Asm::Show()
   RobotProgramDebug.SetSize(Size.x,Size.y);
   //GetButton.SetColor(1.0f,0.0f,0.0f);
   MainWindow->AddFrame(&RobotProgramDebug);
-  Rp.x += Size.x + 20.0f;
+  Rp.x += Size.x + 10.0f;
+
+  // Next button line
+
+  Rp.y += Size.y + 2.0f;
+  Rp.x = Ip.x;
+  Rp.x = Alignment;
+
+   // Manual
+
+  Manual.SetDisplayText(Text_Manual.String);
+  Manual.SetTextStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_2));
+  Manual.GetEffectiveDisplaySize(&Size);
+  Manual.SetPosition(Rp.x,Rp.y + (32.0 - Size.y / 2.0f));
+  Manual.SetSize(Size.x,Size.y);
+  MainWindow->AddFrame(&Manual);
+  Rp.x += Size.x + 10.0f;
 
   // Robot program DebugShow
-
-
 
   RobotProgramDebugShow.SetDisplayText(Text_RobotProgramDebugShow.String);
   RobotProgramDebugShow.SetTextStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_2));
@@ -136,9 +191,30 @@ void ZGameWindow_ProgRobot_Asm::Show()
   RobotProgramDebugShow.SetSize(Size.x,Size.y);
   //GetButton.SetColor(1.0f,0.0f,0.0f);
   MainWindow->AddFrame(&RobotProgramDebugShow);
-  Rp.y += Size.y + 30.0f;
+  Rp.y += Size.y + 24.0f;
+  Rp.x = Alignment;
+
+  printf("Rp.y : %f\n",Rp.y);
+
+  // Program Name
+
+  DisplayProgramName();
+
+  ProgramName.SetStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_1));
+  ProgramName.SetDisplayText(Text_ProgramName.String);
+  ProgramName.GetTextDisplaySize(&Size);
+  Size.y = ProgramName.GetStandardLineHeight();  // In case of null string, force line height to something.
+  ProgramName.SetPosition(Rp.x ,Rp.y);
+  Size.x = 480;
+  ProgramName.SetSize(Size.x,Size.y);
+  ProgramName.SetColor(255.0f,255.0f,255.0f);
+  MainWindow->AddFrame(&ProgramName);
+  Rp.y += Size.y - 8.0f;
   Rp.x = Ip.x;
 
+
+  // **
+  printf("Rp.y 2 : %lf\n",(double)Rp.y);
 
   // Tools Title
 
@@ -149,7 +225,7 @@ void ZGameWindow_ProgRobot_Asm::Show()
   StorageTitle.SetSize(Size.x,Size.y);
   StorageTitle.SetColor(255.0f,255.0f,255.0f);
   MainWindow->AddFrame(&StorageTitle);
-  Rp.y += Size.y + 5.0f;
+  Rp.y += Size.y + 7.0f;
 
   // Tools
 
@@ -256,6 +332,53 @@ Bool ZGameWindow_ProgRobot_Asm::MouseButtonClick  (UShort nButton, Short Absolut
       GameEnv->GameWindow_AsmDebug->SetVoxelExtension(VoxelExtension);
       GameEnv->GameWindow_AsmDebug->Show();
     }
+    else
+    {
+      ZString ErrorMessage, ErrorExp, ErrorDetail;
+      ZMacroAssembler::ZError * Error;
+      ZMemSize Pos, Pos2, i;
+
+      Error = VoxelExtension->Status.Error;
+
+      if (!Error)
+      {
+        ErrorMessage  = "ERROR IN FILE";
+        ErrorExp = " ";
+      }
+      else if (Error->CantLoadFile)
+      {
+        ErrorMessage  = "UNABLE TO READ PROGRAM FILE";
+        ErrorExp = " ";
+        ErrorDetail << Error->FileName;
+      }
+      else
+      {
+        //ErrorMessage = Error->ErrorMessage;
+        ErrorDetail<< "ERROR : " << Error->ErrorMessage << "\n";
+        ErrorDetail<< "WHERE : AT LINE " << (ULong)Error->Offset_ErrorLine << "\n";
+        ErrorDetail<< "FILE  : " << Error->FileName << "\n\n";
+        ErrorDetail<< "...............................ERROR DETAIL.............................\n\n";
+
+        Pos = Error->Offset_ErrorLine;
+        for (i=0;i<4;i++) Error->FileText.SearchPredLineStart(Pos);
+        ErrorDetail.Append_Mids(&Error->FileText, Pos, Error->Offset_ErrorLine-1);
+        ErrorDetail.Append_Mids(&Error->FileText, Error->Offset_ErrorLine, Error->Offset_ErrorStart - 1);
+        ErrorDetail<<"~01:FF0000:[";
+        ErrorDetail.Append_Mids(&Error->FileText, Error->Offset_ErrorStart, Error->Offset_ErrorEnd - 1);
+        ErrorDetail<<"]~01:FFFFFF:";
+        Pos = Error->Offset_ErrorEnd;
+        Error->FileText.SearchNextLineStart(Pos);
+        ErrorDetail.Append_Mids(&Error->FileText, Error->Offset_ErrorEnd,Pos-1);
+        Pos2 = Pos;
+        for (i=0;i<4;i++) Error->FileText.SearchNextLineStart(Pos2);
+        ErrorDetail.Append_Mids(&Error->FileText, Pos, Pos2);
+
+        //ErrorDetail.SearchReplace(' ', '.');
+      }
+
+      GameEnv->GameWindow_Compilation_Result->SetError(ErrorMessage.String, ErrorExp.String, ErrorDetail.String);
+      GameEnv->GameWindow_Compilation_Result->Show();
+    }
 
     //VoxelExtension->CompileAndRunScript(ZVoxelExtension_Programmable::CONTEXT_PROGRAMCHANGE, floor(RobotProgramNum.GetValue()));
   }
@@ -278,6 +401,43 @@ Bool ZGameWindow_ProgRobot_Asm::MouseButtonClick  (UShort nButton, Short Absolut
   {
     Hide();
   }
+
+  if (Manual.Is_MouseClick(true))
+  {
+    ZViewDoc::ViewDocPage(1585,false);
+  }
+
+  if (RobotProgramNum.Is_MouseClick())
+  {
+    DisplayProgramName();
+  }
+
+  if (RobotProgramEdit.Is_MouseClick(true))
+  {
+    ZString FileName, FileSpec;
+
+    FileName << (ULong)floor(RobotProgramNum.GetValue()) << ".asm";
+    FileSpec = GameEnv->Path_UserScripts_Asm_1;
+    FileSpec.AddToPath(FileName);
+
+    // If the file does not exists, create it.
+
+    if (!ZStream_File::File_IsExists(FileSpec.String))
+    {
+      ZString InFileSpec, Template;
+      ZStream_File Stream;
+      InFileSpec = GameEnv->Path_GameFiles;
+      InFileSpec.AddToPath("Misc");
+      InFileSpec.AddToPath("new_file_asm1.tmasm");
+      Stream.SetFileName(InFileSpec.String);
+      Stream.GetFileContent(Template);
+      Stream.SetFileName(FileSpec.String);
+      Stream.PutFileContent(Template);
+    }
+
+    ZEditCode::EditCode(&GameEnv->Settings_Hardware->Setting_Favorite_Editor,&FileSpec);
+  }
+
 
   return (Res);
 }

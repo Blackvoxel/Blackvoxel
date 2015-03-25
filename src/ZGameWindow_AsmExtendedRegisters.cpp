@@ -1,7 +1,7 @@
 /*
  * This file is part of Blackvoxel.
  *
- * Copyright 2010-2014 Laurent Thiebaut & Olivia Merle
+ * Copyright 2010-2015 Laurent Thiebaut & Olivia Merle
  *
  * Blackvoxel is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,19 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZGameWindow_AsmHardware.cpp
+ * ZGameWindow_AsmExtendedRegisters.cpp
  *
- *  Created on: 24 déc. 2014
+ *  Created on: 1 févr. 2015
  *      Author: laurent
  */
 
-#include "ZGameWindow_AsmHardware.h"
+#include "ZGameWindow_AsmExtendedRegisters.h"
 
 #include "ZGame.h"
 #include "ZActorPhysics.h"
 #include "SDL/SDL.h"
 
-void ZGameWindow_AsmHardware::Show()
+void ZGameWindow_AsmExtendedRegisters::Show()
 {
   ZVector2f Rp, Ip, Size;
   ZActor * Actor;
@@ -72,16 +72,40 @@ void ZGameWindow_AsmHardware::Show()
   MainWindow->AddFrame(&Title);
   Rp.y += Size.y + 5.0f;
 
-  // RobotDisplay
+  // RegisterDisplay
 
-  RobotDisplay.SetGameEnv(GameEnv);
-  RobotDisplay.SetVMachine(&VoxelExtension->VirtualMachine);
-  RobotDisplay.SetPosition(Rp.x, Rp.y);
-  RobotDisplay.SetSize(320,240);
-  RobotDisplay.SetTexture(14);
-  MainWindow->AddFrame(&RobotDisplay);
-  Rp.y += 240.0f + 30.0f;
+  RegisterDisplay.SetGameEnv(GameEnv);
+  RegisterDisplay.SetVMachine(&VoxelExtension->VirtualMachine);
+  RegisterDisplay.SetPosition(Rp.x, Rp.y);
+  RegisterDisplay.SetSize(320,350);
+  RegisterDisplay.SetTexture(14);
+  MainWindow->AddFrame(&RegisterDisplay);
+  Rp.y += 350.0f + 5.0f;
   Rp.x = Ip.x;
+
+  // Memory Monitor title
+
+  Title2.SetStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_2));
+  Title2.SetDisplayText(Text_Title2.String);
+  Title2.GetTextDisplaySize(&Size);
+  Title2.SetPosition( (MainWindow_Size.x - Size.x) / 2.0 ,Rp.y);
+  Title2.SetSize(Size.x,Size.y);
+  Title2.SetColor(255.0f,255.0f,255.0f);
+  MainWindow->AddFrame(&Title2);
+  Rp.y += Size.y + 5.0f;
+
+  // Memory monitor
+
+  MemoryMonitor.SetGameEnv(GameEnv);
+  MemoryMonitor.SetVMachine(&VoxelExtension->VirtualMachine);
+  MemoryMonitor.SetPosition(Rp.x, Rp.y);
+  MemoryMonitor.SetSize(320,188);
+  MemoryMonitor.SetTexture(14);
+  MainWindow->AddFrame(&MemoryMonitor);
+  Rp.y += 188;
+  Rp.x = Ip.x;
+
+
 
 /*
   // Servo progress bar
@@ -114,7 +138,7 @@ void ZGameWindow_AsmHardware::Show()
   Flag_Shown = true;
 }
 
-void ZGameWindow_AsmHardware::Hide()
+void ZGameWindow_AsmExtendedRegisters::Hide()
 {
   GameEnv->GuiManager.RemoveFrame(MainWindow);
   //SDL_ShowCursor(SDL_DISABLE);
@@ -123,7 +147,7 @@ void ZGameWindow_AsmHardware::Hide()
   Flag_Shown = false;
 }
 
-Bool ZGameWindow_AsmHardware::MouseButtonClick(UShort nButton, Short Absolute_x, Short Absolute_y)
+Bool ZGameWindow_AsmExtendedRegisters::MouseButtonClick(UShort nButton, Short Absolute_x, Short Absolute_y)
 {
   Bool Res;
   Res = ZFrame::MouseButtonClick(nButton, Absolute_x, Absolute_y);
@@ -136,7 +160,7 @@ Bool ZGameWindow_AsmHardware::MouseButtonClick(UShort nButton, Short Absolute_x,
   return (Res);
 }
 
-void ZGameWindow_AsmHardware::Render(Frame_Dimensions * ParentPosition)
+void ZGameWindow_AsmExtendedRegisters::Render(Frame_Dimensions * ParentPosition)
 {
   float Completion;
   Long ServoValue;
@@ -150,4 +174,6 @@ void ZGameWindow_AsmHardware::Render(Frame_Dimensions * ParentPosition)
 
   ZFrame::Render(ParentPosition);
 }
+
+
 

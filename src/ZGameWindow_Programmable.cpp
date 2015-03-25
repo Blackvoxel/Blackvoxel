@@ -27,9 +27,36 @@
 #  include "ZGameWindow_Programmable.h"
 #endif
 
+#ifndef Z_ZOS_SPECIFIC_EDITCODE_H
+#  include "ZOs_Specific_EditCode.h"
+#endif
+
+#ifndef Z_ZSTREAMS_FILE_H
+#  include "z/ZStream_File.h"
+#endif
+
 #include "ZGame.h"
 #include "ZActorPhysics.h"
 #include "SDL/SDL.h"
+
+void ZGameWindow_Programmable::DisplayProgramName()
+{
+  ZStream_File Stream;
+  ZString      FileName,FileSpec,File, Keyword, KeywordValue;
+  FileName << (ULong)floor(RobotProgramNum.GetValue()) << ".nut";
+  (FileSpec = GameEnv->Path_UserScripts_Squirrel).AddToPath(FileName);
+  Stream.SetFileName(FileSpec.String);
+  if (Stream.GetFileContent(File))
+  {
+    Keyword = "//";
+    File.GetKeywordValue(&Keyword,KeywordValue);
+    Text_ProgramName = KeywordValue;
+    Text_ProgramName.StripLeading(' ');
+    if (Text_ProgramName.Len > 60) Text_ProgramName.SetLen(60);
+  }
+  else Text_ProgramName.Clear();
+  ProgramName.SetDisplayText(Text_ProgramName.String);
+}
 
 void ZGameWindow_Programmable::Show()
 {
@@ -102,6 +129,19 @@ void ZGameWindow_Programmable::Show()
   Rp.x += Size.x + 20.0f;
   Rp.y -= 15.0f;
 
+  float Alignment = Rp.x;
+
+  // Robot program Edit
+
+  RobotProgramEdit.SetDisplayText(Text_RobotProgramEdit.String);
+  RobotProgramEdit.SetTextStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_2));
+  RobotProgramEdit.GetEffectiveDisplaySize(&Size);
+  RobotProgramEdit.SetPosition(Rp.x,Rp.y + (32.0 - Size.y / 2.0f));
+  RobotProgramEdit.SetSize(Size.x,Size.y);
+  //GetButton.SetColor(1.0f,0.0f,0.0f);
+  MainWindow->AddFrame(&RobotProgramEdit);
+  Rp.x += Size.x + 10.0f;
+
   // Robot program Load/Compile
 
   RobotProgramLoad.SetDisplayText(Text_RobotProgramLoad.String);
@@ -111,7 +151,23 @@ void ZGameWindow_Programmable::Show()
   RobotProgramLoad.SetSize(Size.x,Size.y);
   //GetButton.SetColor(1.0f,0.0f,0.0f);
   MainWindow->AddFrame(&RobotProgramLoad);
-  Rp.y += Size.y + 30.0f;
+  Rp.y += Size.y + 24.0f;
+  Rp.x = Alignment;
+
+  // Program Name
+
+  DisplayProgramName();
+
+  ProgramName.SetStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_1));
+  ProgramName.SetDisplayText(Text_ProgramName.String);
+  ProgramName.GetTextDisplaySize(&Size);
+  Size.y = ProgramName.GetStandardLineHeight();  // In case of null string, force line height to something.
+  ProgramName.SetPosition(Rp.x ,Rp.y);
+  Size.x = 480;
+  ProgramName.SetSize(Size.x,Size.y);
+  ProgramName.SetColor(255.0f,255.0f,255.0f);
+  MainWindow->AddFrame(&ProgramName);
+  Rp.y += Size.y + 8.0f;
   Rp.x = Ip.x;
 
   // Tools Title
@@ -223,6 +279,37 @@ Bool ZGameWindow_Programmable::MouseButtonClick  (UShort nButton, Short Absolute
   if (CloseBox.Is_MouseClick())
   {
     Hide();
+  }
+
+  if (RobotProgramNum.Is_MouseClick())
+  {
+    DisplayProgramName();
+  }
+
+  if (RobotProgramEdit.Is_MouseClick(true))
+  {
+    ZString FileName, FileSpec;
+
+    FileName << (ULong)floor(RobotProgramNum.GetValue()) << ".nut";
+    FileSpec = GameEnv->Path_UserScripts_Squirrel;
+    FileSpec.AddToPath(FileName);
+
+    // If the file does not exists, create it.
+
+    if (!ZStream_File::File_IsExists(FileSpec.String))
+    {
+      ZString InFileSpec, Template;
+      ZStream_File Stream;
+      InFileSpec = GameEnv->Path_GameFiles;
+      InFileSpec.AddToPath("Misc");
+      InFileSpec.AddToPath("new_file_squirrel.nut");
+      Stream.SetFileName(InFileSpec.String);
+      Stream.GetFileContent(Template);
+      Stream.SetFileName(FileSpec.String);
+      Stream.PutFileContent(Template);
+    }
+
+    ZEditCode::EditCode(&GameEnv->Settings_Hardware->Setting_Favorite_Editor,&FileSpec);
   }
 
   return (Res);

@@ -1,7 +1,7 @@
 /*
  * This file is part of Blackvoxel.
  *
- * Copyright 2010-2014 Laurent Thiebaut & Olivia Merle
+ * Copyright 2010-2015 Laurent Thiebaut & Olivia Merle
  *
  * Blackvoxel is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,17 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZGameWindow_AsmDebug.h
+ * ZGameWindow_AsmExtendedRegisters.h
  *
- *  Created on: 19 déc. 2014
+ *  Created on: 1 févr. 2015
  *      Author: laurent
  */
 
-#ifndef Z_ZGAMEWINDOW_ASMDEBUG_H
-#define Z_ZGAMEWINDOW_ASMDEBUG_H
+#ifndef Z_ZGAMEWINDOW_ASMEXTENDEDREGISTERS_H
+#define Z_ZGAMEWINDOW_ASMEXTENDEDREGISTERS_H
 
-//#ifndef Z_ZGAMEWINDOW_ASMDEBUG_H
-//#  include "ZGameWindow_AsmDebug.h"
+//#ifndef Z_ZGAMEWINDOW_ASMEXTENDEDREGISTERS_H
+//#  include "ZGameWindow_AsmExtendedRegisters.h"
 //#endif
 
 #ifndef Z_ZGUI_H
@@ -38,8 +38,12 @@
 #  include "ZGui_Disassembler.h"
 #endif
 
-#ifndef Z_ZGUI_CPU_REGISTERS_H
-#  include "ZGui_CPU_Registers.h"
+#ifndef Z_ZGUI_CPU_REGISTERS_EXTENDED_H
+#  include "ZGui_CPU_Registers_Extended.h"
+#endif
+
+#ifndef Z_ZGUI_ASMROBOTDISPLAY_H
+#include "ZGui_AsmRobotDisplay.h"
 #endif
 
 #ifndef Z_ZGUI_PANELTEXTBUTTON_H
@@ -54,66 +58,55 @@
 #  include "ZGui_TileFrame.h"
 #endif
 
+#ifndef Z_ZGUI_PROGRESSBAR_H
+#  include "ZGui_ProgressBar.h"
+#endif
+
 #ifndef Z_ZVOXELEXTENSION_PROGROBOT_ASM_H
 #  include "ZVoxelExtension_ProgRobot_Asm.h"
 #endif
 
+#ifndef Z_ZGUI_MEMORY_MONITOR_H
+#  include "ZGui_Memory_Monitor.h"
+#endif
+
+
 class ZGame;
 
-class ZGameWindow_AsmDebug : public ZFrame
+class ZGameWindow_AsmExtendedRegisters : public ZFrame
 {
   protected:
     ZFrame           * MainWindow;
     ZTileFrame         CloseBox;
     ZFrame_FontFrame   Title;
-    ZPanelTextButton   Button_Step;
-    ZPanelTextButton   Button_Run;
-    ZPanelTextButton   Button_Stop;
-    ZPanelTextButton   Button_Reset;
-    ZPanelTextButton   Button_HardwarePannel;
-    ZPanelTextButton   Button_RegistersPannel;
-
-    ZFrame_FontFrame   Title_CPURegisters;
-    ZFrame_FontFrame   Title_Disassembly;
-
+    ZFrame_FontFrame   Title2;
+    ZCPURegisters_Extended RegisterDisplay;
     ZString            Text_Title;
-    ZString            Text_Button_Step;
-    ZString            Text_Button_Run;
-    ZString            Text_Button_Stop;
-    ZString            Text_Button_Reset;
-    ZString            Text_Button_HardwarePannel;
-    ZString            Text_Button_RegistersPannel;
-    ZString            Text_Title_CPURegisters;
-    ZString            Text_Title_Disassembly;
+    ZString            Text_Title2;
 
-    ZDisassemblerFrame DisassemblerFrame;
-    ZCPURegisters      CPURegisters;
+    ZFrame_MemoryMonitor MemoryMonitor;
+
+    ZFrame_FontFrame   Servo_x_Value;
+    ZString            Servo_x_Value_Text;
+    ZFrame_ProgressBar Servo_x_Position;
+
     ZGame              * GameEnv;
     ZVoxelExtension_ProgRobot_Asm * VoxelExtension;
     bool    Flag_Shown;
-
-    void CloseAllPanels();
-
   public:
 
-  ZGameWindow_AsmDebug()
+  ZGameWindow_AsmExtendedRegisters()
   {
     MainWindow = this;
     GameEnv = 0;
     Flag_Shown = false;
     VoxelExtension = 0;
-    Text_Title       = "ROBOT MONITOR";
-    Text_Button_Step = "STEP";
-    Text_Button_Run  = "RUN";
-    Text_Button_Stop = "STOP";
-    Text_Button_Reset= "RESET";
-    Text_Button_HardwarePannel = "HARDWARE";
-    Text_Button_RegistersPannel = "REG";
-    Text_Title_CPURegisters = "CPU REGISTERS";
-    Text_Title_Disassembly = "DISASSEMBLY";
+    Text_Title       = "REGISTERS";
+    Text_Title2      = "MEMORY MONITOR";
+    Servo_x_Value_Text = "10000";
   }
 
-  ~ZGameWindow_AsmDebug()
+  ~ZGameWindow_AsmExtendedRegisters()
   {
 
   }
@@ -122,21 +115,22 @@ class ZGameWindow_AsmDebug : public ZFrame
   void SetVoxelExtension(ZVoxelExtension * Extension) { VoxelExtension = (ZVoxelExtension_ProgRobot_Asm *)Extension; }
   ZVoxelExtension * GetVoxelExtension() { return(VoxelExtension);}
 
-
   void Show();
-
-
   void Hide();
-
-
   bool Is_Shown() {return(Flag_Shown);}
+
+  virtual void Render(Frame_Dimensions * ParentPosition);
+
 
   // Overloaded events
 
   virtual Bool MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y);
 
 
+
 };
 
 
-#endif /* Z_ZGAMEWINDOW_ASMDEBUG_H */
+
+
+#endif /* Z_ZGAMEWINDOW_ASMEXTENDEDREGISTERS_H */

@@ -75,9 +75,13 @@ class ZGameWindow_ProgRobot_Asm : public ZFrame
     ZFrame_FontFrame MainTitle;
     ZFrame_FontFrame RobotProgramTitle;
     ZFrame_NumericChoiceBox RobotProgramNum;
+    ZPanelTextButton RobotProgramEdit;
     ZPanelTextButton RobotProgramLoad;
     ZPanelTextButton RobotProgramDebug;
     ZPanelTextButton RobotProgramDebugShow;
+    ZPanelTextButton Manual;
+    ZFrame_FontFrame ProgramName;
+
     ZFrame_FontFrame StorageTitle;
     ZFrame_FontFrame InventoryTitle;
 
@@ -87,9 +91,12 @@ class ZGameWindow_ProgRobot_Asm : public ZFrame
     ZString Text_RobotZoneTitle;
     ZString Text_StorageTitle;
     ZString Text_InventoryTitle;
+    ZString Text_RobotProgramEdit;
     ZString Text_RobotProgramLoad;
     ZString Text_RobotProgramDebug;
     ZString Text_RobotProgramDebugShow;
+    ZString Text_Manual;
+    ZString Text_ProgramName;
     double  ProgramNum;
 
     ZVoxelExtension_ProgRobot_Asm * VoxelExtension;
@@ -111,9 +118,11 @@ class ZGameWindow_ProgRobot_Asm : public ZFrame
     Text_RobotZoneTitle = "ROBOT PROGRAM";
     Text_StorageTitle = "ROBOT STORAGE";
     Text_InventoryTitle = "INVENTORY";
+    Text_RobotProgramEdit = "EDIT";
     Text_RobotProgramLoad = "LOAD-RUN";
     Text_RobotProgramDebug = "LOAD-DEBUG";
     Text_RobotProgramDebugShow = "DEBUG";
+    Text_Manual = "MANUAL";
     ProgramNum = 0;
   }
 
@@ -136,6 +145,10 @@ class ZGameWindow_ProgRobot_Asm : public ZFrame
 
   virtual Bool MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y);
 
+
+  protected:
+
+    void DisplayProgramName();
 
 };
 
