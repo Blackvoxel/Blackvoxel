@@ -32,7 +32,7 @@
 
 // Options à inclure : -mfpmath=sse -msse2
 
-#define DEVELOPPEMENT_FORCE_DEV 1 // If you are making development, set it to 1
+#define DEVELOPPEMENT_FORCE_DEV 0 // If you are making development, set it to 1
 
 // Dev options forced ?
 
@@ -42,7 +42,7 @@
 #endif
 
 #ifndef DEVELOPPEMENT_ON
-  #define DEVELOPPEMENT_ON 1
+  #define DEVELOPPEMENT_ON 0
 #endif
 
 #ifndef COMPILEOPTION_DEMO
@@ -82,7 +82,7 @@
 // Options de debogage
 
 #if DEVELOPPEMENT_ON == 1
-#  define COMPILEOPTION_FABDATABASEOUTPUT 0
+#  define COMPILEOPTION_FABDATABASEOUTPUT 1
 #  define COMPILEOPTION_BOUNDCHECKING 1
 #  define COMPILEOPTION_BOUNDCHECKINGSLOW 1
 #  define COMPILEOPTION_FALLAREFATALS 0

@@ -42,20 +42,57 @@
 #  include "z/ZStream_File.h"
 #endif
 
+#ifndef Z_BITMAP_IMAGE_H
+#  include "z/ZBitmapImage.h"
+#endif
+
 //#ifndef Z_ZVCPU_H
 //#  include "ZVCPU.h"
 //#endif
 
 bool ZTest_Parts::RunTestCode()
 {
-  ZStream_File Stream;
-  ZString Text, Out;
-  printf("Test Parts\n");
+  ZBitmapImage Bmp;
+  long x,y;
+  unsigned char xp,yp;
+  ULong i;
 
-  BlackCPU<int> CPU;
 
-  Out = CPU.OutputOpcodeDatabase(0);
-  printf("%s",Out.String);
+  Bmp.CreateBitmap(512,256,32);
+  Bmp.Clear();
+  return(true);
+  for (y=0;y<256;y++)
+  {
+    for (x=0;x<256;x++)
+    {
+      xp = x; yp =y;
+      long v;
+      v=x-y;
+      if ( (v<0) || (v>255) )    Bmp.SetPixel(x,y,0,0,255,0);
+      else                       Bmp.SetPixel(x,y,255,255,255,0);
+
+      unsigned char vp;
+      vp =xp-yp;
+      if (vp>xp)  Bmp.SetPixel(x+256,y,0,0,255,0);
+      else                          Bmp.SetPixel(x+256,y,255,255,255,0);
+
+    }
+  }
+
+  for (i=0;i<256;i++)
+  {
+    Bmp.SetPixel(i,128,0,0,0,0);
+    Bmp.SetPixel(128,i,0,0,0,0);
+  }
+
+
+/*
+  Bmp.SetPixel(0,0,255,255,255,0);
+  Bmp.SetPixel(255,0,255,0,0,0);
+  Bmp.SetPixel(255,255,0,255,0,0);
+  Bmp.SetPixel(0,255,0,0,255,0);
+*/
+  Bmp.SaveBMP("Out/test.bmp");
 
   return(false);
 }

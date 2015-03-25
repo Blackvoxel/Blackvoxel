@@ -175,8 +175,10 @@ int main(int argc, char *argv[])
   // Test Code
 
   #if DEVELOPPEMENT_ON == 1
-    //ZTest_Parts TestParts;
-    //if (!TestParts.RunTestCode()) exit(0);
+
+   // ZTest_Parts TestParts;
+   // if (!TestParts.RunTestCode()) exit(0);
+
   #endif
 
   // Game main object
@@ -193,6 +195,8 @@ int main(int argc, char *argv[])
     #if COMPILEOPTION_FABDATABASEOUTPUT == 1
       GameEnv.VoxelTypeManager.OutFabInfos();
       GameEnv.VoxelTypeManager.FindFabConflics();
+      GameEnv.OutputHelperFiles();
+
     #endif
 
   // Game Menu Loop
