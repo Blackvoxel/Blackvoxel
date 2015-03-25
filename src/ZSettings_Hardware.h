@@ -78,6 +78,7 @@ class ZSettings_Hardware
     // Options for special gaming modes
 
     bool Experimental_LearningMode;
+    ZString Setting_Favorite_Editor;
 
     ZSettings_Hardware()
     {

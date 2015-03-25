@@ -107,6 +107,12 @@ bool ZSettings_Hardware::Load()
         }
         if (Token=="Experimental_LearningMode") { Experimental_LearningMode = (Line.GetULong() > 0) ? true : false; }
 
+        if (Token=="Setting_Favorite_Editor")
+        {
+          Line.StripLeading(' ');
+          Setting_Favorite_Editor = Line;
+        }
+
       }
     }
   } else return(false);
@@ -147,6 +153,7 @@ bool ZSettings_Hardware::Save()
   Out << "Opt_SectCFactor              = " << Opt_SectCFactor << Out.NewLine();
   Out << "PixelAspectRatio             = " << PixelAspectRatio << Out.NewLine();
   Out << "Experimental_LearningMode    = " << (Experimental_LearningMode ? 1u:0u)    << Out.NewLine();
+  Out << "Setting_Favorite_Editor      = " << Setting_Favorite_Editor << Out.NewLine();
 
 
   return( Out.SaveToFile(FileName.String) );
