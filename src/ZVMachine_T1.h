@@ -65,7 +65,7 @@
 
 // 1M Ram.
 
-#define ZVMACHINE_MEMSIZE 65536
+#define ZVMACHINE_MEMSIZE 262144
 
 class ZActiveVoxelInterface;
 
@@ -75,6 +75,7 @@ class ZVMachine_T1 : public ZVMachine
 
    ZActiveVoxelInterface * VoxelInterface;
    UByte Memory[ZVMACHINE_MEMSIZE];
+   ULong MemPad;
    ZChip_Parallel_Interface_Servo PIA_1;
    ZChip_Display_Controller       Display_1;
    BlackCPU<ZVMachine_T1>CPU;
@@ -100,6 +101,7 @@ class ZVMachine_T1 : public ZVMachine
      DisassemblyTags.Clear();
      Servo_MovePos = 0;
      Servo_LastMoveCycleCount = 0;
+     MemPad = 0;
 
      // Erase memory
 
@@ -174,6 +176,13 @@ class ZVMachine_T1 : public ZVMachine
      this->VoxelInterface = VoxelInterface;
    }
 
+
+   // Debugger memory interfaces
+
+   virtual UByte    Debug_Read_Byte(UELong MemoryAddress) {return(ReadMemory_8((ULong)MemoryAddress));}
+   virtual UShort   Debug_Read_Short(UELong MemoryAddress){return(ReadMemory_16((ULong)MemoryAddress));}
+   virtual ULong    Debug_Read_Long(UELong MemoryAddress) {return(ReadMemory_32((ULong)MemoryAddress));}
+
    // CPU Memory interfaces
 
    inline UByte FetchOpcode(ULong Address)
@@ -211,26 +220,32 @@ class ZVMachine_T1 : public ZVMachine
    {
      ZMemSize a;
 
-
-     if (!(Address >> 31))
+     if (((Long)Address) > 0)
      {
        a = (ZMemSize)& Memory;
        a += (Address & (ZVMACHINE_MEMSIZE-1));
        return(*(UByte *)a);
      }
-     else return(ReadMemory_32(Address));
+     else
+     {
+       return(ReadMemory_32(Address)>> ((Address&3) << 4));
+     }
    }
 
    inline UShort ReadMemory_16(ULong Address)
    {
      ZMemSize a;
-     if (!(Address >> 31))
+
+     if (((Long)Address) > 0)
      {
        a = (ZMemSize)& Memory;
        a += (Address & (ZVMACHINE_MEMSIZE-1));
        return(*(UShort *)a);
      }
-     else return(ReadMemory_32(Address));
+     else
+     {
+       return(ReadMemory_32(Address)>> ((Address&3) << 4));
+     }
    }
 
 
@@ -266,7 +281,7 @@ class ZVMachine_T1 : public ZVMachine
      }
      else
      {
-       switch(Address >> 27)
+       switch(Address >> 8 & 0xff)
        {
          case 0x10: return(PIA_1.GetRegister(Address));
          default:   return(0);
@@ -287,10 +302,10 @@ class ZVMachine_T1 : public ZVMachine
      {
        // 0xxxxxx
        // 00000000 00000000 00000000 00000000
-       switch(Address >> 25)
+       switch((Address >> 8) & 0xff)
        {
-         case 0x40: PIA_1.SetRegister(Address, Data);     break;
-         case 0x41: Display_1.SetRegister(Address, Data); break;
+         case 0x0: PIA_1.SetRegister(Address, Data);     break;
+         case 0x1: Display_1.SetRegister(Address, Data); break;
          default:   break;
        }
      }

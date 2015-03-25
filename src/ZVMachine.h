@@ -58,6 +58,10 @@ class ZVMachine
     virtual bool     GetPreviousInstructionAddress(ZMemSize &ProgramCounter) = 0;
     virtual void     SetStepModeOn(bool StepMode = true) = 0;
     virtual void     EnableRunningStepCount(ULong StepCount) = 0;
+    virtual UByte    Debug_Read_Byte(UELong MemoryAddress)=0;
+    virtual UShort   Debug_Read_Short(UELong MemoryAddress)=0;
+    virtual ULong    Debug_Read_Long(UELong MemoryAddress)=0;
+
 
     // Status display interface
 
