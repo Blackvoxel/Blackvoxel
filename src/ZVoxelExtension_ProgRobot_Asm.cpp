@@ -51,13 +51,24 @@ bool ZVoxelExtension_ProgRobot_Asm::CompileAndRunScript(ULong ContextInfo, ULong
   FileName.Append_pchar(".asm");
   FileSpec.AddToPath(FileName);
 
+  // Clear Status
+
+  Status.Clear();
+
   // Load from the file.
 
-  if (!ProgramText.LoadFromFile(FileSpec.String)) return(false);
+  if (!ProgramText.LoadFromFile(FileSpec.String))
+  {
+    Status.CompilationResult = false;
+    Status.Error = new ZMacroAssembler::ZError;
+    Status.Error->CantLoadFile = true;
+    Status.Error->FileName = FileSpec;
+    return(false);
+  }
 
   // Assemble program
 
-  if (!MacroAssembler.Assemble(ProgramText, BinaryOut)) return(false);
+  if (!MacroAssembler.Assemble(ProgramText, BinaryOut, Status )) return(false);
 
   // Clear Memory
 

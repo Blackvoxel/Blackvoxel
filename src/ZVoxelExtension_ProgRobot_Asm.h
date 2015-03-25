@@ -62,7 +62,7 @@ class ZVoxelExtension_ProgRobot_Asm : public ZVoxelExtension
 
     ZVMachine_T1    VirtualMachine;
     ZMacroAssembler MacroAssembler;
-
+    ZMacroAssembler::ZCompilationStatus Status;
 
     virtual ZVoxelExtension * GetNewCopy()
     {
