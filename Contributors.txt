@@ -1,0 +1,15 @@
+========================================================================
+                       BLACKVOXEL Project
+========================================================================
+
+Creators (main team) :
+
+Laurent Thiebaut     laurent@blackvoxel.com : Main programmer
+Olivia Merle         olivia@blackvoxel.com  : Programming
+
+Project contributors : Thanks to them for their useful contributions.
+
+Jim Buckeyne (d3x0r)   d3ck0r@gmail.com         Useful contributions, Github fork
+Axel Viala (darnuria)  axel.viala@darnuria.eu   Readme.md file
+Bastien Guerry         bzg@gnu.org              English corrections
+

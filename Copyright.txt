@@ -26,4 +26,4 @@ licence terms and conditions.
 On Debian systems, the full text of the GNU General Public
 License version 3 can be found in the file '/usr/share/common-licenses/GPL-3'
 
-(See copyright_libs file for 3rd party libraries copyright and redistribution conditions)
+(See Contributors.txt for contributions. See copyright_libs file for 3rd party libraries copyright and redistribution conditions)
