@@ -144,7 +144,7 @@ inline bool  ZActiveVoxelInterface::GetVoxelExt_Abs( ZVector3L * Coords, UShort 
 
 inline bool ZActiveVoxelInterface::GetVoxelExt( Long x, Long y, Long z , UShort & VoxelType, VoxelLocation * VoxLocation )
 {
-  if (!World->GetVoxelLocation(VoxLocation , Coords.x - x, Coords.y - y, Coords.z - z)) { VoxelType = 65535; return(false); }
+  if (!World->GetVoxelLocation(VoxLocation , Coords.x + x, Coords.y + y, Coords.z + z)) { VoxelType = 65535; return(false); }
   VoxelType = VoxLocation->Sector->Data[ VoxLocation->Offset ];
   return(true);
 }
