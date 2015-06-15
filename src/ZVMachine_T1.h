@@ -281,9 +281,10 @@ class ZVMachine_T1 : public ZVMachine
      }
      else
      {
-       switch(Address >> 8 & 0xff)
+       switch((Address >> 8) & 0xff)
        {
-         case 0x10: return(PIA_1.GetRegister(Address));
+         case 0x0: return(PIA_1.GetRegister(Address));
+         case 0x1: return(Display_1.GetRegister(Address));
          default:   return(0);
        }
      }
