@@ -211,7 +211,7 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                     ZString Message;
                     Message = "Click to Resume";
                     GameEnv->GameWindow_ResumeRequest->SetGameEnv(GameEnv);
-                    GameEnv->GameWindow_ResumeRequest->SetMessage("CLICK TO RESUME GAME");
+                    GameEnv->GameWindow_ResumeRequest->SetMessage((char *)"CLICK TO RESUME GAME");
                     GameEnv->GameWindow_ResumeRequest->Show();
                   }
 
