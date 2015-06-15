@@ -1,7 +1,9 @@
 /*
  * This file is part of Blackvoxel.
  *
- * Copyright 2010-2014 Laurent Thiebaut & Olivia Merle
+ * Copyright 2010-2015 Laurent Thiebaut & Olivia Merle
+ *
+ * (See below for other contributors)
  *
  * Blackvoxel is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,7 +17,15 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * ------------------------- Contributors --------------------------
+ *
+ * d3x0r : Water performance improvement patch.
+ *
 */
+
+
 /*
  * ZVoxelReactor.cpp
  *
@@ -591,6 +601,25 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                 break;
                               }
 
+
+                              // d3x0r performance patch
+
+                              for(i=0,j=4,vCount=0,WaveCount=0;i<4;i++,j++)
+                              {
+                                cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water )
+                                {
+                                  cx = x+bft[j].x ; cy = y+bft[j].y ; cz = z+bft[j].z ; SecondaryOffset[j] = If_x[cx]+If_y[cy]+If_z[cz];St[j] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[j] = &St[j]->Data[ SecondaryOffset[j] ];
+                                  if( VoxelTypeManager->VoxelTable[*Vp[j]]->Is_CanBeReplacedBy_Water) {vCount++; DirEn[i]=true;}
+                                  else DirEn[i]=false;
+                                  WaveCount++;
+                                  WaveDirEn[i] = true;
+                                }
+                                else {WaveDirEn[i] = false; DirEn[i]=false;}
+                              }
+
+                              // Old code
+/*
                               for(i=0,j=4,vCount=0,WaveCount=0;i<4;i++,j++)
                               {
                                 cx = x+bft[i].x ; cy = y+bft[i].y ; cz = z+bft[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
@@ -600,6 +629,9 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                 if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_Water) {WaveCount++;WaveDirEn[i] = true;}
                                 else                                                                {WaveDirEn[i] = false;}
                               }
+*/
+
+                              // End
 
                               if (vCount>0)
                               {
