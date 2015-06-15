@@ -194,8 +194,6 @@ void ZGameWindow_ProgRobot_Asm::Show()
   Rp.y += Size.y + 24.0f;
   Rp.x = Alignment;
 
-  printf("Rp.y : %f\n",Rp.y);
-
   // Program Name
 
   DisplayProgramName();
@@ -213,8 +211,6 @@ void ZGameWindow_ProgRobot_Asm::Show()
   Rp.x = Ip.x;
 
 
-  // **
-  printf("Rp.y 2 : %lf\n",(double)Rp.y);
 
   // Tools Title
 
