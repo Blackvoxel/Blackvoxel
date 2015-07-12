@@ -723,8 +723,9 @@ bool ZStream_File::File_IsExists(const char * FileName)
   Result = GetFileAttributesA(FileName);
 
   if (Result == INVALID_FILE_ATTRIBUTES) return(false);
-  if (Result & FILE_ATTRIBUTE_NORMAL) return(true);
-  return(false);
+  if (Result & ( FILE_ATTRIBUTE_DEVICE | FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_READONLY)) return(false);
+
+  return(true);
 
 #endif
 }
