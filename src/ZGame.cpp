@@ -182,6 +182,8 @@ bool ZGame::Init_GraphicMode(ZLog * InitLog)
   {
     HardwareResolution.x = DesktopResolution.x;
     HardwareResolution.y = DesktopResolution.y;
+    // If not full screen, lower resolution to take account of borders.
+    if (!(Flags & SDL_FULLSCREEN)) {HardwareResolution.x -= 50;HardwareResolution.y -= 100; }
   }
   else
   {
@@ -207,7 +209,32 @@ bool ZGame::Init_GraphicMode(ZLog * InitLog)
   // Starting video mode
 
   SDL_WM_SetCaption("BlackVoxel", NULL);
-  screen = SDL_SetVideoMode(HardwareResolution.x, HardwareResolution.y, 32, Flags ); if ( screen == NULL ) { ZString ErrorMsg; ErrorMsg << "*** ERROR : SDL library : Unable to init display mode [" << SDL_GetError() << "]"; InitLog->Log(4, ZLog::FAIL, ErrorMsg); return(false); }
+  screen = SDL_SetVideoMode(HardwareResolution.x, HardwareResolution.y, 32, Flags );
+  if ( screen == NULL )
+  {
+    ZString ErrorMsg; ErrorMsg << "*** ERROR : SDL library : Unable to init display mode [" << SDL_GetError() << "]";
+    InitLog->Log(4, ZLog::FAIL, ErrorMsg);
+
+    // Enforce failsafe procedure...
+
+    ErrorMsg = "SDL library : Enforce failsafe screen mode";
+    InitLog->Log(4, ZLog::INFO, ErrorMsg);
+
+    HardwareResolution.x = DesktopResolution.x;
+    HardwareResolution.y = DesktopResolution.y;
+    screen = SDL_SetVideoMode(HardwareResolution.x, HardwareResolution.y, 32, Flags );
+
+    // If failsafe failled, resign to surrender...
+
+    if ( screen == NULL )
+    {
+      ErrorMsg.Clear();
+      ErrorMsg << "*** ERROR : SDL library : Init display mode failsafe procedure fail [" << SDL_GetError() << "]";
+      InitLog->Log(4, ZLog::FAIL, ErrorMsg);
+
+      return(false);
+    }
+  }
 
   // Setting OpenGl ViewPort
 
