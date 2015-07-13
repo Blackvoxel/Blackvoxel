@@ -751,8 +751,6 @@ SQInteger function_GetRobotID(HSQUIRRELVM v)
   return(1);
 }
 
-
-
 SQInteger function_MovePlayer(HSQUIRRELVM v)
 {
   ZStoreSq3 * S;
@@ -793,7 +791,7 @@ SQInteger function_MovePlayer(HSQUIRRELVM v)
   return(1);
 }
 
-SQInteger function_PlayerAddAccel(HSQUIRRELVM v)
+SQInteger function_PlayerAddVelocity(HSQUIRRELVM v)
 {
   ZStoreSq3 * S;
 
@@ -816,14 +814,14 @@ SQInteger function_PlayerAddAccel(HSQUIRRELVM v)
   if (!S->Allow_WorldManipulations) { sq_pushbool(v,SQFalse); return(1); }
 
   // Clipping.
-
+/*
   if (x>10.0f)  x =  10.0f;
   if (x<-10.0f) x = -10.0f;
   if (y>10.0f)  y =  10.0f;
   if (y<-10.0f) y = -10.0f;
   if (z>10.0f)  z =  10.0f;
   if (z<-10.0f) z = -10.0f;
-
+*/
   // Accelerate the player.
 
   Actor = S->GameEnv->PhysicEngine->GetSelectedActor();
@@ -833,7 +831,7 @@ SQInteger function_PlayerAddAccel(HSQUIRRELVM v)
   return(1);
 }
 
-SQInteger function_PlayerSetAccel(HSQUIRRELVM v)
+SQInteger function_PlayerSetVelocity(HSQUIRRELVM v)
 {
   ZStoreSq3 * S;
 
@@ -856,14 +854,14 @@ SQInteger function_PlayerSetAccel(HSQUIRRELVM v)
   if (!S->Allow_WorldManipulations) { sq_pushbool(v,SQFalse); return(1); }
 
   // Clipping.
-
+/*
   if (x>10.0f)  x =  10.0f;
   if (x<-10.0f) x = -10.0f;
   if (y>10.0f)  y =  10.0f;
   if (y<-10.0f) y = -10.0f;
   if (z>10.0f)  z =  10.0f;
   if (z<-10.0f) z = -10.0f;
-
+*/
   // Accelerate the player.
 
   Actor = S->GameEnv->PhysicEngine->GetSelectedActor();
@@ -1957,8 +1955,6 @@ bool ZScripting_Squirrel3::Init()
   RegisterSquirrelFunction(S, function_Image_Load,           "Image_Load");
   RegisterSquirrelFunction(S, function_GetKey,               "GetKey");
 
-
-
   // 1.34 extension
 
   RegisterSquirrelFunction(S, function_GetFontPixel, "GetFontPixel");
@@ -1967,8 +1963,10 @@ bool ZScripting_Squirrel3::Init()
   RegisterSquirrelFunction(S, function_GetRobotLevel, "GetRobotLevel");
   RegisterSquirrelFunction(S, function_GetRobotID, "GetRobotID");
   RegisterSquirrelFunction(S, function_MovePlayer, "PlayerMove");
-  RegisterSquirrelFunction(S, function_PlayerAddAccel, "PlayerAddAccel");
-  RegisterSquirrelFunction(S, function_PlayerSetAccel, "PlayerSetAccel");
+  RegisterSquirrelFunction(S, function_PlayerAddVelocity, "PlayerAddAccel"); // Obsolete
+  RegisterSquirrelFunction(S, function_PlayerAddVelocity, "PlayerAddVelocity");
+  RegisterSquirrelFunction(S, function_PlayerSetVelocity, "PlayerSetAccel"); // Obsolete
+  RegisterSquirrelFunction(S, function_PlayerSetVelocity, "PlayerSetVelocity");
   RegisterSquirrelFunction(S, function_GetPath, "GetPath");
   RegisterSquirrelFunction(S, function_PlaceVoxel3D, "PlaceVoxel3D");
   RegisterSquirrelFunction(S, function_voxel_getinfo, "Voxel_GetInfo");
