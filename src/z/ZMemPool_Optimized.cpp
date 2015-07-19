@@ -24,7 +24,8 @@
  */
 
 #include "ZMemPool_Optimized.h"
-#include <stdio.h>
+#include "../ZOs_Specific_various.h"
+//#include <stdio.h>
 
 bool ZMemPool_Optimized::Initialized = false;
 char ZMemPool_Optimized::BitPosTable[65536];

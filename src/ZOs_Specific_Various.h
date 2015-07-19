@@ -45,6 +45,11 @@
 
   void Windows_DisplayConsole();
 
+#if defined( _MSC_VER ) || defined( __WATCOMC__ )
+#    define __sync_bool_compare_and_swap(a,b,c) (InterlockedCompareExchangePointer((void*volatile*)a,c,b), (*a)==(c))
+#endif
+
+
 #endif
 
 #endif /* Z_ZOS_SPECIFIC_VARIOUS_H */
