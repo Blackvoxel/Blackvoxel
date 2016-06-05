@@ -226,8 +226,21 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
     {
       Mining_MaterialResistanceCounter = 1000;
       GameEnv->GameProgressBar->SetCompletion(0.0f);
+      // EDIT: no block, disable sound
+      #if COMPILEOPTION_FNX_SOUNDS_1 == 1
+      if (SoundHandle != 0) { GameEnv->Sound->Stop_PlaySound(SoundHandle); SoundHandle = 0; }
+      #endif
+      // End of edit
       return(true);
     }
+    #if COMPILEOPTION_FNX_SOUNDS_1 == 1
+    // EDIT: sound again if disabled
+    else
+    {
+      if (SoundHandle == 0) SoundHandle = GameEnv->Sound->Start_PlaySound(5,true,true,1.0,0);
+    }
+    #endif
+    // End of edit
 
 
     Voxel = GameEnv->World->GetVoxel(Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z);
@@ -245,6 +258,12 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
         MinedVoxel = Actor->PointedVoxel.PointedVoxel;
 
       }
+      // EDIT: dispay "TOO HARD" if the new block can't be mined
+      else
+      {
+        GameEnv->GameWindow_Advertising->Advertise("TOO HARD", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
+      }
+      // End of edit
     }
 
     // Material resistance is slowly going down
@@ -266,6 +285,24 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
       GameEnv->Sound->PlaySound(6);
       if (SoundHandle != 0) { GameEnv->Sound->Stop_PlaySound(SoundHandle); SoundHandle = 0; }
       #endif
+      // EDIT: new check, the block forward is destroyed
+      {
+        if (ToolCompatibleTypes[VoxelType->MiningType])
+        {
+          Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
+          MiningInProgress = true;
+          MinedVoxel = Actor->PointedVoxel.PointedVoxel;
+          GameEnv->GameProgressBar->SetCompletion(0.0f);
+          #if COMPILEOPTION_FNX_SOUNDS_1 == 1
+          if (SoundHandle == 0) SoundHandle = GameEnv->Sound->Start_PlaySound(5,true,true,1.0,0);
+          #endif
+        }
+        else
+        {
+          GameEnv->GameWindow_Advertising->Advertise("TOO HARD", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
+        }
+      }
+      // End of edit
       // Sector->Flag_HighPriorityRefresh
     }
   }
