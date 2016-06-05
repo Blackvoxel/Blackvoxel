@@ -522,7 +522,22 @@ void ZRender_Basic::Render()
         // EDIT: change color of pointed cube if too hard (white to red)
         if (BvProp_DisplayVoxelSelector)
         {
-          if (((ZTool_Constructor*)GameEnv->PhysicEngine->GetToolManager()->GetTool(GameEnv->PhysicEngine->GetSelectedActor()->Inventory->GetActualToolSlot()->VoxelType))->Compatible(GameEnv->VoxelTypeManager.GetVoxelType(GameEnv->World->GetVoxel(GameEnv->PhysicEngine->GetSelectedActor()->PointedVoxel.PointedVoxel.x, GameEnv->PhysicEngine->GetSelectedActor()->PointedVoxel.PointedVoxel.y, GameEnv->PhysicEngine->GetSelectedActor()->PointedVoxel.PointedVoxel.z))->VoxelType)) Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 ); else Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
+          ZActor * Actor;
+          Actor = GameEnv->PhysicEngine->GetSelectedActor();
+          
+          UShort Voxel;
+          ZVoxelType * VoxelType;
+          Voxel = GameEnv->World->GetVoxel(Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z);
+          VoxelType = GameEnv->VoxelTypeManager.GetVoxelType(Voxel);
+
+          UShort VoxelToolType = Actor->Inventory->GetActualToolSlot()->VoxelType;
+
+          ZTool_Constructor *VoxelTool = dynamic_cast<ZTool_Constructor*>(GameEnv->PhysicEngine->GetToolManager()->GetTool(VoxelToolType));
+
+          if (VoxelTool->Compatible(VoxelType->MiningType))
+            Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
+          else
+            Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,0.0,0.0 );
         }
         // End of edit
       }
