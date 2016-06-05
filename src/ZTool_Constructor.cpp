@@ -128,18 +128,17 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
                  // EDIT: moved the set to fix a new bug
                  MinedVoxel = Actor->PointedVoxel.PointedVoxel;
                  // End of edit
+                 // EDIT: fix a new bug: the bar is at 100 percent when too hard, fix it
+                 Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
+                 // End of edit
                  if (ToolCompatibleTypes[VoxelType->MiningType])
                  {
-                   Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
                    #if COMPILEOPTION_FNX_SOUNDS_1 == 1
                    if (SoundHandle == 0) SoundHandle = GameEnv->Sound->Start_PlaySound(5,true,true,1.0,0);
                    #endif
                  }
                  else
                  {
-                   // EDIT: the bar is at 100 percent when too hard, fix it
-                   Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
-                   // End of edit
                    GameEnv->GameWindow_Advertising->Advertise("TOO HARD", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
                  }
                }
@@ -231,7 +230,10 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
 
     if (!Actor->PointedVoxel.Collided)
     {
-      Mining_MaterialResistanceCounter = 1000;
+      //Mining_MaterialResistanceCounter = 1000;
+      // EDIT: fix a bug: the bar isn't at 0% when restarting in case of restarting mining the same block as before
+      Mining_MaterialResistanceCounter = GameEnv->VoxelTypeManager.GetVoxelType(GameEnv->World->GetVoxel(MinedVoxel.x, MinedVoxel.y, MinedVoxel.z))->MiningHardness;
+      // End of edit
       GameEnv->GameProgressBar->SetCompletion(0.0f);
       // EDIT: no block, disable sound
       #if COMPILEOPTION_FNX_SOUNDS_1 == 1
@@ -257,12 +259,6 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
       {
         Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
         MiningInProgress = true;
-
-        // EDIT: sound again if disabled && breakable
-        #if COMPILEOPTION_FNX_SOUNDS_1 == 1
-        if (SoundHandle == 0) SoundHandle = GameEnv->Sound->Start_PlaySound(5,true,true,1.0,0);
-        #endif
-        // End of edit
       }
       // EDIT: dispay "TOO HARD" if the new block can't be mined && stop the sound
       else
@@ -274,6 +270,15 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
       }
       // End of edit
     }
+
+    // EDIT: sound again if disabled && breakable
+    if (ToolCompatibleTypes[VoxelType->MiningType])
+    {
+      #if COMPILEOPTION_FNX_SOUNDS_1 == 1
+      if (SoundHandle == 0) SoundHandle = GameEnv->Sound->Start_PlaySound(5,true,true,1.0,0);
+      #endif
+    }
+    // End of edit
 
     // Material resistance is slowly going down
 
