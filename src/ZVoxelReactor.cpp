@@ -2023,8 +2023,10 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                            {
                              case 153: Ext->Robot_Init( &StorageLocation, i,  8,  8, 16,  3,  1 , 1 ); break; // XR-1
                              case 154: Ext->Robot_Init( &StorageLocation, i,  8,  8, 32,  1,  2 , 2 ); break; // XR-2
-                             case 155: Ext->Robot_Init( &StorageLocation, i, 16, 16, 32,  0,  8 , 3 ); break; // XR-3
-                             case 156: Ext->Robot_Init( &StorageLocation, i, 16, 16, 64, -4,  4 , 4 ); break; // XR-4
+                             //case 155: Ext->Robot_Init( &StorageLocation, i, 16, 16, 32,  0,  8 , 3 ); break; // XR-3
+                             //case 156: Ext->Robot_Init( &StorageLocation, i, 16, 16, 64, -4,  4 , 4 ); break; // XR-4
+                             case 155: Ext->Robot_Init( &StorageLocation, i, 8, 16, 32, 1, 3 ); break;
+                             case 156: Ext->Robot_Init( &StorageLocation, i, 8, 16, 64, 0, 4 ); break;
                              case 157: Ext->Robot_Init( &StorageLocation, i, 32, 32, 64, -19, 64, 5 ); break; // XR-5
                              case 158: Ext->Robot_Init( &StorageLocation, i, 32, 32, 64, -37 ,16, 6 );break; // XR-Test
                              //case 159:

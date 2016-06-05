@@ -136,7 +136,6 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
                  // End of edit
                  if (ToolCompatibleTypes[VoxelType->MiningType])
                  {
-<<<<<<< c931411ac904d2444bc7e5971526a2df92ab4ef2
                    // Does the voxel accept to be destroyed.
                    if (!VoxelType->UserAction_TryToDestroy(&Loc, &Reason))
                    {
@@ -147,17 +146,6 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
 
                    // So do it...
                    Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
-=======
->>>>>>> Fixing some bugs for the mining bar and fixed a sound bug
-                   #if COMPILEOPTION_FNX_SOUNDS_1 == 1
-                   if (SoundHandle == 0) SoundHandle = GameEnv->Sound->Start_PlaySound(5,true,true,1.0,0);
-                   #endif
-                 }
-                 else
-                 {
-                   GameEnv->GameWindow_Advertising->Advertise("TOO HARD", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
-                 }
-
                }
                /*
                UShort VoxelType;
