@@ -521,7 +521,12 @@ void ZRender_Basic::Render()
       if (PointedVoxel->CollisionDistance < In.MaxDetectionDistance)
       {
         PointedVoxel->Collided = true;
-        if (BvProp_DisplayVoxelSelector) Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
+        // EDIT: change color of pointed cube if too hard (white to red)
+        if (BvProp_DisplayVoxelSelector)
+        {
+          if (((ZTool_Constructor*)GameEnv->PhysicEngine->GetToolManager()->GetTool(GameEnv->PhysicEngine->GetSelectedActor()->Inventory->GetActualToolSlot()->VoxelType))->Compatible(GameEnv->VoxelTypeManager.GetVoxelType(GameEnv->World->GetVoxel(GameEnv->PhysicEngine->GetSelectedActor()->PointedVoxel.PointedVoxel.x, GameEnv->PhysicEngine->GetSelectedActor()->PointedVoxel.PointedVoxel.y, GameEnv->PhysicEngine->GetSelectedActor()->PointedVoxel.PointedVoxel.z))->VoxelType)) Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 ); else Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
+        }
+        // End of edit
       }
       else PointedVoxel->Collided = false;
     }

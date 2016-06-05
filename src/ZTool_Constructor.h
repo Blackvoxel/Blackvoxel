@@ -66,6 +66,9 @@ class ZTool_Constructor : public ZTool
     virtual void End_Tool();
     virtual void Display();
 
+    // EDIT: adding a function to get ToolCompatibleTypes[type] (an other edit needs that...)
+    bool Compatible(ULong type) { return ToolCompatibleTypes[type]; }
+    // End of edit
 };
 
 class ZTool_Constructor_P2 : public ZTool_Constructor
