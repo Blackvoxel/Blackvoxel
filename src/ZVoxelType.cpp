@@ -135,6 +135,8 @@ Bool ZVoxelType::LoadTexture()
   if (!Image->LoadBMP(FileSpec.String)) { delete Image; return(false); }
   #if COMPILEOPTION_LOWRESTEXTURING==1
   if (Image->Width > 128) Image->ReduceSize();
+  #elif COMPILEOPTION_LOWRESTEXTURING==2
+  if (Image->Width > 256) Image->ReduceSize();
   #endif
   MainTexture = Image;
   if (Image->BytesPerPixel !=4)

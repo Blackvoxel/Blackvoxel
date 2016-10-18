@@ -91,6 +91,8 @@ class ZTextureManager : public ZObject
 
       #if COMPILEOPTION_LOWRESTEXTURING==1
       if (NewImage->Width > 128) {NewImage->ReduceSize(); NewImage->ReduceSize();}
+      #elif COMPILEOPTION_LOWRESTEXTURING==2
+      if (NewImage->Width > 256) {NewImage->ReduceSize();}
       #endif
 
       Texture = new ZTexture_Entry;
