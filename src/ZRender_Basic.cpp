@@ -532,12 +532,17 @@ void ZRender_Basic::Render()
 
           UShort VoxelToolType = Actor->Inventory->GetActualToolSlot()->VoxelType;
 
-          ZTool_Constructor *VoxelTool = dynamic_cast<ZTool_Constructor*>(GameEnv->PhysicEngine->GetToolManager()->GetTool(VoxelToolType));
+          ZTool *VoxelTool = GameEnv->PhysicEngine->GetToolManager()->GetTool(VoxelToolType);
+          if (VoxelTool != NULL)
+          {
+            ZTool_Constructor *VoxelToolConstructor = dynamic_cast<ZTool_Constructor*>(VoxelTool);
 
-          if (VoxelTool->Compatible(VoxelType->MiningType))
-            Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
-          else
-            Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,0.0,0.0 );
+            if (VoxelToolConstructor->Compatible(VoxelType->MiningType))
+              Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
+            else
+              Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,0.0,0.0 );
+          }
+          else Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0, 1.0, 0.0);
         }
         // End of edit
       }
