@@ -147,9 +147,8 @@ Bool ZVoxelType::LoadTexture()
 
   #if COMPILEOPTION_LOWRESTEXTURING>0
   if (Image->Width > 128) Image->ReduceSize();
-  if (COMPILEOPTION_LOWRESTEXTURING>2) while(Image->Width > 128)Image->ReduceSize();
-  if (COMPILEOPTION_LOWRESTEXTURING>3) while(Image->Width > 64) Image->ReduceSize();
-
+  if (COMPILEOPTION_LOWRESTEXTURING>=2) while(Image->Width > 128)Image->ReduceSize();
+  if (COMPILEOPTION_LOWRESTEXTURING>=3) while(Image->Width > 64) Image->ReduceSize();
   #endif
   MainTexture = Image;
   if (Image->BytesPerPixel !=4)

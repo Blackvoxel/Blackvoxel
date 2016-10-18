@@ -88,12 +88,11 @@ class ZTextureManager : public ZObject
 
       NewImage = new ZBitmapImage();
       if (!NewImage->LoadBMP(FileSpec)) { delete NewImage; return(false); }
-
       #if COMPILEOPTION_LOWRESTEXTURING>0
-      if (NewImage->Width > 128 && (AllowReduceSize || COMPILEOPTION_LOWRESTEXTURING>1) )
+      if (NewImage->Width > 128 && (AllowReduceSize || COMPILEOPTION_LOWRESTEXTURING>=1) )
       {
         NewImage->ReduceSize(); NewImage->ReduceSize();
-        if (COMPILEOPTION_LOWRESTEXTURING>2) while(NewImage->Width>MinReducedSize) NewImage->ReduceSize();
+        if (COMPILEOPTION_LOWRESTEXTURING>=2) while(NewImage->Width>MinReducedSize) NewImage->ReduceSize();
       }
       #endif
 
