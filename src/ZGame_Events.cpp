@@ -713,10 +713,22 @@ void ZGame_Events::Process_StillEvents()
     {
       if (!SDL_WM_GrabInput(SDL_GRAB_QUERY))
       {
+        // EDIT: the mouse must be at left up corner when grab on & take care again of mouse move
+#ifdef GOTOZERO_ZERO
+        SDL_WarpMouse(0,0);
+        GameEnv->Game_Events->SetEnableMouseEvents();
+#endif
+        // End of edit.
         SDL_WM_GrabInput(SDL_GRAB_ON); SDL_ShowCursor(SDL_DISABLE);
       }
       else
       {
+        // EDIT: the mouse must be at middle of screen when grab off & shouldn't take care of mouse moves
+#ifdef GOTOZERO_ZERO
+        GameEnv->Game_Events->SetDisableMouseEvents();
+        SDL_WarpMouse((Uint16)GameEnv->ScreenResolution.x / 2.0f,(Uint16)GameEnv->ScreenResolution.y / 2.0f);
+#endif
+        // End of edit.
         SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE);
       }
       Keyboard_Matrix[SDLK_F2] = 0;
