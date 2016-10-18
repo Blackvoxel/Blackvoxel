@@ -327,6 +327,9 @@ void ZActor_Player::Action_MouseButtonClick(ULong Button)
   {
     Tool->Tool_MouseButtonClick(Button);
   }
+  // EDIT: adding a message for when trying to mine without deconstructor
+  else if (Button == 0) GameEnv->GameWindow_Advertising->Advertise("YOU SHOULD PROBABLY TAKE A TOOL", ZGameWindow_Advertising::VISIBILITY_MEDLOW, 0, 1000, 200);
+  // End of edit
 
   /*
   MouseButtonMatrix[Button] = 1;
