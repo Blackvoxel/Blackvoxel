@@ -120,6 +120,11 @@ CDT](https://www.eclipse.org/cdt/).
     sudo apt-get install build-essential libglew-dev libsdl1.2-dev
     tar -xjvf blackvoxel_source*
     cd blackvoxel_source*
+    ccmake .
+```
+4. Then configure Blackvoxel
+5. Then type
+```
     make
 ```
 
@@ -140,6 +145,11 @@ Once build succeded, you can launch Blackvoxel with the following command:
     sudo apt-get install build-essential libglew-dev libsdl1.2-devexit
     tar -xjvf blackvoxel_source*
     cd blackvoxel_source*
+    ccmake .
+```
+4. Then configure
+5. Then type
+```
     make
 ```
 
@@ -172,6 +182,11 @@ Anyway, you need to have hardware 3D OpenGL support to run Blackvoxel.
 Windows
 -------
 
+Version more than 1.38:
+You must use CMake to compile BlackVoxel.
+Unfortunately, I don't know how to do with Windows.
+
+Version less than 1.39:
 Infortunately, building Blackvoxel in Windows isn't as simple as in
 Linux because lacking of an equivalent software package management
 system.

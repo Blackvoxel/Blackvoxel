@@ -30,7 +30,17 @@
 .project
 .settings
 
+# VSCode files and directories
+/.vscode/
+
 # Blackvoxel output files, logs and misc.
 Log.txt
 src/sc_Squirrel3/bin/sq
 FabDatabaseOutput.sql
+blackvoxel
+
+# CMake output files
+CMakeFiles/
+CMakeCache*
+*.cmake
+Makefile
