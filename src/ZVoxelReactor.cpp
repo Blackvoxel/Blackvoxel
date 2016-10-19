@@ -2002,10 +2002,8 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              case 154: Ext->Robot_Init( &StorageLocation, i, 8, 8, 32, 2, 2 ); break;
                              // case 155: Ext->Robot_Init( &StorageLocation, i, 8, 8, 32, 1, 3 ); break;
                              // case 156: Ext->Robot_Init( &StorageLocation, i, 8, 8, 64, 0, 4 ); break;
-                             // EDIT: the XR-3 is not balanced! (And I suppose that XR-4 too)
                              case 155: Ext->Robot_Init( &StorageLocation, i, 8, 16, 32, 1, 3 ); break;
                              case 156: Ext->Robot_Init( &StorageLocation, i, 8, 16, 64, 0, 4 ); break;
-                             // End of edit
                              case 157: Ext->Robot_Init( &StorageLocation, i, 16, 16, 64, -4 , 5 ); break;
                              case 158: Ext->Robot_Init( &StorageLocation, i, 16, 16, 64, -37 , 6 ); break;
                            }

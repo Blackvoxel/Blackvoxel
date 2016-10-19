@@ -519,7 +519,6 @@ void ZRender_Basic::Render()
       if (PointedVoxel->CollisionDistance < In.MaxDetectionDistance)
       {
         PointedVoxel->Collided = true;
-        // EDIT: change color of pointed cube if too hard (white to red)
         if (BvProp_DisplayVoxelSelector)
         {
           ZActor * Actor;
@@ -544,7 +543,6 @@ void ZRender_Basic::Render()
           }
           else Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0, 1.0, 0.0);
         }
-        // End of edit
       }
       else PointedVoxel->Collided = false;
     }
