@@ -105,11 +105,9 @@ Bool ZGameWindow_ResumeRequest::MouseButtonClick(UShort nButton, Short Absolute_
   {
     this->Hide();
     SDL_ShowCursor(SDL_DISABLE);
-    // EDIT: you can select objects at left, fix it
 #ifdef GOTOZERO_ZERO
     SDL_WarpMouse(0,0);
 #endif
-    // End of edit.
     SDL_WM_GrabInput(SDL_GRAB_ON);
     GameEnv->Game_Events->SetEnableMouseEvents();
   }

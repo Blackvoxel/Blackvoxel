@@ -118,22 +118,16 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
                ZVoxelLocation Loc;
                ZString Reason;
 
-               // EDIT: Mining must be enabled when the mouse is pressed...
                MiningInProgress = true;
                GameEnv->GameProgressBar->SetCompletion(0.0f);
                GameEnv->GameProgressBar->Show();
-               // End of edit
                if (Actor->PointedVoxel.Collided)
                {
                  if ( !GameEnv->World->GetVoxelLocation(&Loc, Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z )) break;
                  Voxel = Loc.Sector->Data[Loc.Offset];
                  VoxelType = GameEnv->VoxelTypeManager.GetVoxelType(Voxel);
-                 // EDIT: moved the set to fix a new bug
                  MinedVoxel = Actor->PointedVoxel.PointedVoxel;
-                 // End of edit
-                 // EDIT: fix a new bug: the bar is at 100 percent when too hard, fix it
                  Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
-                 // End of edit
                  if (ToolCompatibleTypes[VoxelType->MiningType])
                  {
                    // Does the voxel accept to be destroyed.
@@ -237,15 +231,11 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
     if (!Actor->PointedVoxel.Collided)
     {
       //Mining_MaterialResistanceCounter = 1000;
-      // EDIT: fix a bug: the bar isn't at 0% when restarting in case of restarting mining the same block as before
       Mining_MaterialResistanceCounter = GameEnv->VoxelTypeManager.GetVoxelType(GameEnv->World->GetVoxel(MinedVoxel.x, MinedVoxel.y, MinedVoxel.z))->MiningHardness;
-      // End of edit
       GameEnv->GameProgressBar->SetCompletion(0.0f);
-      // EDIT: no block, disable sound
       #if COMPILEOPTION_FNX_SOUNDS_1 == 1
       if (SoundHandle != 0) { GameEnv->Sound->Stop_PlaySound(SoundHandle); SoundHandle = 0; }
       #endif
-      // End of edit
       return(true);
     }
 
@@ -259,9 +249,7 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
 
     if (Actor->PointedVoxel.PointedVoxel != MinedVoxel)
     {
-      // EDIT: moved the set to fix a new bug
       MinedVoxel = Actor->PointedVoxel.PointedVoxel;
-      // End of edit
       // Does this tool can break this material ?
       if (ToolCompatibleTypes[VoxelType->MiningType])
       {
@@ -276,7 +264,6 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
         Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
         MiningInProgress = true;
       }
-      // EDIT: dispay "TOO HARD" if the new block can't be mined && stop the sound
       else
       {
         GameEnv->GameWindow_Advertising->Advertise("TOO HARD", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
@@ -284,17 +271,14 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
         if (SoundHandle != 0) { GameEnv->Sound->Stop_PlaySound(SoundHandle); SoundHandle = 0; }
         #endif
       }
-      // End of edit
     }
 
-    // EDIT: sound again if disabled && breakable
     if (ToolCompatibleTypes[VoxelType->MiningType])
     {
       #if COMPILEOPTION_FNX_SOUNDS_1 == 1
       if (SoundHandle == 0) SoundHandle = GameEnv->Sound->Start_PlaySound(5,true,true,1.0,0);
       #endif
     }
-    // End of edit
 
     // Material resistance is slowly going down
 
@@ -315,7 +299,6 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
       GameEnv->Sound->PlaySound(6);
       if (SoundHandle != 0) { GameEnv->Sound->Stop_PlaySound(SoundHandle); SoundHandle = 0; }
       #endif
-      // EDIT: new check, the block forward is destroyed
       {
         if (ToolCompatibleTypes[VoxelType->MiningType])
         {
@@ -332,7 +315,6 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
           GameEnv->GameWindow_Advertising->Advertise("TOO HARD", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
         }
       }
-      // End of edit
       // Sector->Flag_HighPriorityRefresh
     }
   }
