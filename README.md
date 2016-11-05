@@ -203,11 +203,11 @@ Anyway, you need to have hardware 3D OpenGL support to run Blackvoxel.
 Windows
 -------
 
-Version more than 1.38:
+Version 1.*:
 You must use CMake to compile BlackVoxel.
 Unfortunately, I don't know how to do with Windows.
 
-Version less than 1.39:
+Version 2.*:
 Infortunately, building Blackvoxel in Windows isn't as simple as in
 Linux because lacking of an equivalent software package management
 system.
