@@ -61,6 +61,7 @@
 #  include "z/ZStream_File.h"
 #endif
 
+#include <unistd.h>
 
 extern ZGame * Ge;
 
@@ -2240,7 +2241,11 @@ void  ZWorldGenesis::Debug_Out_Zonemap()
 bool ZWorldGenesis::LoadTemplateImages()
 {
   ZString MiscDirectory, FileName;
-  MiscDirectory.AddToPath(COMPILEOPTION_DATAFILESPATH).AddToPath("Misc");
+  if (access(COMPILEOPTION_DATAFILESPATH, F_OK) == 0)
+    MiscDirectory = COMPILEOPTION_DATAFILESPATH;
+  else
+    MiscDirectory = ".";
+  MiscDirectory.AddToPath("Misc");
 
   FileName = MiscDirectory.Path("tmplt_1.dat");
   if (!Template_1.LoadBMP(FileName.String)) return false;

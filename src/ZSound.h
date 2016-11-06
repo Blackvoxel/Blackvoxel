@@ -48,6 +48,8 @@
 
 #define ZSOUND_MAX_SOUNDFILES 512
 
+#include <unistd.h>
+
 class ZSound
 {
   protected:
@@ -198,7 +200,10 @@ class ZSound
 
         FileName.Clear();
         FileName << i << ".wav";
-        FileSpec = COMPILEOPTION_DATAFILESPATH;
+        if (access(COMPILEOPTION_DATAFILESPATH, F_OK) == 0)
+            FileSpec = COMPILEOPTION_DATAFILESPATH;
+	    else
+	        FileSpec = ".";
         FileSpec.AddToPath("Sound").AddToPath(FileName);
         // sprintf(FileName, "Sound/%lu.wav",i);
 
