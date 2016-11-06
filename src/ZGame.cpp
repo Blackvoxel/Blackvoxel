@@ -67,6 +67,8 @@
 #  include "ZLoadingScreen.h"
 #endif
 
+#include <unistd.h>
+static const char *basePath = (access(COMPILEOPTION_DATAFILESPATH, F_OK) == 0) ? COMPILEOPTION_DATAFILESPATH : ".";
 
 bool ZGame::Init_UserDataStorage(ZLog * InitLog)
 {
@@ -89,7 +91,7 @@ bool ZGame::Init_UserDataStorage(ZLog * InitLog)
 
   // Directory for game files
 
-  Path_GameFiles = COMPILEOPTION_DATAFILESPATH;
+  Path_GameFiles = basePath;
 
   // Subdirectories
 
@@ -383,7 +385,6 @@ bool ZGame::Init_TextureManager(ZLog * InitLog)
            Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/buttonpushed.bmp");           Result = TextureManager.LoadBMPTexture(Path.String,17,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }
   if (!Ol){Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/universe_choice_back.bmp");   Result = TextureManager.LoadBMPTexture(Path.String,18,!Pi  ,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }}
   if (!Ol){Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/settings_background.bmp");    Result = TextureManager.LoadBMPTexture(Path.String,19,true ,true,32 );      if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }}
-
 
   Initialized_TextureManager = true;
   InitLog->Log(2, ZLog::INFO, "Ended Ok : Texture Manager Init");

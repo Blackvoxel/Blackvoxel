@@ -43,10 +43,7 @@
 #  include "ZToolsPointer.h"
 #endif
 
-
-
-
-
+#include <unistd.h>
 
 ZVoxelType::ZVoxelType(UShort VoxelType)
 {
@@ -127,7 +124,11 @@ Bool ZVoxelType::LoadTexture()
   if (VoxelType<32768)
   {
     FileName << "voxeltexture_" << (ULong)VoxelType << ".bmp";
-    FileSpec.AddToPath(COMPILEOPTION_DATAFILESPATH).AddToPath("VoxelTypes").AddToPath(FileName);
+    if (access(COMPILEOPTION_DATAFILESPATH, F_OK) == 0)
+      FileSpec = COMPILEOPTION_DATAFILESPATH;
+    else
+      FileSpec = ".";
+    FileSpec.AddToPath("VoxelTypes").AddToPath(FileName);
   }
   else
   {
@@ -170,7 +171,11 @@ Bool ZVoxelType::LoadVoxelInformations()
   if (VoxelType<32768)
   {
     FileName << "voxelinfo_" << (ULong)VoxelType << ".txt";
-    FileSpec.AddToPath(COMPILEOPTION_DATAFILESPATH).AddToPath("VoxelTypes").AddToPath("voxelinfo").AddToPath(FileName);
+    if (access(COMPILEOPTION_DATAFILESPATH, F_OK) == 0)
+      FileSpec = COMPILEOPTION_DATAFILESPATH;
+    else
+      FileSpec = ".";
+    FileSpec.AddToPath("VoxelTypes").AddToPath("voxelinfo").AddToPath(FileName);
 
   }
   else
