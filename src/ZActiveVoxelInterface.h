@@ -57,26 +57,26 @@ class ZActiveVoxelInterface
     struct ZBlocPosN{ Byte x,y,z; } * _xbp;
 
     ZVector3L         Coords;
-    VoxelLocation     Location;
+    ZVoxelLocation     Location;
     ZGame             * GameEnv;
     ZVoxelWorld       * World;
     ZVoxelTypeManager * VoxelTypeManager;
 
     inline UShort              GetVoxelType_Main();
-    inline UShort              GetVoxelType(VoxelLocation * VoxelLocation);
+    inline UShort              GetVoxelType(ZVoxelLocation * VoxelLocation);
     inline ZVoxelExtension *   GetVoxelExtension_Main();
-    inline ZVoxelExtension *   GetVoxelExtension( VoxelLocation * VoxLocation ) { return((ZVoxelExtension *)VoxLocation->Sector->OtherInfos[VoxLocation->Offset]);};
+    inline ZVoxelExtension *   GetVoxelExtension( ZVoxelLocation * VoxLocation ) { return((ZVoxelExtension *)VoxLocation->Sector->OtherInfos[VoxLocation->Offset]);};
     inline bool                MoveThis( int x, int y, int z, ZChangeImportance ChangeImportance);
     inline bool                MoveThis_Abs( ZVector3L * Destination, ZChangeImportance ChangeImportance );
     inline bool                MoveVoxel( ZVector3L * Source, ZVector3L * Destination, ZChangeImportance ChangeImportance = ZActiveVoxelInterface::CHANGE_CRITICAL );
     inline bool                ExchangeVoxels(ZVector3L * Voxel1, ZVector3L * Voxel2, ZChangeImportance ChangeImportance);
     inline bool                SetVoxel( ZVector3L * Coords, UShort VoxelType, ZChangeImportance ChangeImportance );
-    inline bool                SetVoxelExt( ZVector3L * Coords, UShort VoxelType, ZChangeImportance ChangeImportance, VoxelLocation * VoxLocation );
+    inline bool                SetVoxelExt( ZVector3L * Coords, UShort VoxelType, ZChangeImportance ChangeImportance, ZVoxelLocation * VoxLocation );
     inline UShort              GetVoxel( ZVector3L * Coords );
-    inline bool                GetVoxelExt_Abs( ZVector3L * Coords, UShort & VoxelType, VoxelLocation * VoxLocation );
-    inline bool                GetVoxelExt( Long x, Long y, Long z , UShort & VoxelType, VoxelLocation * VoxLocation );
-    inline bool                GetVoxelPointers( ZVector3L * Coords, VoxelLocation * VoxelLocation)                         { return(World->GetVoxelLocation(VoxelLocation, Coords)); }
-    inline bool                GetNeighborVoxel(ULong PositionCode, VoxelLocation * VoxelLocation );
+    inline bool                GetVoxelExt_Abs( ZVector3L * Coords, UShort & VoxelType, ZVoxelLocation * VoxLocation );
+    inline bool                GetVoxelExt( Long x, Long y, Long z , UShort & VoxelType, ZVoxelLocation * VoxLocation );
+    inline bool                GetVoxelPointers( ZVector3L * Coords, ZVoxelLocation * VoxelLocation)                         { return(World->GetVoxelLocation(VoxelLocation, Coords)); }
+    inline bool                GetNeighborVoxel(ULong PositionCode, ZVoxelLocation * VoxelLocation );
 };
 
 inline bool  ZActiveVoxelInterface::MoveThis_Abs( ZVector3L * Destination, ZChangeImportance ChangeImportance )
@@ -104,7 +104,7 @@ inline UShort ZActiveVoxelInterface::GetVoxelType_Main()
   return(Location.Sector->Data[Location.Offset]);
 }
 
-inline UShort ZActiveVoxelInterface::GetVoxelType(VoxelLocation * VoxelLocation)
+inline UShort ZActiveVoxelInterface::GetVoxelType(ZVoxelLocation * VoxelLocation)
 {
   return(VoxelLocation->Sector->Data[VoxelLocation->Offset]);
 }
@@ -116,13 +116,13 @@ inline ZVoxelExtension * ZActiveVoxelInterface::GetVoxelExtension_Main()
 
 inline bool ZActiveVoxelInterface::SetVoxel( ZVector3L * Coords, UShort VoxelType, ZChangeImportance ChangeImportance )
 {
-  VoxelLocation     VoxLocation;
+  ZVoxelLocation     VoxLocation;
   if (!World->SetVoxel_WithCullingUpdate( Coords->x, Coords->y, Coords->z, VoxelType, (UByte) ChangeImportance, true, &VoxLocation ) ) return(false);
   VoxLocation.Sector->ModifTracker.Set(VoxLocation.Offset);
   return(true);
 }
 
-inline bool ZActiveVoxelInterface::SetVoxelExt( ZVector3L * Coords, UShort VoxelType, ZChangeImportance ChangeImportance, VoxelLocation * VoxLocation )
+inline bool ZActiveVoxelInterface::SetVoxelExt( ZVector3L * Coords, UShort VoxelType, ZChangeImportance ChangeImportance, ZVoxelLocation * VoxLocation )
 {
   if (!World->SetVoxel_WithCullingUpdate( Coords->x, Coords->y, Coords->z, VoxelType, (UByte) ChangeImportance, true, VoxLocation ) ) return(false);
   VoxLocation->Sector->ModifTracker.Set(VoxLocation->Offset);
@@ -135,21 +135,21 @@ inline UShort ZActiveVoxelInterface::GetVoxel( ZVector3L * Coords )
 }
 
 
-inline bool  ZActiveVoxelInterface::GetVoxelExt_Abs( ZVector3L * Coords, UShort & VoxelType, VoxelLocation * VoxLocation )
+inline bool  ZActiveVoxelInterface::GetVoxelExt_Abs( ZVector3L * Coords, UShort & VoxelType, ZVoxelLocation * VoxLocation )
 {
   if (!World->GetVoxelLocation(VoxLocation, Coords)) { VoxelType = 65535; return(false); }
   VoxelType = VoxLocation->Sector->Data[ VoxLocation->Offset ];
   return(true);
 }
 
-inline bool ZActiveVoxelInterface::GetVoxelExt( Long x, Long y, Long z , UShort & VoxelType, VoxelLocation * VoxLocation )
+inline bool ZActiveVoxelInterface::GetVoxelExt( Long x, Long y, Long z , UShort & VoxelType, ZVoxelLocation * VoxLocation )
 {
   if (!World->GetVoxelLocation(VoxLocation , Coords.x + x, Coords.y + y, Coords.z + z)) { VoxelType = 65535; return(false); }
   VoxelType = VoxLocation->Sector->Data[ VoxLocation->Offset ];
   return(true);
 }
 
-inline bool ZActiveVoxelInterface::GetNeighborVoxel(ULong PositionCode, VoxelLocation * VoxelLocation )
+inline bool ZActiveVoxelInterface::GetNeighborVoxel(ULong PositionCode, ZVoxelLocation * VoxelLocation )
 {
   ZVector3L NewCoords;
 

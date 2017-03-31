@@ -93,7 +93,8 @@ void ZGameWindow_Inventory::Show()
     MainInventory[Indice].SetVoxelTypeManager(&GameEnv->VoxelTypeManager);
     MainInventory[Indice].SetPosition(32.0f + x*70.0f, Rp.y );
     MainInventory[Indice].SetSize(64.0f,64.0f);
-    MainInventory[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(3));
+    MainInventory[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_2), ZInventoryBox::FONTTYPE_MAIN);
+    MainInventory[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_1), ZInventoryBox::FONTTYPE_REDUCED);
     MainInventory[Indice].SetVoxelType(&Entry->VoxelType);
     MainInventory[Indice].SetQuantity(&Entry->Quantity);
     MainInventory[Indice].SetColor(255.0f,255.0f,255.0f);
@@ -124,7 +125,8 @@ void ZGameWindow_Inventory::Show()
       MainInventory[Indice].SetVoxelTypeManager(&GameEnv->VoxelTypeManager);
       MainInventory[Indice].SetPosition(32.0f + x*70.0f, Rp.y );
       MainInventory[Indice].SetSize(64.0f,64.0f);
-      MainInventory[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(3));
+      MainInventory[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_2), ZInventoryBox::FONTTYPE_MAIN);
+      MainInventory[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_1), ZInventoryBox::FONTTYPE_REDUCED);
       MainInventory[Indice].SetVoxelType(&Entry->VoxelType);
       MainInventory[Indice].SetQuantity(&Entry->Quantity);
       MainInventory[Indice].SetColor(128.0f,128.0f,128.0f);
@@ -154,7 +156,8 @@ void ZGameWindow_Inventory::Show()
     MainInventory[Indice].SetVoxelTypeManager(&GameEnv->VoxelTypeManager);
     MainInventory[Indice].SetPosition(32.0f + x*70.0f, Rp.y );
     MainInventory[Indice].SetSize(64.0f,64.0f);
-    MainInventory[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(3));
+    MainInventory[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_2), ZInventoryBox::FONTTYPE_MAIN);
+    MainInventory[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_1), ZInventoryBox::FONTTYPE_REDUCED);
     MainInventory[Indice].SetVoxelType(&Entry->VoxelType);
     MainInventory[Indice].SetQuantity(&Entry->Quantity);
     MainInventory[Indice].SetColor(255.0f,255.0f,255.0f);

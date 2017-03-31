@@ -117,7 +117,7 @@
       glEnd();
     }
 
-    bool _FastParseHex(char const * Text, ULong &Offset, ULong & Result)
+    bool _Buggy_FastParseHex(char const * Text, ULong &Offset, ULong & Result)
     {
 
       char c;
@@ -127,6 +127,24 @@
         c = Text[Offset]; if (!c) return(false);
         if      (c >= '0' && c <= '9' ) c-=48;
         else if (c >= 'A' && c <= 'F' ) c-='A'+10;
+        else return(true);
+        Result <<= 4;
+        Result += c;
+        Offset++;
+      }
+      return(false);
+    }
+
+    bool _FastParseHex(char const * Text, ULong &Offset, ULong & Result)
+    {
+
+      char c;
+
+      for (;;)
+      {
+        c = Text[Offset]; if (!c) return(false);
+        if      (c >= '0' && c <= '9' ) c-=48;
+        else if (c >= 'A' && c <= 'F' ) c-=55;
         else return(true);
         Result <<= 4;
         Result += c;
@@ -169,9 +187,20 @@
           if (c!=':') return;
           switch(Cmd)
           {
-            case 1: if (!_FastParseHex(TextToRender, i, Value)) return;
+            /*
+            // buggy
+            case 1: if (!_Buggy_FastParseHex(TextToRender, i, Value)) return;
                     glColor3d((Value>>16) & 0xff, (Value >> 8) & 0xff, Value & 0xff );
                     break;
+            */
+
+            // Change color
+            case 1: if (!_FastParseHex(TextToRender, i, Value)) return;
+                    glColor3d( ((double)((Value>>16) & 0xff))/255.0,
+                               ((double)((Value >> 8) & 0xff))/255.0,
+                               ((double)(Value & 0xff ))/255.0       );
+                    break;
+
             default: return;
           }
           c=(UByte)(TextToRender[i]);

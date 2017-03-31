@@ -50,7 +50,7 @@ class ZVoxelType_FusionElement : public ZVoxelType
 
     // The user click the activation button(Middle) on the voxel to activate special functions.
     virtual void  UserAction_Activate(ZMemSize VoxelInfo, Long x, Long y, Long z);
-
+    virtual void  GetScanInformations(ZVoxelCoords * VoxelCoords, UShort VoxelType, ZMemSize VoxelInfo, ZString & Infos);
 
 };
 

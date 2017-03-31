@@ -381,8 +381,9 @@ void ZRender_Basic::Render()
                 RefreshToDo[Sector->RefreshWaitCount]--;
                 Sector->Flag_HighPriorityRefresh = false;
 
-                if (Sector->Flag_NeedSortedRendering) MakeSectorRenderingData_Sorted(Sector);
-                else                                  MakeSectorRenderingData(Sector);
+                if (   Sector->Flag_NeedSortedRendering
+                    || COMPILEOPTION_FORCE_SORTED_RENDERING ) MakeSectorRenderingData_Sorted(Sector);
+                else                                          MakeSectorRenderingData(Sector);
 
                 Sector_Refresh_Count++;
                 Sector->RefreshWaitCount = 0;
@@ -512,6 +513,7 @@ void ZRender_Basic::Render()
 
     ZVector3d CamPoint(Camera->x,Camera->y,Camera->z);
     ZVector3d Zp;
+
     Zp = PointedVoxel->CollisionPoint; Zp.y = PointedVoxel->CollisionPoint.y + 100.0;
 
     if (World->RayCast_Vector(ZVector3d(Camera->x,Camera->y,Camera->z),Norm , &In, PointedVoxel))
@@ -768,10 +770,21 @@ Bool ZRender_Basic::LoadVoxelTexturesToGPU()
                       (GLubyte *)VoxelType->MainTexture->BitmapMemory//Addresse de l'image
                      );
         */
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // GL_LINEAR GL_NEAREST
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+        if (VoxelTypeManager->VoxelTable[i]->Draw_LinearInterpolation)
+        {
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // GL_LINEAR GL_NEAREST
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        }
+        else
+        {
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // GL_LINEAR GL_NEAREST
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        }
+
         // if (i & 1) glTexParameteri(GL_TEXTURE_2D, 0x84FE /*TEXTURE_MAX_ANISOTROPY_EXT*/, 8);
-        glTexParameteri(GL_TEXTURE_2D, 0x84FE /*TEXTURE_MAX_ANISOTROPY_EXT*/, 8);
+        if (COMPILEOPTION_ANISOTROPICTEXTURINGLEVEL>0) glTexParameteri(GL_TEXTURE_2D, 0x84FE /*TEXTURE_MAX_ANISOTROPY_EXT*/, COMPILEOPTION_ANISOTROPICTEXTURINGLEVEL);
         gluBuild2DMipmaps(GL_TEXTURE_2D,      //Type : texture 2D
             GL_RGBA8,          //Format : RGBA
             VoxelType->MainTexture->Width,         //Width
@@ -838,10 +851,11 @@ Bool ZRender_Basic::LoadTexturesToGPU()
       }
       else
       {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // GL_LINEAR GL_NEAREST
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // GL_LINEAR GL_NEAREST
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       }
-      glTexParameteri(GL_TEXTURE_2D, 0x84FE /*TEXTURE_MAX_ANISOTROPY_EXT*/, 8);
+
+      if (COMPILEOPTION_ANISOTROPICTEXTURINGLEVEL>0) glTexParameteri(GL_TEXTURE_2D, 0x84FE /*TEXTURE_MAX_ANISOTROPY_EXT*/, COMPILEOPTION_ANISOTROPICTEXTURINGLEVEL);
       gluBuild2DMipmaps(GL_TEXTURE_2D,      //Type : texture 2D
           GL_RGBA8,          //Format : RGBA
           Entry->Texture->Width,         //Width

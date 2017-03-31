@@ -105,12 +105,14 @@ bool ZVoxelExtension_Programmable::Save(ZStream_SpecialRamStream * Stream)
   ExtensionSize = Stream->GetPointer_ULong();
   Stream->Put(0u);       // The size of the extension (defered storage).
   StartLen = Stream->GetActualBufferLen();
-  Stream->Put((UShort)3); // Extension Version;
+  Stream->Put((UShort)4); // Extension Version;
 
   // Storage informations.
   Stream->Put(ScriptNum);
-  Stream->Put(Script_Engine.ScriptCompiledOK);
+  //Stream->Put(Script_Engine.ScriptCompiledOK);
+  Stream->Put(IsAllowedToRun);
   Stream->Put(RobotSerialNumber);
+  Stream->Put(Overclock);
   Stream->PutZone(&VoxelType,sizeof(VoxelType));
   Stream->PutZone(&VoxelQuantity,sizeof(VoxelQuantity));
 
@@ -134,12 +136,15 @@ bool ZVoxelExtension_Programmable::Load(ZStream_SpecialRamStream * Stream)
 
   // Check for supported extension version. If unsupported new version, throw content and continue with a blank extension.
 
-  if (ExtensionVersion>3) { ExtensionSize-=2; for(ZMemSize i=0;i<ExtensionSize;i++) Ok = Stream->Get(Temp_Byte); if (Ok) return(true); else return(false);}
+  if (ExtensionVersion>4) { ExtensionSize-=2; for(ZMemSize i=0;i<ExtensionSize;i++) Ok = Stream->Get(Temp_Byte); if (Ok) return(true); else return(false);}
 
   Ok&=Stream->Get(ScriptNum);
-  Ok&=Stream->Get(Compiled);
+  if (ExtensionVersion<4) Ok&=Stream->Get(Compiled);
+  if (ExtensionVersion>3) Ok&=Stream->Get(IsAllowedToRun);
   if (ExtensionVersion>2) Ok&=Stream->Get(RobotSerialNumber);
   else                    RobotSerialNumber = Ge->Machine_Serial++;
+  if (ExtensionVersion>3) Ok&=Stream->Get(Overclock);
+  else                    Overclock = 0;
 
   Ok&=Stream->GetZone(&VoxelType, sizeof(VoxelType));
   Ok&=Stream->GetZone(&VoxelQuantity, sizeof(VoxelQuantity));

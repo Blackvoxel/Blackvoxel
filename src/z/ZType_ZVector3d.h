@@ -311,7 +311,6 @@ class ZVector3d
     return(true);
   }
 
-
   inline ZVector3d & Rotate( double yaw, double pitch, double roll)
   {
     double radconv = 57.295779513;

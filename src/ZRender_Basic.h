@@ -164,7 +164,7 @@ class ZRender_Basic
     void SetCamera          ( ZCamera * Camera );
     void SetVoxelTypeManager( ZVoxelTypeManager * Manager );
     void SetTextureManager  ( ZTextureManager * Manager ) { this->TextureManager = Manager; }
-    void SetPointedVoxel    ( ZRayCast_out * Pvoxel)         { this->PointedVoxel = Pvoxel; }
+    void SetPointedVoxel    ( ZRayCast_out * PVoxel)         { this->PointedVoxel = PVoxel; }
     void SetViewportResolution(ZVector2L &Resolution) { ViewportResolution = Resolution; }
     void SetVerticalFOV(double VFov)                  { VerticalFOV = VFov; }
     void SetPixelAspectRatio(double AspectRatio = 1.0){ PixelAspectRatio = AspectRatio; }

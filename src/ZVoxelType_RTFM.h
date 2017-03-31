@@ -42,6 +42,10 @@ class ZVoxelType_RTFM : public ZVoxelType
       Is_HasHelpingMessage = true;
       HelpingMessage = "RTFM : YOU SHOULD READ THE GAME MANUAL ON THE WEBSITE";
     }
+
+    virtual void Event_Start_Selected(ZVoxelLocation * Loc, ZVector3L * Coords);
+    virtual void Event_Is_Selected(ZVoxelLocation * Loc, ZVector3L * Coords);
+    virtual void Event_End_Selected(ZVoxelLocation * Loc, ZVector3L * Coords);
 };
 
 

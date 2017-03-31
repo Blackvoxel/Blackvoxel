@@ -42,6 +42,9 @@
 class ZGame_DevHelpers
 {
 
+    static bool OutputZoneImage(ZString & HelperDirectory);
+    static bool OutputZoneHeight(ZString & HelperDirectory);
+
   public:
     static bool OutputHelpers(ZString & HelperDirectory);
 

@@ -36,7 +36,7 @@
 #endif
 
 
-bool ZVoxelType_IndicatorLight::Interface_GetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * Out)
+bool ZVoxelType_IndicatorLight::Interface_GetInfo(ZVoxelLocation * VLoc, ULong InfoNum, ZVar * Out)
 {
   switch(InfoNum)
   {
@@ -66,7 +66,7 @@ bool  ZVoxelType_IndicatorLight::Interface_GetInfoDoc(ULong InfoNum, ULong DocTy
   return(true);
 }
 
-bool ZVoxelType_IndicatorLight::Interface_SetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * In)
+bool ZVoxelType_IndicatorLight::Interface_SetInfo(ZVoxelLocation * VLoc, ULong InfoNum, ZVar * In)
 {
   switch (InfoNum)
   {

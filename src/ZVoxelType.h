@@ -60,6 +60,7 @@ class ZStream_SpecialRamStream;
 class ZFabInfos;
 class ZVoxelTypeManager;
 class ZActiveVoxelInterface;
+class ZToolsPointer;
 
 
 class ZVoxelType
@@ -70,12 +71,17 @@ class ZVoxelType
   public:
     ZString VoxelTypeName;
     //UByte CanPassThrough;
-// Obsoleted
+
+   // Rendering
+
+    // Obsoleted
     bool  Draw_TransparentRendering;
     bool  Draw_FullVoxelOpacity;
-// New
+    // New
     UByte DrawInfo;
-//
+    bool  Draw_LinearInterpolation;
+
+    //
     UShort VoxelType;
     ZBitmapImage * MainTexture;
     unsigned int   OpenGl_TextureRef;
@@ -94,6 +100,7 @@ class ZVoxelType
     bool BvProp_CanBePickedUpByRobot;  // User programmable robot can pick it up.
     bool BvProp_AtomicFireResistant;   // Z Fire
     bool BvProp_EgmyT1Resistant;
+    bool BvProp_AccelerateOnFall;      // Convert Y velocity to horizontal velocity.
     UByte BvProp_XrRobotPickMinLevel;       // xr1 extraction robot can pick it up.
     UByte BvProp_PrRobotReplaceMinLevel;       // Pr  programmable robot level to destroy it.
     UByte BvProp_PrRobotPickMinLevel;          // Pr  programmable robot level to pick it up.
@@ -126,6 +133,7 @@ class ZVoxelType
     bool Is_Interface_PullBlock;
     bool Is_Interface_GetInfo;
     bool Is_Interface_SetInfo;
+    bool Is_Interface_SetLocation;
 
 // Material Caracteristics
 
@@ -142,6 +150,7 @@ class ZVoxelType
 
 // Autres flags
 
+    bool   Is_Power;    // This voxel have an action when placed in the powers bar.
     bool   Is_Rideable; // This voxel is a vehicle where player can board in.
     bool   Is_HasHelpingMessage;
     ZString HelpingMessage;
@@ -164,23 +173,38 @@ class ZVoxelType
     virtual void  DeleteVoxelExtension(ZMemSize VoxelExtension, bool IsUnloadingPhase = false);
 
     //
-
+    virtual bool  UserAction_TryToDestroy(ZVoxelLocation * DestLocation, ZString * Reason) { return(true); }
     virtual void  UserAction_Activate(ZMemSize VoxelInfo, Long x, Long y, Long z) {}
 
     virtual bool  Interface_StoreBlock_Store( UShort VoxelType, ULong Count ) { return(false); }
-    virtual ULong Interface_PushBlock_Push( VoxelLocation * DestLocation,  UShort  VoxelType, ULong Count ) { return(0); }
-    virtual ULong Interface_PushBlock_PushTest( VoxelLocation * DestLocation,  UShort  VoxelType, ULong Count ) {return(Count);}
-    virtual ULong Interface_PushBlock_Pull( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count ) { return(0);}
-    virtual ULong Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count ) { return(0);}
+    virtual ULong Interface_PushBlock_Push( ZVoxelLocation * DestLocation,  UShort  VoxelType, ULong Count ) { return(0); }
+    virtual ULong Interface_PushBlock_PushTest( ZVoxelLocation * DestLocation,  UShort  VoxelType, ULong Count ) {return(Count);}
+    virtual ULong Interface_PushBlock_Pull( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count ) { return(0);}
+    virtual ULong Interface_PushBlock_PullTest( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count ) { return(0);}
 
-    virtual bool  Interface_GetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * Out) { return(false); }
+    virtual bool  Interface_GetInfo(ZVoxelLocation * VLoc, ULong InfoNum, ZVar * Out) { return(false); }
     virtual bool  Interface_GetInfoDoc(ULong InfoNum, ULong DocType, ZVar * Out) { return(false); }
-    virtual bool  Interface_SetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * In)  { return(false); }
-    virtual void  GetBlockInformations(VoxelLocation * DestLocation, ZString & Infos) { return; }
+    virtual bool  Interface_SetInfo(ZVoxelLocation * VLoc, ULong InfoNum, ZVar * In)  { return(false); }
+    virtual bool  Interface_SetPointingLocation(ZVoxelLocation * VLoc, ZToolsPointer * ToolsPointer, ULong Slot, ZVector3L * Location, ZString * OutMessage );
+    virtual void  GetBlockInformations(ZVoxelLocation * DestLocation, ZString & Infos) { return; }
+    virtual void  GetScanInformations(ZVoxelCoords * VoxelCoords, UShort VoxelType, ZMemSize VoxelInfo, ZString & Infos)  { return; }
 
     // When an active voxel should be processed. Note some voxels use "direct" faster way.
 
     virtual void  ActiveProcess( ZActiveVoxelInterface * AvData) {};
+
+    // Powers Interface
+
+    virtual void Power_Start() {}
+    virtual void Power_End()   {}
+    virtual void Power_DoWork(){}
+
+    // Voxel Events
+
+    virtual void Event_Start_Selected(ZVoxelLocation * Loc, ZVector3L * Coords) {}
+    virtual void Event_Is_Selected(ZVoxelLocation * Loc, ZVector3L * Coords)    {}
+    virtual void Event_End_Selected(ZVoxelLocation * Loc, ZVector3L * Coords)   {}
+
 };
 
 

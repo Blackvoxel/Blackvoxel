@@ -141,7 +141,7 @@ class ZFileSectorLoader : public ZSectorLoader
     void                   SetVoxelTypeManager(ZVoxelTypeManager * VoxelTypeManager) { this->VoxelTypeManager = VoxelTypeManager; }
     void                   SetUniverseNum(ULong UniverseNum) { this->UniverseNum = UniverseNum; }
 
-    void MakeTasks();
+    bool MakeTasks();
 
     void LimitedUpdateFaceCulling(ZVoxelSector * Sector );
     void NoDrawFaceCulling(ZVoxelSector * Sector );

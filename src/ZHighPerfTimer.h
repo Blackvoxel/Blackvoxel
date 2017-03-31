@@ -38,23 +38,50 @@ class ZHighPerfTimer
 {
     UELong StartTime;
     UELong EndTime;
+    UELong IntermediateTime;
     UELong Result;
 
   public:
 
-    ZHighPerfTimer()               { StartTime = 0; EndTime = 0; Result = 0; }
+    ZHighPerfTimer()               { StartTime = EndTime = Result = IntermediateTime = 0; }
 
     static UELong GetActualTime(); // Return time counter in microseconds
-    void Start() { StartTime = GetActualTime(); }
-    void End()   {
-                   EndTime = GetActualTime();
-                   Result = EndTime - StartTime;
-                   if (StartTime > EndTime) Result = 1; // Workaround for timechange causing problems.
-                 }
 
-    ULong GetResult() { return((ULong)( Result)); }
+    void Start() { StartTime = IntermediateTime = GetActualTime(); }
 
-    UELong GetLongResult() { return(Result); }
+    ULong GetIntermediateResult()
+    {
+      return((ULong)(GetActualTime() - StartTime));
+    }
+
+    ULong GetIntermediateSlice()
+    {
+      UELong ActualTime;
+      ULong  Result;
+
+      ActualTime = GetActualTime();
+      Result = (ULong)(ActualTime - IntermediateTime);
+      IntermediateTime = ActualTime;
+
+      return(Result);
+    }
+
+    void End()
+    {
+      EndTime = GetActualTime();
+      Result = EndTime - StartTime;
+      if (StartTime > EndTime) Result = 1; // Workaround for timechange causing problems.
+    }
+
+    ULong GetResult()
+    {
+      return((ULong)( Result));
+    }
+
+    UELong GetLongResult()
+    {
+      return(Result);
+    }
 
 };
 

@@ -43,7 +43,7 @@ ZVoxelType_LightTransmitter::ZBlocPosN ZVoxelType_LightTransmitter::nbp6[6] =
   { 0, 0, 1}
 };
 
-ULong ZVoxelType_LightTransmitter::Interface_PushBlock_Push( VoxelLocation * DestLocation, UShort VoxelType, ULong Count )
+ULong ZVoxelType_LightTransmitter::Interface_PushBlock_Push( ZVoxelLocation * DestLocation, UShort VoxelType, ULong Count )
 {
   ZVector3L Location, CommingDirection;
   ZTransmitterContext Context;
@@ -65,7 +65,7 @@ ULong ZVoxelType_LightTransmitter::Interface_PushBlock_Push( VoxelLocation * Des
 
   ZMemSize nElements,i,j;
   ZVector3L * Element, NewPos;
-  VoxelLocation NewLocation;
+  ZVoxelLocation NewLocation;
   UShort Voxel;
   ULong ChoosenElement, PlacedCount;
 
@@ -87,12 +87,23 @@ ULong ZVoxelType_LightTransmitter::Interface_PushBlock_Push( VoxelLocation * Des
         PlacedCount += GameEnv->VoxelTypeManager.VoxelTable[Voxel]->Interface_PushBlock_Push(&NewLocation, VoxelType, Count);
         if ( (Count - PlacedCount) == 0 ) return(PlacedCount);
       }
+      else if (Voxel==248 || Voxel == 98) // Materializer
+      {
+        NewPos.x = NewPos.x + nbp6[j].x; NewPos.y = NewPos.y + nbp6[j].y; NewPos.z = NewPos.z + nbp6[j].z;
+        Voxel = GameEnv->World->GetVoxel(&NewPos);
+        if (Voxel == 0)
+        {
+           PlacedCount++;
+           GameEnv->World->SetVoxel_WithCullingUpdate(NewPos.x, NewPos.y,NewPos.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL ,true);
+        }
+        if ( (Count - PlacedCount) == 0 ) return(PlacedCount);
+      }
     }
   }
   return(PlacedCount);
 }
 
-ULong ZVoxelType_LightTransmitter::Interface_PushBlock_PushTest( VoxelLocation * DestLocation, UShort VoxelType, ULong Count )
+ULong ZVoxelType_LightTransmitter::Interface_PushBlock_PushTest( ZVoxelLocation * DestLocation, UShort VoxelType, ULong Count )
 {
   ZVector3L Location, CommingDirection;
   ZTransmitterContext Context;
@@ -114,7 +125,7 @@ ULong ZVoxelType_LightTransmitter::Interface_PushBlock_PushTest( VoxelLocation *
 
   ZMemSize nElements,i,j;
   ZVector3L * Element, NewPos;
-  VoxelLocation NewLocation;
+  ZVoxelLocation NewLocation;
   UShort Voxel;
   ULong ChoosenElement, PlacedCount;
 
@@ -127,13 +138,20 @@ ULong ZVoxelType_LightTransmitter::Interface_PushBlock_PushTest( VoxelLocation *
     for (j=0;j<6;j++)
     {
       NewPos.x = Element->x + nbp6[j].x; NewPos.y = Element->y + nbp6[j].y; NewPos.z = Element->z + nbp6[j].z;
-      Voxel = GameEnv->World->GetVoxel(NewPos.x,NewPos.y,NewPos.z);
+      Voxel = GameEnv->World->GetVoxel(&NewPos);
 
       if (GameEnv->VoxelTypeManager.VoxelTable[Voxel]->Is_Interface_PushBlock)
       {
 
         GameEnv->World->GetVoxelLocation( &NewLocation,NewPos.x, NewPos.y ,NewPos.z );
         PlacedCount += GameEnv->VoxelTypeManager.VoxelTable[Voxel]->Interface_PushBlock_PushTest(&NewLocation, VoxelType, Count);
+        if ( (Count - PlacedCount) == 0 ) return(PlacedCount);
+      }
+      else if (Voxel == 248 || Voxel == 98) // Materializer
+      {
+        NewPos.x = NewPos.x + nbp6[j].x; NewPos.y = NewPos.y + nbp6[j].y; NewPos.z = NewPos.z + nbp6[j].z;
+        Voxel = GameEnv->World->GetVoxel(&NewPos);
+        if (Voxel == 0) PlacedCount++;
         if ( (Count - PlacedCount) == 0 ) return(PlacedCount);
       }
     }
@@ -158,15 +176,19 @@ void ZVoxelType_LightTransmitter::LightTransmitter_FindEndPoints(ZVector3L * Loc
 
 
       VoxelType = GameEnv->World->GetVoxel(NewPos.x, NewPos.y,NewPos.z);
-      if (VoxelType == 99) LightTransmitter_FollowTransmitter(&NewPos, &Direction, Context );
-      if (VoxelType == 102)
+      switch(VoxelType)
       {
-        if (!Context->NodeTable.IsElementInTable(&NewPos))
-        {
-          Context->NodeTable.AddToTable(&NewPos);
-          NewCommingDirection.x = -Direction.x; NewCommingDirection.y = -Direction.y; NewCommingDirection.z = -Direction.z;
-          LightTransmitter_FindEndPoints( &NewPos, &NewCommingDirection, Context );
-        }
+        case  99:  LightTransmitter_FollowTransmitter(&NewPos, &Direction, Context ); break;
+        case 101:  Context->EndPointTable.AddToTable(&NewPos);
+                   break;
+        case 102:  if (!Context->NodeTable.IsElementInTable(&NewPos))
+                   {
+                     Context->NodeTable.AddToTable(&NewPos);
+                     NewCommingDirection.x = -Direction.x; NewCommingDirection.y = -Direction.y; NewCommingDirection.z = -Direction.z;
+                     LightTransmitter_FindEndPoints( &NewPos, &NewCommingDirection, Context );
+                   }
+                   break;
+        default:   break;
       }
   }
 }

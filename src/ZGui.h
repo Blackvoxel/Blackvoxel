@@ -223,6 +223,7 @@ class ZFrame : public ZObject
     virtual void SetDragPosition(float x, float y) { DragAbsolutePosition.x = x; DragAbsolutePosition.y = y; }
     virtual void SetZPosition(float z) {Dimensions.Position_z = z;}
     virtual void SetSize    (float Width, float Height) {Dimensions.Width = Width ; Dimensions.Height = Height; }
+    virtual void SetSize    (ZVector2f * Size)          {Dimensions.Width = Size->x; Dimensions.Height = Size->y; }
     virtual void GetSize    (float &Width, float &Height) {Width = Dimensions.Width; Height = Dimensions.Height; }
     virtual void SetDepth   (float Depth)               {Dimensions.Depth = Depth ;}
     virtual void SetColor   (float r,float v, float b)  {DrawColor.r = r; DrawColor.v = v; DrawColor.b = b; }

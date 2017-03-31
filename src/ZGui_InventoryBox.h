@@ -48,11 +48,13 @@
 
 class ZInventoryBox : public ZFrame
 {
+  protected:
     UShort   * VoxelType;
     ULong    * Quantity;
     ZVoxelTypeManager * VoxelTypeManager;
     ZTileStyle * TileStyle;
-
+    ZTileStyle * TileStyle_Reduced;
+    ZMemSize   ReducedFontThreshold;
 
   public:
     ZInventoryBox ()
@@ -60,11 +62,27 @@ class ZInventoryBox : public ZFrame
       FrameType = MulticharConst('I','B','O','X'); // = InventoryBox;
       Flag_Cap_Dragable = true;
       VoxelType = 0;
+      Quantity = 0;
+      VoxelTypeManager = 0;
+      TileStyle = 0;
+      TileStyle_Reduced = 0;
+      ReducedFontThreshold = 4;
     }
+
+    enum FontType {FONTTYPE_MAIN=0, FONTTYPE_REDUCED=1};
 
     virtual void SetVoxelType( UShort * VoxelType ) { this->VoxelType = VoxelType; }
     virtual void SetQuantity( ULong * Quantity )    { this->Quantity = Quantity;   }
-    virtual void SetTileStyle( ZTileStyle * Style ) { this->TileStyle = Style; }
+    virtual void SetTileStyle( ZTileStyle * Style, FontType TyleType=FONTTYPE_MAIN)
+    {
+      switch(TyleType)
+      {
+        default:
+        case FONTTYPE_MAIN: this->TileStyle = Style; break;
+        case FONTTYPE_REDUCED: this->TileStyle_Reduced = Style; break;
+      }
+    }
+    virtual void SetReducedFontThreshold(ZMemSize ReducedFontThreshold=4) {this->ReducedFontThreshold = ReducedFontThreshold;}
     virtual UShort * GetVoxelType () { return(VoxelType);}
     virtual ULong  * GetQuantity()  { return(Quantity);}
     virtual void SetVoxelTypeManager(ZVoxelTypeManager * VoxelTypeManager) { this->VoxelTypeManager = VoxelTypeManager; }

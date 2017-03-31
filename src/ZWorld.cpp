@@ -50,6 +50,19 @@ UShort OfTableZ []= {  15*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_X,
                        0 *ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_X};
 
 
+ZVector3B ZVoxelWorld::ProxLoc[6];
+
+ZVector3B_Init ProxLoc_Init[6]=
+{
+    { 0, 0, 1 }, // 0 = Front
+    { 1, 0, 0 }, // 1 = Right
+    { 0, 0,-1 }, // 2 = Back
+    {-1, 0, 0 }, // 3 = Left
+    { 0, 1, 0 }, // 4 = Above
+    { 0,-1, 0 }  // 5 = Below
+};
+
+
 ZVoxelWorld::ZVoxelWorld()
 {
   ZMemSize i;
@@ -76,6 +89,9 @@ ZVoxelWorld::ZVoxelWorld()
   SectorList = 0;
   UniverseNum = 1;
   VoxelTypeManager = 0;
+
+  for(i=0;i<6;i++) ProxLoc[i]=ProxLoc_Init[i];
+
 }
 
 ZVoxelWorld::~ZVoxelWorld()
@@ -117,6 +133,8 @@ ZVoxelSector * ZVoxelWorld::FindSector (Long x, Long y, Long z)
   Long xs,ys,zs, Offset;
   ZVoxelSector * SectorPointer;
 
+// Unoptimized version
+/*
   xs = x % Size_x;
   ys = y % Size_y;
   zs = z % Size_z;
@@ -126,6 +144,14 @@ ZVoxelSector * ZVoxelWorld::FindSector (Long x, Long y, Long z)
   zs &= 0xff;
 
   Offset = xs + ys * Size_x + (zs * Size_x * Size_y);
+
+*/
+
+  xs = x & 63;
+  ys = y & 15;
+  zs = z & 63;
+
+  Offset = xs + (ys << 6) + (zs << 12);
 
   SectorPointer = SectorTable[Offset];
   while (SectorPointer)
@@ -1943,7 +1969,7 @@ UShort IntFaceStateTable[][8] =
 
 
 
-bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, VoxelLocation * Location)
+bool ZVoxelWorld::SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension, ZVoxelLocation * Location)
 {
   UShort * Voxel_Address[7];
   ULong  Offset[7];

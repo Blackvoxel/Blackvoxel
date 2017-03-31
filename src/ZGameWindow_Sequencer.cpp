@@ -152,20 +152,20 @@ void ZGameWindow_Sequencer::Show()
 
   // Sequence Zone
 
-  Io = ZVoxelExtension_Sequencer::Input_NumSlots;
+  //Io = ZVoxelExtension_Sequencer::Input_NumSlots;
   for (y=0;y<4;y++)
   {
     for (x=0;x<20;x++)
     {
       ULong Indice = 0 + x + y * 20;
-      MainStorage[Indice+Io].SetVoxelTypeManager(&GameEnv->VoxelTypeManager);
-      MainStorage[Indice+Io].SetPosition(32.0f + x*34.0f, Rp.y );
-      MainStorage[Indice+Io].SetSize(32.0f,32.0f);
-      MainStorage[Indice+Io].SetTileStyle(GameEnv->TileSetStyles->GetStyle(0));
-      MainStorage[Indice+Io].SetVoxelType(&VoxelExtension_Sequencer->VoxelType[Indice+ZVoxelExtension_Sequencer::Start_SequenceSlots]);
-      MainStorage[Indice+Io].SetQuantity(&VoxelExtension_Sequencer->VoxelQuantity[Indice+ZVoxelExtension_Sequencer::Start_SequenceSlots]);
-      MainStorage[Indice+Io].SetColor(128.0f,128.0f,128.0f);
-      MainWindow->AddFrame(&MainStorage[Indice+Io]);
+      SequencerStorage[Indice].SetVoxelTypeManager(&GameEnv->VoxelTypeManager);
+      SequencerStorage[Indice].SetPosition(32.0f + x*34.0f, Rp.y );
+      SequencerStorage[Indice].SetSize(32.0f,32.0f);
+      SequencerStorage[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(0));
+      SequencerStorage[Indice].SetVoxelType(&VoxelExtension_Sequencer->VoxelType[Indice+ZVoxelExtension_Sequencer::Start_SequenceSlots]);
+      SequencerStorage[Indice].SetQuantity(&VoxelExtension_Sequencer->VoxelQuantity[Indice+ZVoxelExtension_Sequencer::Start_SequenceSlots]);
+      SequencerStorage[Indice].SetColor(128.0f,128.0f,128.0f);
+      MainWindow->AddFrame(&SequencerStorage[Indice]);
     }
     Rp.y += 32.0f + 3.0f;
   }
@@ -185,7 +185,7 @@ void ZGameWindow_Sequencer::Show()
 
   // Inventory
 
-  Io = ZVoxelExtension_Sequencer::Input_NumSlots + 80;
+  Io = ZVoxelExtension_Sequencer::Input_NumSlots;
   for (y=0;y<4;y++)
   {
     for (x=0;x<10;x++)

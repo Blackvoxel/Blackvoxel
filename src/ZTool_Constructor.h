@@ -66,7 +66,6 @@ class ZTool_Constructor : public ZTool
     virtual void End_Tool();
     virtual void Display();
 
-
 };
 
 class ZTool_Constructor_P2 : public ZTool_Constructor

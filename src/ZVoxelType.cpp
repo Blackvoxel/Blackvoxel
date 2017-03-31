@@ -39,6 +39,11 @@
 #  include "ZFabMachineInfos.h"
 #endif
 
+#ifndef Z_ZTOOLSPOINTER_H
+#  include "ZToolsPointer.h"
+#endif
+
+
 
 
 
@@ -52,6 +57,7 @@ ZVoxelType::ZVoxelType(UShort VoxelType)
   Draw_TransparentRendering = false;
   Draw_FullVoxelOpacity = true;
   DrawInfo = ZVOXEL_DRAWINFO_DRAWFULLVOXELOPACITY;
+  Draw_LinearInterpolation = true;
   ExtensionType = 0;
   Is_VoxelExtension = false;
   Is_HasAllocatedMemoryExtension = false;
@@ -79,6 +85,7 @@ ZVoxelType::ZVoxelType(UShort VoxelType)
   Is_Interface_PullBlock = false;
   Is_Interface_GetInfo = false;
   Is_Interface_SetInfo = false;
+  Is_Interface_SetLocation = false;
   Is_Pumpable_ByPump_T1 = false;
   Is_Pumpable_ByPump_T2 = false;
   Is_Loadable_ByLoader_L1 = true;
@@ -86,6 +93,7 @@ ZVoxelType::ZVoxelType(UShort VoxelType)
   BvProp_FastMoving = false;
   Is_Rideable = false;
   Is_HasHelpingMessage = false;
+  Is_Power = false;
   BvProp_CanBePickedUpByRobot = true;
   BvProp_XrRobotPickMinLevel = 1;
   BvProp_PrRobotReplaceMinLevel = 0;
@@ -93,6 +101,7 @@ ZVoxelType::ZVoxelType(UShort VoxelType)
   BvProp_PrRobotMoveMinLevel = 0;
   BvProp_AtomicFireResistant = false;
   BvProp_EgmyT1Resistant = false;
+  BvProp_AccelerateOnFall = false;
   LiquidDensity = 0.0;
   BlastResistance = 1;
   OpenGl_TextureRef = 0;
@@ -133,8 +142,14 @@ Bool ZVoxelType::LoadTexture()
 
   Image = new ZBitmapImage();
   if (!Image->LoadBMP(FileSpec.String)) { delete Image; return(false); }
-  #if COMPILEOPTION_LOWRESTEXTURING==1
+
+  // Low Res texture for little devices
+
+  #if COMPILEOPTION_LOWRESTEXTURING>0
   if (Image->Width > 128) Image->ReduceSize();
+  if (COMPILEOPTION_LOWRESTEXTURING>2) while(Image->Width > 128)Image->ReduceSize();
+  if (COMPILEOPTION_LOWRESTEXTURING>3) while(Image->Width > 64) Image->ReduceSize();
+
   #endif
   MainTexture = Image;
   if (Image->BytesPerPixel !=4)
@@ -223,6 +238,8 @@ Bool ZVoxelType::LoadVoxelInformations()
       if (Token == "Documentation_PageNum")       { Documentation_PageNum      = Line.GetULong(); }
       if (Token == "BvProp_AtomicFireResistant")  { BvProp_AtomicFireResistant = (Line.GetULong()!=0) ? true:false; }
       if (Token == "BvProp_EgmyT1Resistant")      { BvProp_EgmyT1Resistant = (Line.GetULong()!=0) ? true:false; }
+      if (Token == "BvProp_AccelerateOnFall")     { BvProp_AccelerateOnFall = (Line.GetULong()!=0) ? true:false; }
+      if (Token == "Draw_LinearInterpolation")    { Draw_LinearInterpolation = (Line.GetULong()!=0) ? true:false; }
 
 
       // if (Token == "Is_Interface_StoreBlock") {Is_Interface_StoreBlock = (Line.GetULong()!=0) ? true:false; }
@@ -237,6 +254,24 @@ void ZVoxelType::DeleteVoxelExtension(ZMemSize VoxelExtension, bool IsUnloadingP
   if (Is_HasAllocatedMemoryExtension && VoxelExtension) delete (ZVoxelExtension *)VoxelExtension;
 }
 
+bool ZVoxelType::Interface_SetPointingLocation(ZVoxelLocation * VLoc, ZToolsPointer * ToolsPointer, ULong Slot, ZVector3L * Location, ZString * OutMessage )
+{
+  switch(Slot)
+  {
+    case 0: ToolsPointer->StartLocation = *Location;
+            *OutMessage = "STARTING LOCATION SET";
+            break;
+    case 1: ToolsPointer->StartLocation = 0;
+            ToolsPointer->EndLocation = 0;
+            *OutMessage = "LOCATION RESET";
+            break;
+    case 2: ToolsPointer->EndLocation = *Location;
+            *OutMessage = "END LOCATION SET";
+            break;
+  }
+
+  return(true);
+}
 
 
 

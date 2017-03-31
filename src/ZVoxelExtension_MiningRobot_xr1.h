@@ -54,6 +54,7 @@ class ZVoxelExtension_MiningRobot_xr1 : public ZVoxelExtension
     ZVector3L Dir;
     Long      CycleSkip;
     Long      SkipCounter;
+    ULong     StorePerCycle;
     Long      RobotLevel;
 
     UShort VoxelType[Storage_NumSlots];
@@ -175,6 +176,7 @@ class ZVoxelExtension_MiningRobot_xr1 : public ZVoxelExtension
                    Long HoleWidth_z,
                    Long HoleDeep_y,
                    Long CycleSkip = 0,
+                   ULong StorePerCycle = 1,
                    ULong RobotLevel = 1);
 
   void Robot_Move( ZVector3L * Pos, ZGame * GameEnv );

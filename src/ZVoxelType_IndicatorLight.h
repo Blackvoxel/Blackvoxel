@@ -43,9 +43,9 @@ class ZVoxelType_IndicatorLight : public ZVoxelType
       Is_Interface_SetInfo = true;
     }
 
-    virtual bool  Interface_GetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * Out);
+    virtual bool  Interface_GetInfo(ZVoxelLocation * VLoc, ULong InfoNum, ZVar * Out);
     virtual bool  Interface_GetInfoDoc(ULong InfoNum, ULong DocType, ZVar * Out);
-    virtual bool  Interface_SetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * In);
+    virtual bool  Interface_SetInfo(ZVoxelLocation * VLoc, ULong InfoNum, ZVar * In);
 
 };
 

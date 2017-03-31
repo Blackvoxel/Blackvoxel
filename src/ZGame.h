@@ -132,14 +132,6 @@
 #  include "ZGameWindow_ResumeRequest.h"
 #endif
 
-#ifndef Z_ZTOOLS_H
-#  include "ZTools.h"
-#endif
-
-#ifndef Z_ZTOOL_CONSTRUCTOR_H
-#  include "ZTool_Constructor.h"
-#endif
-
 #ifndef Z_ZGAMEWINDOW_ADVERTISING_H
 #  include "ZGameWindow_Advertising.h"
 #endif
@@ -154,6 +146,18 @@
 
 #ifndef Z_ZGAMEWINDOW_ZPROGROBOT_ASM_H
 #  include "ZGameWindow_ZProgRobot_Asm.h"
+#endif
+
+#ifndef Z_ZGAMEWINDOW_SPS_H
+#  include "ZGameWindow_SPS.h"
+#endif
+
+#ifndef Z_ZGAMEWINDOW_SCAN_H
+#  include "ZGameWindow_Scan.h"
+#endif
+
+#ifndef Z_ZGAMEWINDOW_RTFM_H
+#  include "ZGameWindow_RTFM.h"
 #endif
 
 #ifndef Z_ZGAMESTAT_H
@@ -180,6 +184,10 @@
 #  include "ZGameEventSequencer.h"
 #endif
 
+#ifndef Z_ZHARDWAREDEPENDENT_H
+#  include "ZOs_Specific_HardwareDependent.h"
+#endif
+
 
 class ZRender_Basic;
 
@@ -196,6 +204,7 @@ class ZGame
              Initialized_GuiManager =
              Initialized_OpenGLGameSettings =
              Initialized_Glew =
+             Initialized_LoadingScreen =
              Initialized_VoxelTypeManager =
              Initialized_EventManager =
              Initialized_TileSetsAndFonts =
@@ -213,6 +222,7 @@ class ZGame
              Initialized_UserDataStorage =
              Initialized_WorldInfo =
              Initialized_GameEventSequencer =
+             Initialized_HardwareInfo =
              false;
              TileSetStyles = 0 ; Font_1 =  0; GuiTileset = 0;
              Settings_Hardware = 0;
@@ -237,7 +247,10 @@ class ZGame
              GameWindow_AsmExtendedRegisters = 0;
              GameWindow_Compilation_Result = 0;
              GameWindow_ResumeRequest = 0;
+             GameWindow_SPS = 0;
+             GameWindow_Scan = 0;
              GameProgressBar = 0;
+             GameWindow_RTFM = 0;
              Game_Run = false;
              screen = 0;
              GameWindow_Advertising = 0;
@@ -258,6 +271,7 @@ class ZGame
              Machine_Serial = 1;
              Stop_Programmable_Robots = false;
              Previous_GameVersion = 0;
+             HardwareInfo = 0;
    }
   ~ZGame() { UniverseNum = 0; }
 
@@ -288,6 +302,10 @@ class ZGame
   bool Enable_LoadNewSector; // Enable new sector loading and rendering. Disable Locks to only loaded sectors.
   bool Enable_NewSectorRendering; // Enable to make display lists for new incoming sectors.
   bool Stop_Programmable_Robots; // This flag signal to user programmable robots to stop running as soon as possible.
+
+  // Hardware detection infos
+
+  ZHardwareInfo * HardwareInfo;
 
 
   // Game Loop continue flag
@@ -334,10 +352,15 @@ class ZGame
   ZGameWindow_AsmExtendedRegisters   * GameWindow_AsmExtendedRegisters;
   ZGameWindow_Compilation_Result     * GameWindow_Compilation_Result;
   ZGameWindow_ResumeRequest          * GameWindow_ResumeRequest;
+  ZGameWindow_SPS                    * GameWindow_SPS;
+  ZGameWindow_Scan                   * GameWindow_Scan;
+  ZGameWindow_RTFM                   * GameWindow_RTFM;
 
   bool Initialized_UserDataStorage;
   bool Initialized_Settings;
+  bool Initialized_HardwareInfo;
   bool Initialized_Glew;
+  bool Initialized_LoadingScreen;
   bool Initialized_SDL;
   bool Initialized_GraphicMode;
   bool Initialized_TextureManager;
@@ -359,6 +382,7 @@ class ZGame
   bool Initialized_GameStats;
   bool Initialized_WorldInfo;
   bool Initialized_GameEventSequencer;
+
 
   // Screen Informations
 
@@ -382,10 +406,12 @@ class ZGame
 // General Inits
 
   bool Init_UserDataStorage(ZLog * InitLog);
+  bool Init_HardwareDetection(ZLog * InitLog);
   bool Init_Settings(ZLog * InitLog);
   bool Init_SDL(ZLog * InitLog);
   bool Init_GraphicMode(ZLog * InitLog);
   bool Init_Glew(ZLog * InitLog);
+  bool Init_LoadingScreen(ZLog * InitLog);
   bool Init_VoxelTypeManager(ZLog * InitLog);
   bool Init_TextureManager(ZLog * InitLog);
   bool Init_OpenGLGameSettings(ZLog * InitLog);
@@ -396,6 +422,7 @@ class ZGame
   bool Init_Sound(ZLog * InitLog);
 
   bool Cleanup_UserDataStorage(ZLog * InitLog);
+  bool Cleanup_HardwareDetection(ZLog * InitLog);
   bool Cleanup_Settings(ZLog * InitLog);
   bool Cleanup_SDL(ZLog * InitLog);
   bool Cleanup_GraphicMode(ZLog * InitLog);
@@ -404,6 +431,7 @@ class ZGame
   bool Cleanup_GuiManager(ZLog * InitLog);
   bool Cleanup_EventManager(ZLog * InitLog);
   bool Cleanup_OpenGLGameSettings(ZLog * InitLog);
+  bool Cleanup_LoadingScreen(ZLog * InitLog);
   bool Cleanup_Glew(ZLog * InitLog);
   bool Cleanup_TileSetsAndFonts(ZLog * InitLog);
   bool Cleanup_Renderer(ZLog * InitLog);
@@ -442,18 +470,20 @@ class ZGame
     bool result;
 
     result = Init_UserDataStorage(InitLog.Sec(1000));    if (!result) return(false);
-    result = Init_Settings(InitLog.Sec(1010));           if (!result) return(false);
-    result = Init_SDL(InitLog.Sec(1020));                if (!result) return(false);
-    result = Init_GraphicMode(InitLog.Sec(1030));        if (!result) return(false);
-    result = Init_Glew(InitLog.Sec(1040));               if (!result) return(false);
-    result = Init_VoxelTypeManager(InitLog.Sec(1050));   if (!result) return(false);
-    result = Init_TextureManager(InitLog.Sec(1060));     if (!result) return(false);
-    result = Init_OpenGLGameSettings(InitLog.Sec(1070)); if (!result) return(false);
-    result = Init_EventManager(InitLog.Sec(1080));       if (!result) return(false);
-    result = Init_GuiManager(InitLog.Sec(1090));         if (!result) return(false);
-    result = Init_TileSetsAndFonts(InitLog.Sec(1100));   if (!result) return(false);
-    result = Init_Renderer(InitLog.Sec(1110));           if (!result) return(false);
-    result = Init_Sound(InitLog.Sec(1120));              if (!result) return(false);
+    result = Init_HardwareDetection(InitLog.Sec(1010));  if (!result) return(false);
+    result = Init_Settings(InitLog.Sec(1020));           if (!result) return(false);
+    result = Init_SDL(InitLog.Sec(1030));                if (!result) return(false);
+    result = Init_GraphicMode(InitLog.Sec(1040));        if (!result) return(false);
+    result = Init_Glew(InitLog.Sec(1050));               if (!result) return(false);
+    result = Init_LoadingScreen(InitLog.Sec(1055));      if (!result) return(false);
+    result = Init_VoxelTypeManager(InitLog.Sec(1060));   if (!result) return(false);
+    result = Init_TextureManager(InitLog.Sec(1070));     if (!result) return(false);
+    result = Init_OpenGLGameSettings(InitLog.Sec(1080)); if (!result) return(false);
+    result = Init_EventManager(InitLog.Sec(1090));       if (!result) return(false);
+    result = Init_GuiManager(InitLog.Sec(1100));         if (!result) return(false);
+    result = Init_TileSetsAndFonts(InitLog.Sec(1110));   if (!result) return(false);
+    result = Init_Renderer(InitLog.Sec(1120));           if (!result) return(false);
+    result = Init_Sound(InitLog.Sec(1130));              if (!result) return(false);
     return(true);
   }
 
@@ -499,18 +529,19 @@ class ZGame
 
   bool End()
   {
-    if (Initialized_Sound)              Cleanup_Sound(InitLog.Sec(2120));
-    if (Initialized_Renderer)           Cleanup_Renderer(InitLog.Sec(2110));
-    if (Initialized_GuiManager)         Cleanup_GuiManager(InitLog.Sec(2090));
-    if (Initialized_EventManager)       Cleanup_EventManager(InitLog.Sec(2080));
-    if (Initialized_OpenGLGameSettings) Cleanup_OpenGLGameSettings(InitLog.Sec(2070));
-    if (Initialized_TextureManager)     Cleanup_TextureManager(InitLog.Sec(2060));
-    if (Initialized_VoxelTypeManager)   Cleanup_VoxelTypeManager(InitLog.Sec(2050));
-    if (Initialized_Glew)               Cleanup_Glew(InitLog.Sec(2040));
-    if (Initialized_GraphicMode)        Cleanup_GraphicMode(InitLog.Sec(2030));
-    if (Initialized_SDL)                Cleanup_SDL(InitLog.Sec(2020));
-    if (Initialized_TileSetsAndFonts)   Cleanup_TileSetsAndFonts(InitLog.Sec(2100));
-    if (Initialized_Settings)           Cleanup_Settings(InitLog.Sec(2010));
+    if (Initialized_Sound)              Cleanup_Sound(InitLog.Sec(2130));
+    if (Initialized_Renderer)           Cleanup_Renderer(InitLog.Sec(2120));
+    if (Initialized_GuiManager)         Cleanup_GuiManager(InitLog.Sec(2100));
+    if (Initialized_EventManager)       Cleanup_EventManager(InitLog.Sec(2090));
+    if (Initialized_OpenGLGameSettings) Cleanup_OpenGLGameSettings(InitLog.Sec(2080));
+    if (Initialized_TextureManager)     Cleanup_TextureManager(InitLog.Sec(2070));
+    if (Initialized_VoxelTypeManager)   Cleanup_VoxelTypeManager(InitLog.Sec(2060));
+    if (Initialized_Glew)               Cleanup_Glew(InitLog.Sec(2050));
+    if (Initialized_GraphicMode)        Cleanup_GraphicMode(InitLog.Sec(2040));
+    if (Initialized_SDL)                Cleanup_SDL(InitLog.Sec(2030));
+    if (Initialized_TileSetsAndFonts)   Cleanup_TileSetsAndFonts(InitLog.Sec(2110));
+    if (Initialized_Settings)           Cleanup_Settings(InitLog.Sec(2020));
+    if (Initialized_HardwareInfo)       Cleanup_HardwareDetection(InitLog.Sec(2010));
     if (Initialized_UserDataStorage)    Cleanup_UserDataStorage(InitLog.Sec(2000));
 
     return(true);
@@ -526,7 +557,13 @@ class ZGame
         FONTSIZE_2 = 3,
         FONTSIZE_3 = 4,
         FONTSIZE_4 = 1,
-        FONTSIZE_5 = 2};
+        FONTSIZE_5 = 2,
+        FONTSIZE_VAR1 = 5,
+        FONTSIZE_VAR2 = 6,
+        FONTSIZE_VAR3 = 7,
+        FONTSIZE_VAR4 = 8,
+        FONTSIZE_VAR5 = 9
+  };
 
 
   // InGame
@@ -536,7 +573,7 @@ class ZGame
   void MoveShip()
   {
     ZVector3L VoxelCoords, Vx;
-    VoxelLocation Loc;
+    ZVoxelLocation Loc;
     ZVector3d * Location, NewLocation;
 
     if (ShipCenter.x == 0 && ShipCenter.y == 0 && ShipCenter.z == 0) return;

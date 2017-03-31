@@ -51,7 +51,7 @@ class ZVoxelType_Egmy_T1 : public ZVoxelType
     // Voxel Extensions
 
     virtual ZVoxelExtension * CreateVoxelExtension(bool IsLoadingPhase = true);
-    virtual void  GetBlockInformations(VoxelLocation * DestLocation, ZString & Infos);
+    virtual void  GetBlockInformations(ZVoxelLocation * DestLocation, ZString & Infos);
 };
 
 

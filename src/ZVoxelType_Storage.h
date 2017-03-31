@@ -53,12 +53,13 @@ class ZVoxelType_Storage : public ZVoxelType
     virtual ZVoxelExtension * CreateVoxelExtension(bool IsLoadingPhase = true);
 
 
+    virtual bool  UserAction_TryToDestroy(ZVoxelLocation * DestLocation, ZString * Reason);
     // The user click the activation button(Middle) on the voxel to activate special functions.
     virtual void  UserAction_Activate(ZMemSize VoxelInfo, Long x, Long y, Long z);
 
-    virtual ULong  Interface_PushBlock_Push( VoxelLocation * DestLocation, UShort VoxelType, ULong Count );
-    virtual ULong  Interface_PushBlock_Pull( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
-    virtual ULong  Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
+    virtual ULong  Interface_PushBlock_Push( ZVoxelLocation * DestLocation, UShort VoxelType, ULong Count );
+    virtual ULong  Interface_PushBlock_Pull( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
+    virtual ULong  Interface_PushBlock_PullTest( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count );
 
 
 };

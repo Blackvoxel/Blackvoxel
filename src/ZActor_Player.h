@@ -57,8 +57,8 @@ class ZActor_Player : public ZActor
     double    PlayerDensity;
     ZVector3d PlayerSurface;
 
-    double    PlaneMinThrust;
-    double    PlaneMaxThrust;
+    double    PlaneMinThrust[4];
+    double    PlaneMaxThrust[4];
     double    PlaneSpeed;                  // s
     double    PlaneCommandResponsiveness;  // s
     double    PlaneEngineThrust;           // s
@@ -73,14 +73,22 @@ class ZActor_Player : public ZActor
 
     ZVector3L LastHelpVoxel;
     double    LastHelpTime;
-    ULong Test_T1;
+    ULong     Test_T1;
 
     // Riding Voxel
     UShort     Riding_Voxel;
+    UShort     Vehicle_Subtype; // Plane type Z0,Z1
     ZMemSize   Riding_VoxelInfo;
     bool       Riding_IsRiding;
 
+    // Backup for inventory in order to detect changes for powers.
+
+    UShort     * PreviousVoxelTypes;
+
   public:
+    ZRayCast_out PointedVoxel;
+    ZRayCast_out PointedVoxel_Previous;
+
     virtual void Init(bool Death=false);
     virtual void SetInitialInventory(bool Death);
     ZActor_Player();
@@ -130,6 +138,8 @@ class ZActor_Player : public ZActor
     virtual void Event_Death();
     virtual void Event_PlaneCrash();
     virtual void Event_DeadlyFall();
+
+    virtual void Process_Powers();
 };
 
 #endif /* ZACTOR_PLAYER_H_ */

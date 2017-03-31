@@ -581,6 +581,38 @@ ZString & ZString::Append_ULong( ULong Number )
   return(*this);
 }
 
+ZString & ZString::Append_Long( Long Number )
+{
+  char * Buffer;
+  ULong Divider,Base;
+  Bool TrailFlag;
+  ZMemSize CLen;
+
+  Base = Settings.Base;
+  if (Base <2 || Base>36) Base = 10;
+  Divider = _ZStringBaseConvert[Settings.Base].Divider;
+
+  if (MemLen <= Len + ZSTRING_CONVERSIONSIZE) RaiseMem_GetOldContent(Len + ZSTRING_CONVERSIONSIZE);
+
+  Buffer = &String[Len];
+
+  CLen=0;TrailFlag=(Bool)Settings.Display_TrailZero;
+  if      (Number<0)                  {Buffer[CLen++]='-'; Number = -Number;}
+  else if (Settings.Display_AlwaysShowSign) Buffer[CLen++]='+';
+  if (!Number && TrailFlag) {Buffer[CLen++] = '0';Buffer[CLen]=0;Len+=CLen;return(*this);}
+  do
+  {
+    if ((Buffer[CLen]=_ZStringCharTable[Number/Divider])!='0') TrailFlag = false;
+    if (!TrailFlag) CLen++;
+    Number%=Divider;
+    Divider/=Base;
+  } while (Divider);
+  Buffer[CLen]=0;
+  Len+=CLen;
+
+  return(*this);
+}
+
 ZString & ZString::AddToPath(char const * Str)
 {
   ZMemSize TotalLen,i,j;
@@ -711,6 +743,13 @@ void ZString::StripLeading(char c)
   for (i=MatchPoint,j=0;i<Len;i++,j++) String[j]=String[i];
   String[j]=0;
   Len-=MatchPoint;
+}
+
+void ZString::StripTrailling(char c)
+{
+  if (!Len) return;
+  while(String[Len-1]== c && Len) Len--;
+  String[Len]=0;
 }
 
 bool ZString::SearchInString_Forward (ZString const * StringToFind, ZMemSize & OutPosition, ZMemSize Start)
@@ -1154,6 +1193,28 @@ ZString & ZString::Append_HexNumber_ULong(ULong Number)
   return(*this);
 }
 
+ZString & ZString::Append_Double(double Number, UShort Digits,bool ForceDecimals)
+{
+  char Buffer[256];
+  ZString Format;
+  Format.Clear() << "%";
+  if (ForceDecimals) Format << "#";
+  Format << "." << Digits << "f";
+  sprintf(Buffer, Format.String, Number);
+  this->Append_pchar(Buffer);
+
+  return(*this);
+}
+
+ZString & ZString::Append_Double(double Number)
+{
+  char Buffer[256];
+  sprintf(Buffer, "%f", Number);
+  this->Append_pchar(Buffer);
+
+  return(*this);
+}
+
 ZString & ZString::Append_Mids(ZString const * InString, ZMemSize Start, ZMemSize End)
 {
   ZMemSize Size;
@@ -1189,6 +1250,8 @@ ZString & ZString::Append_SubString(ZString const * InString, ZMemSize Start, ZM
 
   return(*this);
 }
+
+
 
 ZString & ZString::SearchReplace(char Searched, char Replacement)
 {

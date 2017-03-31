@@ -89,3 +89,58 @@ bool ZEventManager::ProcessEvents()
 
   return(true);
 }
+
+void ZEventManager::ManualCall_MouseButtonClick(UShort ButtonCode)
+{
+    ZListItem * Item;
+    int x,y;
+
+    SDL_GetMouseState(&x,&y);
+
+    MouseButton[ButtonCode]=true;
+    if ((Item = ConsumerList.GetFirst()))
+    do
+    {
+      ((ZEventConsumer *)Item->Object)->MouseButtonClick( ButtonCode, x, y );
+    } while((Item = ConsumerList.GetNext(Item)));
+}
+
+
+void ZEventManager::ManualCall_MouseButtonRelease(UShort ButtonCode)
+{
+    ZListItem * Item;
+    int x,y;
+
+    SDL_GetMouseState(&x,&y);
+
+    MouseButton[ButtonCode]=true;
+    if ((Item = ConsumerList.GetFirst()))
+    do
+    {
+      ((ZEventConsumer *)Item->Object)->MouseButtonRelease( ButtonCode, x, y );
+    } while((Item = ConsumerList.GetNext(Item)));
+}
+
+void ZEventManager::ManualCall_KeyPress(UShort Keycode)
+{
+  ZListItem * Item;
+
+  Keyboard_Matrix[Keycode] = 1;
+  if ((Item = ConsumerList.GetFirst()))
+  do
+  {
+    ((ZEventConsumer *)Item->Object)->KeyDown( Keycode);
+  } while((Item = ConsumerList.GetNext(Item)));
+}
+
+void ZEventManager::ManualCall_KeyRelease(UShort Keycode)
+{
+  ZListItem * Item;
+
+  Keyboard_Matrix[Keycode] = 1;
+  if ((Item = ConsumerList.GetFirst()))
+  do
+  {
+    ((ZEventConsumer *)Item->Object)->KeyUp( Keycode);
+  } while((Item = ConsumerList.GetNext(Item)));
+}

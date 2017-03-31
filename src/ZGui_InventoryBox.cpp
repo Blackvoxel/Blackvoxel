@@ -33,6 +33,7 @@ void ZInventoryBox::Render(Frame_Dimensions * ParentPosition)
   ZVector3f TopLeft, BottomRight;
   ZListItem * Item;
   ZFrame * Frame;
+  ZTileStyle * UsedTileStyle;
 
   // Frame Position Computing
   if (Flag_Show_Master)
@@ -93,10 +94,13 @@ void ZInventoryBox::Render(Frame_Dimensions * ParentPosition)
 
         QuantityText = *Quantity;
 
+        if (QuantityText.Len <=  ReducedFontThreshold) UsedTileStyle = TileStyle;
+        else                                           UsedTileStyle = (TileStyle_Reduced) ? TileStyle_Reduced : TileStyle;
+
         ZBox3f FontBox;
         ZVector2f Dim;
 
-        TileStyle->TileSet->GetFontRenderSize(TileStyle, QuantityText.String, &Dim );
+        UsedTileStyle->TileSet->GetFontRenderSize(UsedTileStyle, QuantityText.String, &Dim );
 
         FontBox.Position_x = BottomRight.x - Dim.x - 1.0f;
         FontBox.Position_y = BottomRight.y - Dim.y - 1.0f;
@@ -108,12 +112,12 @@ void ZInventoryBox::Render(Frame_Dimensions * ParentPosition)
         ZColor3f BkColor;
         Color.r = 255.0f; Color.v = 255.0f; Color.b = 255.0f;
         BkColor.r = 0.0f; BkColor.v = 0.0f; BkColor.b = 0.0f;
-        TileStyle->TileSet->RenderFont(TileStyle, &FontBox, QuantityText.String, &Color );
+        UsedTileStyle->TileSet->RenderFont(UsedTileStyle, &FontBox, QuantityText.String, &Color );
         FontBox.Position_z -= 1.0f;
         FontBox.Position_x -= 1.0f;
         FontBox.Position_y -= 1.0f;
 
-        TileStyle->TileSet->RenderFont(TileStyle, &FontBox, QuantityText.String, &BkColor );
+        UsedTileStyle->TileSet->RenderFont(UsedTileStyle, &FontBox, QuantityText.String, &BkColor );
       }
     }
 
@@ -183,11 +187,12 @@ void ZInventoryBox::DropItem(ZFrame * Item, UShort nButton)
         if (GuiManager->EventManager->Keyboard_Matrix[SDLK_LALT]   ||
             GuiManager->EventManager->Keyboard_Matrix[SDLK_RALT]      ) TransfertQuantity = 1000;
         if (TransfertQuantity>*In_Quantity) TransfertQuantity = *In_Quantity;
-        if (*In_Quantity>0)
+        if (*In_Quantity>1)
         {
           (*Quantity)+= TransfertQuantity;
-          (*In_Quantity)-=TransfertQuantity;
           *VoxelType = *In_VoxelType;
+          (*In_Quantity)-=TransfertQuantity;
+
         }
       }
     }

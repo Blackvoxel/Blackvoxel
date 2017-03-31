@@ -101,7 +101,8 @@ void ZGameWindow_Storage::Show()
       MainStorage[Indice].SetVoxelTypeManager(&GameEnv->VoxelTypeManager);
       MainStorage[Indice].SetPosition(32.0f + x*70.0f, Rp.y );
       MainStorage[Indice].SetSize(48.0f,48.0f);
-      MainStorage[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(3));
+      MainStorage[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_2), ZInventoryBox::FONTTYPE_MAIN);
+      MainStorage[Indice].SetTileStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_1), ZInventoryBox::FONTTYPE_REDUCED);
       MainStorage[Indice].SetVoxelType(&VoxelExtension_Storage->VoxelType[Indice]);
       MainStorage[Indice].SetQuantity(&VoxelExtension_Storage->VoxelQuantity[Indice]);
       MainStorage[Indice].SetColor(128.0f,128.0f,128.0f);
@@ -134,7 +135,8 @@ void ZGameWindow_Storage::Show()
       MainStorage[Indice+40].SetVoxelTypeManager(&GameEnv->VoxelTypeManager);
       MainStorage[Indice+40].SetPosition(32.0f + x*70.0f, Rp.y );
       MainStorage[Indice+40].SetSize(48.0f,48.0f);
-      MainStorage[Indice+40].SetTileStyle(GameEnv->TileSetStyles->GetStyle(3));
+      MainStorage[Indice+40].SetTileStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_2), ZInventoryBox::FONTTYPE_MAIN);
+      MainStorage[Indice+40].SetTileStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_1), ZInventoryBox::FONTTYPE_REDUCED);
       MainStorage[Indice+40].SetVoxelType(&Entry->VoxelType);
       MainStorage[Indice+40].SetQuantity(&Entry->Quantity);
       MainStorage[Indice+40].SetColor(128.0f,128.0f,128.0f);

@@ -44,7 +44,7 @@ ZVoxelExtension * ZVoxelType_MiningRobot_xr1::CreateVoxelExtension(bool IsLoadin
   return (NewVoxelExtension);
 }
 
-void ZVoxelType_MiningRobot_xr1::GetBlockInformations(VoxelLocation * DestLocation, ZString & Infos)
+void ZVoxelType_MiningRobot_xr1::GetBlockInformations(ZVoxelLocation * DestLocation, ZString & Infos)
 {
   ZVoxelExtension_MiningRobot_xr1 * Ext;
   ULong i;
@@ -77,7 +77,7 @@ void ZVoxelType_MiningRobot_xr1::GetBlockInformations(VoxelLocation * DestLocati
   Infos << Infos.NewLine();
 }
 
-ULong ZVoxelType_MiningRobot_xr1::Interface_PushBlock_Pull( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+ULong ZVoxelType_MiningRobot_xr1::Interface_PushBlock_Pull( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
   ZVoxelExtension_MiningRobot_xr1 * Ext_Storage;
   ULong SlotNum;
@@ -94,7 +94,7 @@ ULong ZVoxelType_MiningRobot_xr1::Interface_PushBlock_Pull( VoxelLocation * Dest
   return(0);
 }
 
-ULong ZVoxelType_MiningRobot_xr1::Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+ULong ZVoxelType_MiningRobot_xr1::Interface_PushBlock_PullTest( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
   ZVoxelExtension_MiningRobot_xr1 * Ext_Storage;
   ULong SlotNum;

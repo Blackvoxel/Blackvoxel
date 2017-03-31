@@ -164,8 +164,10 @@ class ZVoxelTypeManager : public ZObject
     void OutFabInfos();
 
     bool _Internal_CompareTransTables( ZString & Message, ZFabInfos * Fab,  ZFabInfos::ZTransformation * Tr1,  ZFabInfos::ZTransformation * Tr2 );
+    bool _Internal_CompareTransTables_V2( ZString & Message, ZFabInfos * Fab,  ZFabInfos::ZTransformation * Tr1,  ZFabInfos::ZTransformation * Tr2 );
 
     void FindFabConflics();
+    void FindFabConflicts_V2();
 
 };
 

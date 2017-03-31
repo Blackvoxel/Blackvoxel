@@ -172,6 +172,18 @@ class ZVoxelExtension_Storage : public ZVoxelExtension
     return(Quantity);
   }
 
+  virtual bool IsInventoryEmpty()
+  {
+    ULong i;
+
+    for (i=0;i<Storage_NumSlots;i++)
+    {
+      if (VoxelQuantity[i]>0) return(false);
+    }
+
+    return(true);
+  }
+
 
 };
 

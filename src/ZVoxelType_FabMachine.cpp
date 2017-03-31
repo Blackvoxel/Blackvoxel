@@ -37,6 +37,10 @@
 #  include "ZVoxelTypeManager.h"
 #endif
 
+#ifndef Z_ZGAME_H
+#  include "ZGame.h"
+#endif
+
 ZVoxelExtension * ZVoxelType_FabMachine::CreateVoxelExtension(bool IsLoadingPhase)
 {
   ZVoxelExtension * NewVoxelExtension = 0;
@@ -46,7 +50,7 @@ ZVoxelExtension * ZVoxelType_FabMachine::CreateVoxelExtension(bool IsLoadingPhas
   return (NewVoxelExtension);
 }
 
-void ZVoxelType_FabMachine::GetBlockInformations(VoxelLocation * DestLocation, ZString & Infos)
+void ZVoxelType_FabMachine::GetBlockInformations(ZVoxelLocation * DestLocation, ZString & Infos)
 {
   ZVoxelExtension_FabMachine * Ext;
 
@@ -67,4 +71,26 @@ void ZVoxelType_FabMachine::GetBlockInformations(VoxelLocation * DestLocation, Z
   }
 }
 
+void ZVoxelType_FabMachine::GetScanInformations(ZVoxelCoords * VoxelCoords, UShort VoxelType, ZMemSize VoxelInfo, ZString & Inf)
+{
+  ULong i;
+  UShort Voxel;
+  ZVoxelType * VoxelT;
+  ZVoxelExtension_FabMachine * Ext = (ZVoxelExtension_FabMachine *) VoxelInfo;
+
+  Inf.Append_pchar("\nMACHINE CONTENT :\n\n");
+  for (i=0;i<ZVoxelExtension_FabMachine::Storage_NumSlots;i++)
+  {
+    if (Ext->VoxelQuantity[i]>0 && Ext->VoxelType[i]!=0)
+    {
+      Voxel = Ext->VoxelType[i];
+      VoxelT = GameEnv->VoxelTypeManager.GetVoxelType(Voxel);
+      Inf.Append_pchar(VoxelT->VoxelTypeName.String);
+      Inf.Append_pchar(" : ");
+      Inf.Append_ULong(Ext->VoxelQuantity[i]);
+      Inf.Append_pchar("\n");
+    }
+
+  }
+}
 

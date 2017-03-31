@@ -89,7 +89,9 @@ class ZSound
 
     bool SoundActivated;
 
+
     static void mixaudio(void *unused, Uint8 *stream, int len);
+
 
 
 
@@ -116,7 +118,7 @@ class ZSound
     {
       ULong i;
       SampleCount = 0;
-      SoundActivated = false; PlayingSoundList =0;
+      SoundActivated = true; PlayingSoundList =0;
       for (i=0;i<ZSOUND_MAX_SOUNDFILES;i++) {SoundBank[i].Used = false; SoundBank[i].SoundData = 0; SoundBank[i].SoundLen =0;}
     }
     ~ZSound()
@@ -138,6 +140,11 @@ class ZSound
     }
 
     ULong GetSampleCount() { return SampleCount; }
+
+    void Activate(bool ActivateSound)
+    {
+      SoundActivated = ActivateSound;
+    }
 
     void SampleModify_Volume(ULong SoundNum, double NewVolume)
     {
@@ -227,6 +234,7 @@ class ZSound
     {
       Sound * Snd;
 
+      if (!SoundActivated) return;
       // printf("Sound:%d\n",SoundNum);
 
       SDL_LockAudio();
@@ -256,6 +264,7 @@ class ZSound
     {
       Sound * Snd;
 
+      if (!SoundActivated) return(0);
       // printf("Sound:%d\n",SoundNum);
 
       SDL_LockAudio();
@@ -291,6 +300,8 @@ class ZSound
     void Stop_PlaySound(void * SoundHandle)
     {
       Sound * Snd;
+
+      if (!SoundActivated) return;
 
       SDL_LockAudio();
 
@@ -345,6 +356,7 @@ class ZSound
     void EndAudio()
     {
       SDL_PauseAudio(1);
+      SDL_CloseAudio();
     }
 
 };

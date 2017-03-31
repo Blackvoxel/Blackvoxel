@@ -42,7 +42,7 @@ void  ZVoxelType_SimpleButton::UserAction_Activate(ZMemSize VoxelInfo, Long x, L
 }
 
 
-bool ZVoxelType_SimpleButton::Interface_GetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * Out)
+bool ZVoxelType_SimpleButton::Interface_GetInfo(ZVoxelLocation * VLoc, ULong InfoNum, ZVar * Out)
 {
   switch(InfoNum)
   {
@@ -73,7 +73,7 @@ bool  ZVoxelType_SimpleButton::Interface_GetInfoDoc(ULong InfoNum, ULong DocType
   return(true);
 }
 
-bool ZVoxelType_SimpleButton::Interface_SetInfo(VoxelLocation * VLoc, ULong InfoNum, ZVar * In)
+bool ZVoxelType_SimpleButton::Interface_SetInfo(ZVoxelLocation * VLoc, ULong InfoNum, ZVar * In)
 {
   switch (InfoNum)
   {

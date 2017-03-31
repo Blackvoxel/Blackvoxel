@@ -54,7 +54,8 @@ class ZVoxelType_FabMachine : public ZVoxelType
 
     virtual ZVoxelExtension * CreateVoxelExtension(bool IsLoadingPhase = true);
 
-    virtual void  GetBlockInformations(VoxelLocation * DestLocation, ZString & Infos);
+    virtual void  GetBlockInformations(ZVoxelLocation * DestLocation, ZString & Infos);
+    virtual void  GetScanInformations(ZVoxelCoords * VoxelCoords, UShort VoxelType, ZMemSize VoxelInfo, ZString & Infos);
 
 
 };

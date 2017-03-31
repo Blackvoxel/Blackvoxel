@@ -58,9 +58,9 @@ ULong ZScreen_Message::ProcessScreen(ZGame * GameEnv)
   for (Loop = true; Loop; )
   {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    glAlphaFunc(GL_GREATER, 0.2);
-    glEnable(GL_ALPHA_TEST);
-    glEnable(GL_TEXTURE_2D);
+    //glAlphaFunc(GL_GREATER, 0.2);
+    //glEnable(GL_ALPHA_TEST);
+    //glEnable(GL_TEXTURE_2D);
     Loop = GameEnv->EventManager.ProcessEvents();
 
     if (Timer) Timer-=1;

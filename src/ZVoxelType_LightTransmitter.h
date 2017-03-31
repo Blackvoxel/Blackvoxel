@@ -65,8 +65,8 @@ class ZVoxelType_LightTransmitter : public ZVoxelType
     void LightTransmitter_FindEndPoints(ZVector3L * Location    , ZVector3L * CommingDirection,   ZTransmitterContext * Context );
     void LightTransmitter_FollowTransmitter(ZVector3L * Location, ZVector3L * FollowingDirection, ZTransmitterContext * Context );
 
-    virtual ULong  Interface_PushBlock_Push    ( VoxelLocation * DestLocation, UShort VoxelType, ULong Count );
-    virtual ULong  Interface_PushBlock_PushTest( VoxelLocation * DestLocation, UShort VoxelType, ULong Count );
+    virtual ULong  Interface_PushBlock_Push    ( ZVoxelLocation * DestLocation, UShort VoxelType, ULong Count );
+    virtual ULong  Interface_PushBlock_PushTest( ZVoxelLocation * DestLocation, UShort VoxelType, ULong Count );
 
 };
 

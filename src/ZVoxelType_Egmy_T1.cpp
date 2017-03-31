@@ -45,7 +45,7 @@ ZVoxelExtension * ZVoxelType_Egmy_T1::CreateVoxelExtension(bool IsLoadingPhase)
   return (NewVoxelExtension);
 }
 
-void ZVoxelType_Egmy_T1::GetBlockInformations(VoxelLocation * DestLocation, ZString & Infos)
+void ZVoxelType_Egmy_T1::GetBlockInformations(ZVoxelLocation * DestLocation, ZString & Infos)
 {
   ZVoxelExtension_Egmy_T1 * Ext;
 

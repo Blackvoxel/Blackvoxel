@@ -186,7 +186,7 @@ SQInteger function_Move(HSQUIRRELVM v)
 
   SQInteger InVal;
   UShort VoxelType;
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
   ZVector3L NewLocation;
 
   // Parameter input
@@ -384,7 +384,7 @@ SQInteger function_PlaceVoxel3D(HSQUIRRELVM v)
 
   SQInteger x,y,z, tmp;
   UShort VoxelType, OldVoxelType, tmp2;
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
   ZVoxelType * OldVoxelTypeInfo;
   ULong SlotNum;
 
@@ -435,7 +435,7 @@ SQInteger function_UnofficialFastPlot(HSQUIRRELVM v)
 
   SQInteger x,y,z, tmp;
   UShort VoxelType;
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
 
   // Parameter input and filtering.
 
@@ -470,7 +470,7 @@ SQInteger function_PickVoxel3D(HSQUIRRELVM v)
 
   SQInteger x,y,z;
   UShort VoxelType;
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
   ZVoxelType * VoxelTypeInfo;
 
   // Parameter input and filtering.
@@ -524,7 +524,7 @@ SQInteger function_MoveVoxel3D(HSQUIRRELVM v)
 
   SQInteger xs,ys,zs,xd,yd,zd;
   UShort DestVoxelType, SourceVoxelType;
-  VoxelLocation LocSource,LocDest;
+  ZVoxelLocation LocSource,LocDest;
   ZVoxelType * DestVoxelTypeInfo, * SourceVoxelTypeInfo;
 
   // Parameter input and filtering.
@@ -577,7 +577,7 @@ SQInteger function_Unofficial_FastMoveVoxel3D(HSQUIRRELVM v)
   ZVector3L SourceLocation, DestLocation;
 
   SQInteger xs,ys,zs,xd,yd,zd;
-  VoxelLocation LocDest;
+  ZVoxelLocation LocDest;
 
   // Parameter input and filtering.
 
@@ -616,7 +616,7 @@ SQInteger function_Look3D(HSQUIRRELVM v)
   SQInteger x,y,z;
   UShort VoxelType;
   ZVector3L NewLocation;
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
 
   // Parameter input and filtering.
 
@@ -907,7 +907,7 @@ SQInteger function_PushVoxelTo(HSQUIRRELVM v)
   SQInteger InVal, InVal2;
   UShort VoxelType;
   ZVector3L NewLocation;
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
   bool Found;
 
   // Parameter input
@@ -952,7 +952,7 @@ SQInteger function_PullVoxelFrom(HSQUIRRELVM v)
   SQInteger InVal;
   UShort VoxelType;
   ZVector3L NewLocation;
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
   bool Found;
 
   // Parameter input
@@ -1183,7 +1183,7 @@ SQInteger function_voxel_getinfo(HSQUIRRELVM v)
   SQInteger x,y,z,Index;
   UShort VoxelType;
   ZVector3L NewLocation;
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
   ZVar Var;
 
   // Parameter input
@@ -1231,7 +1231,7 @@ SQInteger function_voxel_setinfo(HSQUIRRELVM v)
   SQInteger x,y,z,Index;
   UShort VoxelType;
   ZVector3L NewLocation;
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
   ZVar Var;
 
   // Parameter input
@@ -1811,6 +1811,501 @@ SQInteger function_GetKey(HSQUIRRELVM v)
   return(1);
 }
 
+SQInteger function_Terminate(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+
+  SQInteger RetVal;
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  RetVal = S->Extension->IsAllowedToRun ? 1 : 0;
+
+  S->Extension->IsAllowedToRun=false;
+
+  sq_pushinteger(v,RetVal);
+  return(1);
+}
+
+SQInteger function_UnTerminate(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+
+  SQInteger RetVal;
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  RetVal = S->Extension->IsAllowedToRun ? 1 : 0;
+
+  S->Extension->IsAllowedToRun=true;
+
+  sq_pushinteger(v,RetVal);
+  return(1);
+}
+
+SQInteger function_Overclock(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger OverclockFactor;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &OverclockFactor);
+
+  // Input Validation
+
+  if (OverclockFactor < 0 || OverclockFactor >= 16) { sq_pushbool(v,SQFalse); return(1); }
+
+  // Change the overclock factor
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  S->Extension->Overclock = OverclockFactor;
+
+  // Return Success
+
+  sq_pushbool(v,SQTrue);
+  return(1);
+}
+
+SQInteger function_GetFab_Find(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger VoxelType, FabCount, Result;
+  ZVoxelTypeManager * Vtm;
+  ZVoxelType * Vt;
+  ZFabInfos::ZTransformation * Transformation;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<3) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &VoxelType);
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,3, &FabCount);
+
+
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  // Input Validation
+
+  ULong VoxelTypeIndex, FabEntryIndex, ResultIndex;
+  Vtm = &S->GameEnv->VoxelTypeManager;
+
+  for (VoxelTypeIndex=0;VoxelTypeIndex<32768;VoxelTypeIndex++)
+  {
+    Vt = Vtm->VoxelTable[VoxelTypeIndex];
+    if (!Vt) { sq_pushinteger(v,0); return(1); }
+    if (Vt->Is_NoType && VoxelTypeIndex!=50) { sq_pushinteger(v,0); return(1); }
+
+    if (Vt->FabInfos)
+    {
+      for (FabEntryIndex=0; FabEntryIndex < Vt->FabInfos->TransformationCount; FabEntryIndex++)
+      {
+        Transformation = &Vt->FabInfos->TransformationTable[FabEntryIndex];
+
+        for (ResultIndex=0; ResultIndex < Transformation->Max_ResultVoxels; ResultIndex++)
+        {
+          if (!Transformation->Result_VoxelType[ResultIndex]) break;
+          if (Transformation->Result_VoxelType[ResultIndex] == VoxelType)
+          {
+            if (FabCount) {FabCount--;break;}
+            else
+            {
+              Result = VoxelTypeIndex;
+              Result |= (FabEntryIndex<<16);
+
+              //printf("Found : Fab %d Ind %d\n",(int)Result & 0xFFFF, (int)Result >> 16);
+              sq_pushinteger(v,Result);
+              return(1);
+            }
+          }
+
+
+        }
+
+      }
+    }
+  }
+
+
+  // Return Success
+
+  sq_pushinteger(v,0);
+  return(1);
+}
+
+SQInteger Function_GetFab_ListType(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger MachineRef, Index;
+  ZVoxelTypeManager * Vtm;
+  ZVoxelType * Vt;
+  ZFabInfos::ZTransformation * Transformation;
+  UShort MachineType;
+  ULong  EntryIndex;
+  UShort VoxelType;
+
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<3) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &MachineRef);
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,3, &Index);
+
+
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  // Input Validation
+
+  Vtm = &S->GameEnv->VoxelTypeManager;
+
+  MachineType = MachineRef & 0xffff;
+  EntryIndex  = MachineRef >> 16;
+
+  Vt = Vtm->VoxelTable[MachineType];
+
+  // Verification of the machine reference
+
+  if (!Vt) {sq_pushinteger(v,0); return(1);}
+  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
+  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+  // Get info
+
+  Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+  if (Index >= Transformation->EntryCount) {sq_pushinteger(v,0);return(1);}
+  VoxelType = Vt->FabInfos->MaterialTable[ Transformation->FabList[Index].Index ].VoxelType;
+  sq_pushinteger(v, VoxelType);
+
+  return(1);
+}
+
+SQInteger Function_GetFab_ListQuantity(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger MachineRef, Index;
+  ZVoxelTypeManager * Vtm;
+  ZVoxelType * Vt;
+  ZFabInfos::ZTransformation * Transformation;
+  UShort MachineType;
+  ULong  EntryIndex;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<3) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &MachineRef);
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,3, &Index);
+
+
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  // Input Validation
+
+  Vtm = &S->GameEnv->VoxelTypeManager;
+
+  MachineType = MachineRef & 0xffff;
+  EntryIndex  = MachineRef >> 16;
+
+  Vt = Vtm->VoxelTable[MachineType];
+
+  // Verification of the machine reference
+
+  if (!Vt) {sq_pushinteger(v,0); return(1);}
+  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
+  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+  // Get info
+
+  Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+  if (Index >= Transformation->EntryCount) {sq_pushinteger(v,0);return(1);}
+  sq_pushinteger(v,Transformation->FabList[Index].Quantity);
+
+  return(1);
+}
+
+SQInteger Function_GetFab_ResultType(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger MachineRef, Index;
+  ZVoxelTypeManager * Vtm;
+  ZVoxelType * Vt;
+  ZFabInfos::ZTransformation * Transformation;
+  UShort MachineType;
+  ULong  EntryIndex;
+  UShort VoxelType;
+
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<3) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &MachineRef);
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,3, &Index);
+
+
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  // Input Validation
+
+  Vtm = &S->GameEnv->VoxelTypeManager;
+
+  MachineType = MachineRef & 0xffff;
+  EntryIndex  = MachineRef >> 16;
+
+  Vt = Vtm->VoxelTable[MachineType];
+
+  // Verification of the machine reference
+
+  if (!Vt) {sq_pushinteger(v,0); return(1);}
+  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
+  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+  // Get info
+
+  Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+  if (Index >= Transformation->Max_ResultVoxels) {sq_pushinteger(v,0);return(1);}
+  VoxelType = Transformation->Result_VoxelType[Index];
+  sq_pushinteger(v, VoxelType);
+
+  return(1);
+}
+
+SQInteger Function_GetFab_ResultQuantity(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger MachineRef, Index;
+  ZVoxelTypeManager * Vtm;
+  ZVoxelType * Vt;
+  ZFabInfos::ZTransformation * Transformation;
+  UShort MachineType;
+  ULong  EntryIndex;
+  UShort VoxelType;
+
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<3) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &MachineRef);
+  if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,3, &Index);
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  // Input Validation
+
+  Vtm = &S->GameEnv->VoxelTypeManager;
+
+  MachineType = MachineRef & 0xffff;
+  EntryIndex  = MachineRef >> 16;
+
+  Vt = Vtm->VoxelTable[MachineType];
+
+  // Verification of the machine reference
+
+  if (!Vt) {sq_pushinteger(v,0); return(1);}
+  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
+  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+  // Get info
+
+  Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+  if (Index >= Transformation->Max_ResultVoxels) {sq_pushinteger(v,0);return(1);}
+  VoxelType = Transformation->Result_Quantity[Index];
+  sq_pushinteger(v, VoxelType);
+
+  return(1);
+}
+
+SQInteger Function_GetFab_ListCount(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger MachineRef;
+  ZVoxelTypeManager * Vtm;
+  ZVoxelType * Vt;
+  ZFabInfos::ZTransformation * Transformation;
+  UShort MachineType;
+  ULong  EntryIndex;
+
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &MachineRef);
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  // Input Validation
+
+  Vtm = &S->GameEnv->VoxelTypeManager;
+
+  MachineType = MachineRef & 0xffff;
+  EntryIndex  = MachineRef >> 16;
+
+  Vt = Vtm->VoxelTable[MachineType];
+
+  // Verification of the machine reference
+
+  if (!Vt) {sq_pushinteger(v,0); return(1);}
+  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
+  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+  // Get info
+
+  Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+
+  sq_pushinteger(v, Transformation->EntryCount);
+
+  return(1);
+}
+
+SQInteger Function_GetFab_ResultCount(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger MachineRef, Index;
+  ZVoxelTypeManager * Vtm;
+  ZVoxelType * Vt;
+  ZFabInfos::ZTransformation * Transformation;
+  UShort MachineType;
+  ULong  EntryIndex;
+
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &MachineRef);
+
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  // Input Validation
+
+  Vtm = &S->GameEnv->VoxelTypeManager;
+
+  MachineType = MachineRef & 0xffff;
+  EntryIndex  = MachineRef >> 16;
+
+  Vt = Vtm->VoxelTable[MachineType];
+
+  // Verification of the machine reference
+
+  if (!Vt) {sq_pushinteger(v,0); return(1);}
+  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
+  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+  // Get info
+
+  Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+  for (Index=0;Index < Transformation->Max_ResultVoxels; Index++)
+  {
+    if (Transformation->Result_VoxelType[Index]==0) {sq_pushinteger(v, Index); return(1); }
+  }
+
+  sq_pushinteger(v,Transformation->Max_ResultVoxels);
+
+  return(1);
+}
+
+SQInteger Function_GetFab_Machine(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger MachineRef;
+  ZVoxelTypeManager * Vtm;
+  ZVoxelType * Vt;
+  UShort MachineType;
+  ULong  EntryIndex;
+
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &MachineRef);
+
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  // Input Validation
+
+  Vtm = &S->GameEnv->VoxelTypeManager;
+
+  MachineType = MachineRef & 0xffff;
+  EntryIndex  = MachineRef >> 16;
+
+  Vt = Vtm->VoxelTable[MachineType];
+
+  // Verification of the machine reference
+
+  if (!Vt) {sq_pushinteger(v,0); return(1);}
+  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
+  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+  // Return the machine type
+
+  sq_pushinteger(v,MachineType);
+  return(1);
+}
+
+
+SQInteger function_GetFab_Count(HSQUIRRELVM v)
+{
+  ZStoreSq3 * S;
+  SQInteger VoxelType, FabCount;
+  ZVoxelTypeManager * Vtm;
+  ZVoxelType * Vt;
+  ZFabInfos::ZTransformation * Transformation;
+
+  // Parameter input
+
+  SQInteger ArgCount = sq_gettop(v); if (ArgCount<2) return sq_throwerror(v,"invalid parameter count"); //throws an exception
+  if (sq_gettype(v,2) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
+  sq_getinteger(v,2, &VoxelType);
+
+
+
+  S = (ZStoreSq3 *)sq_getforeignptr(v);
+  // Input Validation
+
+  ULong VoxelTypeIndex, FabEntryIndex, ResultIndex;
+  Vtm = &S->GameEnv->VoxelTypeManager;
+
+  FabCount = 0;
+  for (VoxelTypeIndex=0;VoxelTypeIndex<32768;VoxelTypeIndex++)
+  {
+    Vt = Vtm->VoxelTable[VoxelTypeIndex];
+    if (!Vt) { sq_pushinteger(v,0); return(1); }
+    if (Vt->Is_NoType && VoxelTypeIndex!=50) { sq_pushinteger(v,FabCount); return(1); }
+    if (Vt->FabInfos)
+    {
+      for (FabEntryIndex=0; FabEntryIndex < Vt->FabInfos->TransformationCount; FabEntryIndex++)
+      {
+        Transformation = &Vt->FabInfos->TransformationTable[FabEntryIndex];
+
+        for (ResultIndex=0; ResultIndex < Transformation->Max_ResultVoxels; ResultIndex++)
+        {
+
+          if (!Transformation->Result_VoxelType[ResultIndex]) break;
+
+          if (Transformation->Result_VoxelType[ResultIndex] == VoxelType)
+          {
+            FabCount++;
+          }
+
+        }
+
+      }
+    }
+  }
+
+  // Return Success
+
+  sq_pushinteger(v,FabCount);
+  return(1);
+}
+
 
 SQInteger print_args(HSQUIRRELVM v)
 {
@@ -1939,14 +2434,29 @@ bool ZScripting_Squirrel3::Init()
   sq_getuserpointer(S->v,-1, &p);
 */
 
+  // 2.0 extension
+
+  RegisterSquirrelFunction(S, function_Terminate,            "Terminate");
+  RegisterSquirrelFunction(S, function_UnTerminate,          "UnTerminate");
+  RegisterSquirrelFunction(S, function_Overclock,            "Overclock");
+  RegisterSquirrelFunction(S, function_GetFab_Find,          "GetFab_Find");
+  RegisterSquirrelFunction(S, function_GetFab_Count,         "GetFab_Count");
+  RegisterSquirrelFunction(S, Function_GetFab_ListType,      "GetFab_ListType");
+  RegisterSquirrelFunction(S, Function_GetFab_ListQuantity,  "GetFab_ListQuantity");
+  RegisterSquirrelFunction(S, Function_GetFab_ResultType,    "GetFab_ResultType");
+  RegisterSquirrelFunction(S, Function_GetFab_ResultQuantity,"GetFab_ResultQuantity");
+  RegisterSquirrelFunction(S, Function_GetFab_ListCount,     "GetFab_ListCount");
+  RegisterSquirrelFunction(S, Function_GetFab_ResultCount,   "GetFab_ResultCount");
+  RegisterSquirrelFunction(S, Function_GetFab_Machine,       "GetFab_Machine");
+
   // 1.36 extension
 
-  RegisterSquirrelFunction(S, function_Image_New,      "Image_New");
-  RegisterSquirrelFunction(S, function_Image_Clear,    "Image_Clear");
-  RegisterSquirrelFunction(S, function_Image_Exists,   "Image_Exists");
-  RegisterSquirrelFunction(S, function_Image_GetPixel, "Image_GetPixel");
-  RegisterSquirrelFunction(S, function_Image_SetPixel, "Image_SetPixel");
-  RegisterSquirrelFunction(S, function_Image_Line,     "Image_Line");
+  RegisterSquirrelFunction(S, function_Image_New,            "Image_New");
+  RegisterSquirrelFunction(S, function_Image_Clear,          "Image_Clear");
+  RegisterSquirrelFunction(S, function_Image_Exists,         "Image_Exists");
+  RegisterSquirrelFunction(S, function_Image_GetPixel,       "Image_GetPixel");
+  RegisterSquirrelFunction(S, function_Image_SetPixel,       "Image_SetPixel");
+  RegisterSquirrelFunction(S, function_Image_Line,           "Image_Line");
   RegisterSquirrelFunction(S, function_Image_Polygon_Start,  "Image_Polygon_Start");
   RegisterSquirrelFunction(S, function_Image_Polygon_Segment,"Image_Polygon_Segment");
   RegisterSquirrelFunction(S, function_Image_Polygon_Render, "Image_Polygon_Render");

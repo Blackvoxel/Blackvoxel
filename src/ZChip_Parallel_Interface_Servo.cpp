@@ -67,7 +67,7 @@ void ZChip_Parallel_Interface_Servo::DoChipManagement()
 
   Vm = (ZVMachine_T1 *)VMachine;
 
-  if (Data & (ZCHIP_PI_SERVO_XPOWER | ZCHIP_PI_SERVO_YPOWER | ZCHIP_PI_SERVO_ZPOWER))
+  if (  (Data & (ZCHIP_PI_SERVO_XPOWER | ZCHIP_PI_SERVO_YPOWER | ZCHIP_PI_SERVO_ZPOWER)) ^ (ZCHIP_PI_SERVO_XPOWER | ZCHIP_PI_SERVO_YPOWER | ZCHIP_PI_SERVO_ZPOWER) )
   {
 
 
@@ -84,6 +84,7 @@ void ZChip_Parallel_Interface_Servo::DoChipManagement()
 
     Moved = false;
     Mv.x = Mv.y = Mv.z = 0;
+
     if (!(Out & ZCHIP_PI_SERVO_XPOWER))
     {
       if (Out & ZCHIP_PI_SERVO_XDIRECTION)
@@ -96,54 +97,53 @@ void ZChip_Parallel_Interface_Servo::DoChipManagement()
         Vm->Servo_MovePos.x -= CycleQuantum;
         if (Vm->Servo_MovePos.x <-ZCHIP_PI_SERVO_MOTORTHRESHOLD) { Mv.x = -1; Moved = true; Vm->Servo_MovePos.x = 0;  }
       }
-
-      if (!(Out & ZCHIP_PI_SERVO_YPOWER))
-      {
-        if (Out & ZCHIP_PI_SERVO_YDIRECTION)
-        {
-          Vm->Servo_MovePos.y += CycleQuantum;
-          if (Vm->Servo_MovePos.y > ZCHIP_PI_SERVO_MOTORTHRESHOLD) { Mv.y = 1; Moved = true; Vm->Servo_MovePos.y = 0; }
-        }
-        else
-        {
-          Vm->Servo_MovePos.y -= CycleQuantum;
-          if (Vm->Servo_MovePos.y <-ZCHIP_PI_SERVO_MOTORTHRESHOLD) { Mv.y = -1; Moved = true; Vm->Servo_MovePos.y = 0; }
-        }
-      }
-
-      if (!(Out & ZCHIP_PI_SERVO_ZPOWER))
-      {
-        if (Out & ZCHIP_PI_SERVO_ZDIRECTION)
-        {
-          Vm->Servo_MovePos.z += CycleQuantum;
-          if (Vm->Servo_MovePos.z > ZCHIP_PI_SERVO_MOTORTHRESHOLD) { Mv.z = 1; Moved = true; Vm->Servo_MovePos.z = 0; }
-        }
-        else
-        {
-          Vm->Servo_MovePos.z -= CycleQuantum;
-          if (Vm->Servo_MovePos.z <-ZCHIP_PI_SERVO_MOTORTHRESHOLD) { Mv.z = -1; Moved = true; Vm->Servo_MovePos.z = 0; }
-        }
-      }
-
-      if (Moved)
-      {
-        UShort VoxelType;
-        VoxelLocation Loc;
-        Vm->HasMoved = true;
-        if (Vm->VoxelInterface->GetVoxelExt(Mv.x, Mv.y, Mv.z, VoxelType, &Loc ))
-        {
-          if (Vm->VoxelInterface->VoxelTypeManager->VoxelTable[VoxelType]->Is_PlayerCanPassThrough)
-          {
-            Vm->VoxelInterface->MoveThis( Mv.x, Mv.y, Mv.z , ZActiveVoxelInterface::CHANGE_CRITICAL);
-            Vm->VoxelInterface->Coords += Mv;
-            Loc.Sector->Flag_HighPriorityRefresh = true;
-          }
-        }
-      }
-
     }
 
+    if (!(Out & ZCHIP_PI_SERVO_YPOWER))
+    {
+      if (Out & ZCHIP_PI_SERVO_YDIRECTION)
+      {
+        Vm->Servo_MovePos.y += CycleQuantum;
+        if (Vm->Servo_MovePos.y > ZCHIP_PI_SERVO_MOTORTHRESHOLD) { Mv.y = 1; Moved = true; Vm->Servo_MovePos.y = 0; }
+      }
+      else
+      {
+        Vm->Servo_MovePos.y -= CycleQuantum;
+        if (Vm->Servo_MovePos.y <-ZCHIP_PI_SERVO_MOTORTHRESHOLD) { Mv.y = -1; Moved = true; Vm->Servo_MovePos.y = 0; }
+      }
+    }
+
+    if (!(Out & ZCHIP_PI_SERVO_ZPOWER))
+    {
+      if (Out & ZCHIP_PI_SERVO_ZDIRECTION)
+      {
+        Vm->Servo_MovePos.z += CycleQuantum;
+        if (Vm->Servo_MovePos.z > ZCHIP_PI_SERVO_MOTORTHRESHOLD) { Mv.z = 1; Moved = true; Vm->Servo_MovePos.z = 0; }
+      }
+      else
+      {
+        Vm->Servo_MovePos.z -= CycleQuantum;
+        if (Vm->Servo_MovePos.z <-ZCHIP_PI_SERVO_MOTORTHRESHOLD) { Mv.z = -1; Moved = true; Vm->Servo_MovePos.z = 0; }
+      }
+    }
+
+    if (Moved)
+    {
+      UShort VoxelType;
+      ZVoxelLocation Loc;
+      Vm->HasMoved = true;
+      if (Vm->VoxelInterface->GetVoxelExt(Mv.x, Mv.y, Mv.z, VoxelType, &Loc ))
+      {
+        if (Vm->VoxelInterface->VoxelTypeManager->VoxelTable[VoxelType]->Is_PlayerCanPassThrough)
+        {
+          Vm->VoxelInterface->MoveThis( Mv.x, Mv.y, Mv.z , ZActiveVoxelInterface::CHANGE_CRITICAL);
+          Vm->VoxelInterface->Coords += Mv;
+          Loc.Sector->Flag_HighPriorityRefresh = true;
+        }
+      }
+    }
   }
+
   SetChipInputPortData(  (  In & ~(ZCHIP_PI_SERVO_X_RETURN | ZCHIP_PI_SERVO_Y_RETURN | ZCHIP_PI_SERVO_Z_RETURN))
                            | (( Vm->VoxelInterface->Coords.x & 1) ? ZCHIP_PI_SERVO_X_RETURN : 0 )
                            | (( Vm->VoxelInterface->Coords.y & 1) ? ZCHIP_PI_SERVO_Y_RETURN : 0 )
@@ -174,7 +174,7 @@ void ZChip_Parallel_Interface_Servo::SetRegister_Data(ULong Value)
 
   if (Out_Changed & ZCHIP_PI_SERVO_FLASH)
   {
-    VoxelLocation * Location;
+    ZVoxelLocation * Location;
     Vm = (ZVMachine_T1 *)VMachine;
     Location = &Vm->VoxelInterface->Location;
     Location->Sector->Data[Location->Offset] = (Out & ZCHIP_PI_SERVO_FLASH) ? 236 : 237;

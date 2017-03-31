@@ -30,12 +30,20 @@
 //#  include "ZSettings_Hardware.h"
 //#endif
 
+#ifndef A_COMPILESETTINGS_H
+#  include "ACompileSettings.h"
+#endif
+
 #ifndef Z_ZTYPES_H
 #  include "z/ZTypes.h"
 #endif
 
 #ifndef Z_ZSTRING_H
 #  include "z/ZString.h"
+#endif
+
+#ifndef Z_ZHARDWAREDEPENDENT_H
+#  include "ZOs_Specific_HardwareDependent.h"
 #endif
 
 class ZSettings_Hardware
@@ -49,6 +57,8 @@ class ZSettings_Hardware
     ULong Setting_ViewPort_Size_x;
     ULong Setting_ViewPort_Size_y;
     bool  Setting_FullScreen;
+    bool  Setting_NoframeWindow;
+    bool  Setting_OldLooked;
 
 
     // Sound
@@ -57,6 +67,7 @@ class ZSettings_Hardware
 
     // Mouse
     double Setting_MouseFactor;
+    bool   Setting_MouseFlipY;
 
     // Keyboard
     UShort Setting_Key_MoveForward;
@@ -70,8 +81,12 @@ class ZSettings_Hardware
 
     // Graphic quality;
 
-    ULong RenderingDistance_Horizontal;
-    ULong RenderingDistance_Vertical;
+    ULong Set_RenderDistance_Horiz;
+    ULong Set_RenderDistance_Vert;
+    ULong RenderingDistance_Horizontal;     // Computed depending on settings and machine.
+    ULong RenderingDistance_Vertical;       // Computed depending on settings and machine.
+
+
     double Opt_SectCFactor; // Sector Rendering Culling Factor.
     double PixelAspectRatio;
 
@@ -80,36 +95,18 @@ class ZSettings_Hardware
     bool Experimental_LearningMode;
     ZString Setting_Favorite_Editor;
 
-    ZSettings_Hardware()
-    {
-      Setting_Resolution_h = 0;
-      Setting_Resolution_v = 0;
-      Setting_FullScreen = true;
-      Setting_ViewPort_Offset_x = 0;
-      Setting_ViewPort_Offset_y = 0;
-      Setting_ViewPort_Size_x = 0;
-      Setting_ViewPort_Size_y =0;
-      Setting_SoundEnabled = true;
-      Setting_SoundVolume  = 100.0;
-      Setting_MouseFactor = 2.5;
-      Setting_Key_MoveForward = 'w';
-      Setting_Key_MoveBackward = 's';
-      Setting_Key_MoveLeft = 'a';
-      Setting_Key_MoveRight= 'd';
-      Setting_Key_MoveUp   = 'a';
-      Setting_Key_MoveDown = 'w';
-      Setting_Key_Jump = ' ';
-      Setting_Key_Inventory = 'i';
+    // Setting Version.
 
-      RenderingDistance_Horizontal = 8;
-      RenderingDistance_Vertical = 3;
-      Opt_SectCFactor = 1.0;
-      PixelAspectRatio = 1.0;
-      Experimental_LearningMode = false;
-    }
+    UShort Setting_Version;      // Actual Setting Version
+    UShort File_Setting_Version; // Last loaded file Setting Version (when mistmatch with Setting_Version, some settings might have to be adjusted.).
 
+
+
+
+    ZSettings_Hardware();
     bool Load();
     bool Save();
+    void AdjustForRealHardware(ZHardwareInfo * HardwareInfo);
 
 };
 

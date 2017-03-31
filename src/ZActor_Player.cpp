@@ -42,8 +42,17 @@ ZActor_Player::ZActor_Player()
   PlaneSpeed = 0.0;
   PlaneCommandResponsiveness = 0.0;
   PlaneEngineThrust = 0.0;
-  PlaneMinThrust = 5500.0;
-  PlaneMaxThrust = 60000.0;
+  if (COMPILEOPTION_PLATFORM_RASPBERRY_PI==1)
+  {
+    PlaneMinThrust[0] = 2500.0;PlaneMaxThrust[0] = 60000.0;
+    PlaneMinThrust[1] = 2500.0;PlaneMaxThrust[1] = 60000.0;
+  }
+  else
+  {
+    PlaneMinThrust[0] = 5500.0;PlaneMaxThrust[0] = 60000.0;
+    PlaneMinThrust[1] = 10000.0;PlaneMaxThrust[1] = 60000.0;
+  }
+
   PlaneEngineOn = false;
   PlaneTakenOff = false;
   PlaneLandedCounter = 0.0;
@@ -54,6 +63,7 @@ ZActor_Player::ZActor_Player()
   WalkSoundHandle = 0;
   Test_T1 = 0;
   Riding_Voxel = 0;
+  Vehicle_Subtype = 0;
   Riding_VoxelInfo = 0;
   Riding_IsRiding = 0;
   LastHelpTime = 1000000.0;
@@ -62,12 +72,15 @@ ZActor_Player::ZActor_Player()
   LastHelpVoxel.z = 0;
 
   Inventory = new ZInventory();
+  PreviousVoxelTypes = new UShort[ZInventory::Inventory_SlotCount];
+
   Init();
 }
 
 ZActor_Player::~ZActor_Player()
 {
   if (Inventory) {delete Inventory; Inventory = 0;}
+  if (PreviousVoxelTypes) {delete [] PreviousVoxelTypes; PreviousVoxelTypes = 0;}
 }
 
 void ZActor_Player::Init(bool Death)
@@ -128,6 +141,10 @@ void ZActor_Player::Init(bool Death)
   // Time
   if (!Death) Time_TotalGameTime = 0;
   Time_ElapsedTimeSinceLastRespawn = 0;
+
+  // Init powers
+
+  if (!Death) for(int i=0;i<ZInventory::Inventory_SlotCount;i++) PreviousVoxelTypes[i]=0;
 }
 
 void ZActor_Player::SetInitialInventory(bool Death)
@@ -208,15 +225,17 @@ void ZActor_Player::Action_MouseMove(Long Delta_x, Long Delta_y)
 {
   if (ActorMode == 0 || ActorMode == 3)
   {
-    double MouseRatio;
+    double MouseRatio, YMove;
 
     MouseRatio = GameEnv->Settings_Hardware->Setting_MouseFactor;
 
-    ViewDirection.yaw+=Delta_x/(3*MouseRatio);
+    ViewDirection.yaw+=Delta_x/(3.0*MouseRatio);
     if (ViewDirection.yaw >= 360.0) ViewDirection.yaw -= 360.0;
     if (ViewDirection.yaw <0 ) ViewDirection.yaw += 360.0;
 
-    ViewDirection.pitch-=Delta_y/(3*MouseRatio);
+    YMove = Delta_y/(3*MouseRatio);
+    ViewDirection.pitch-= (GameEnv->Settings_Hardware->Setting_MouseFlipY) ? -YMove : YMove;
+
     if (ViewDirection.pitch >= 360.0) ViewDirection.pitch -= 360.0;
     if (ViewDirection.pitch <0 ) ViewDirection.pitch += 360.0;
     if (ViewDirection.pitch >= 360.0) ViewDirection.pitch -= 360.0;
@@ -399,12 +418,14 @@ void ZActor_Player::Event_Collision(double RelativeVelocity )
       }
       break;
     case 2:
-      if (this->PlaneTakenOff && fabs(RelativeVelocity) > 60.0)
+      double Vl = fabs(RelativeVelocity);
+      if ( (!IsDead) && (Vl > (PlaneTakenOff ? 60.0 : 600.0) ))
       {
         // printf("Velocity:%lf CycleTime%lf\n",RelativeVelocity, GameEnv->Time_GameLoop);
         Event_PlaneCrash();
         GameEnv->Sound->PlaySound(1);
       }
+
       break;
   }
 }
@@ -653,6 +674,7 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
   ZVoxelWorld * World;
   ZVector3d Dep,Dep2;
   double DepLen;
+  double CutingAltitude;
   ULong i;
 
   double CapedCycleTime;
@@ -695,9 +717,15 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
 
   IsOnGround = !IsEmpty[2];
 
-  // Crash if collision with bloc
 
-  if (!VoxelType[1]->Is_PlayerCanPassThrough) Event_PlaneCrash();
+
+  if (!IsDead)
+  {
+    // Crash if collision with bloc
+    if (!VoxelType[1]->Is_PlayerCanPassThrough) Event_PlaneCrash();
+    // Limited airplane will crash if not landing on right material.
+    if (IsOnGround && Riding_Voxel == 239 && Voxel[2]!=240 && PlaneSpeed > 50.0) Event_PlaneCrash();
+  }
 
   // Angle computing
 
@@ -710,7 +738,7 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
   {
     if (PlaneSpeed <= 7000.0)
     {
-      if (IsOnGround) { ViewDirection.pitch = 0.0; ViewDirection.roll = 0.0; }
+      if (IsOnGround && !IsDead) { ViewDirection.pitch = 0.0; ViewDirection.roll = 0.0; }
     }
     else
     {
@@ -732,6 +760,7 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
       {
         Event_PlaneCrash();
       }
+
       if (ViewDirection.pitch>0.0 && ViewDirection.pitch < 315.0) { ViewDirection.pitch -= 0.0225 * CycleTime; if (ViewDirection.pitch < 0.0 ) ViewDirection.pitch = 0.0; }
       if (ViewDirection.pitch>315.0 && ViewDirection.pitch<= 360.0) { ViewDirection.pitch += 0.0225 * CycleTime; if (ViewDirection.pitch >= 360.0 ) ViewDirection.pitch = 0.0; }
       if (ViewDirection.roll >0.5 && ViewDirection.roll < 180.0) ViewDirection.roll  -= 0.0225 * CycleTime;
@@ -770,7 +799,7 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
     }
   }
 
-  // Insuficient speed make command more difficult.
+  // Insuficient speed make command less responsive.
 
   PlaneCommandResponsiveness = (PlaneSpeed - 1000) / 2000.0;
 
@@ -778,8 +807,6 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
   if (PlaneSpeed >= 4000.0 || IsOnGround ) PlaneCommandResponsiveness = 1.0;
   if (PlaneToohighAlt) PlaneCommandResponsiveness = 0.0;
   if (IsDead) PlaneCommandResponsiveness = 0.0;
-
-
 
   // Insuficient speed lower portance and make nasty effects
 
@@ -804,7 +831,12 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
 
   if (IsOnGround)
   {
-    if (PlaneSpeed >0.0) {PlaneSpeed-= 0.05*CycleTime;  if (PlaneSpeed < 0.0) PlaneSpeed = 0.0; }
+    if (PlaneSpeed >0.0)
+    {
+      PlaneSpeed-= 0.05*CycleTime;
+      if (Riding_Voxel==96 && Voxel[2]==240) PlaneSpeed-=0.2*CycleTime; // If plane Z1 landing on runway,
+      if (PlaneSpeed < 0.0) PlaneSpeed = 0.0;
+    }
     if (Velocity.x > 0.0) { Velocity.x -= 0.05*CycleTime; }
     if (Velocity.x < 0.0) { Velocity.x += 0.05*CycleTime; }
     if (Velocity.z > 0.0) { Velocity.z -= 0.05*CycleTime; }
@@ -828,11 +860,19 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
 
   // If going too high, something nasty will happens
 
-  if (Location.y > (5000.0 * 256.0) && (!PlaneToohighAlt) )
+  switch(Riding_Voxel)
+  {
+    case 239:CutingAltitude = 800.0 * 256.0; break;
+    case 96:
+    default: CutingAltitude = 5000.0 * 256.0; break;
+  }
+
+  if (Location.y > CutingAltitude && (!PlaneToohighAlt) )
   {
     PlaneToohighAlt = true;
     PlaneEngineThrust = 0.0;
     PlaneEngineOn = false;
+    if ((PlaneReactorSoundHandle)) { GameEnv->Sound->Stop_PlaySound(PlaneReactorSoundHandle); PlaneReactorSoundHandle = 0; }
     GameEnv->GameWindow_Advertising->Advertise("ENGINE STALLED",ZGameWindow_Advertising::VISIBILITY_MEDIUM,0,3000.0, 3000.0 );
     GameEnv->GameWindow_Advertising->Advertise("PLANE IS FREE FALLING",ZGameWindow_Advertising::VISIBILITY_MEDLOW,0,3000.0, 3000.0 );
 
@@ -885,7 +925,6 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
   for (i=0;i<24;i++) {PEnable[i] = true;}
   Continue = true;
   if ( (Dep.x == 0) && (Dep.y == 0) && (Dep.z == 0.0) ) { Continue = false; return; }
-
 
   while (Continue)
   {
@@ -967,11 +1006,11 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
     //ViewDirection.roll += 0.5 * CycleTime * ( DeathChronometer / 10000.0 ); if (ViewDirection.roll > 360) ViewDirection.roll -= 360.0;
     //ViewDirection.pitch+= 1.2 * CycleTime * ( DeathChronometer / 10000.0 ); if (ViewDirection.pitch > 360) ViewDirection.pitch -= 360.0;
 
-    ViewDirection.roll += 0.3 * CycleTime * ( DeathChronometer / 10000.0 ); if (ViewDirection.roll > 360) ViewDirection.roll -= 360.0;
-    ViewDirection.pitch+= 0.5 * CycleTime * ( DeathChronometer / 10000.0 ); if (ViewDirection.pitch > 360) ViewDirection.pitch -= 360.0;
+    ViewDirection.roll += 0.3 * CycleTime * ( DeathChronometer / 5000.0 ); if (ViewDirection.roll > 360) ViewDirection.roll -= 360.0;
+    ViewDirection.pitch+= 0.5 * CycleTime * ( DeathChronometer / 5000.0 ); if (ViewDirection.pitch > 360) ViewDirection.pitch -= 360.0;
     DeathChronometer-= CycleTime;
-    if (DeathChronometer> 4500.0 && DeathChronometer<5000.0)
-    { DeathChronometer = 4500.0; GameEnv->GameWindow_Advertising->Advertise("YOU ARE DEAD", ZGameWindow_Advertising::VISIBILITY_HIGH, 0, 4500.0, 0.0); }
+    if (DeathChronometer> 4250.0 && DeathChronometer<4500.0)
+    { DeathChronometer = 4250.0; GameEnv->GameWindow_Advertising->Advertise("YOU ARE DEAD", ZGameWindow_Advertising::VISIBILITY_HIGH, 0, 3000.0, 0.0); }
     if (DeathChronometer <= 0.0) {Event_Death(); return;}
   }
 
@@ -1168,6 +1207,49 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
   double DepLen;
 
 
+  // Voxel Looking event system
+
+  if (   PointedVoxel.PointedVoxel != PointedVoxel_Previous.PointedVoxel
+      || PointedVoxel.Collided != PointedVoxel_Previous.Collided)
+  {
+    ZVoxelLocation Loc;
+    ZVector3L Coords;
+
+
+    if (PointedVoxel_Previous.Collided)
+    {
+      PointedVoxel_Previous.PointedVoxel.GetCo(&Coords);
+      if(GameEnv->World->GetVoxelLocation(&Loc, &Coords))
+      {
+        GameEnv->VoxelTypeManager.GetVoxelType( Loc.Sector->Data[Loc.Offset] )->Event_End_Selected(&Loc, &Coords);
+        PointedVoxel_Previous.Collided = false;
+      }
+    }
+
+    if (PointedVoxel.Collided)
+    {
+      PointedVoxel.PointedVoxel.GetCo(&Coords);
+      if(GameEnv->World->GetVoxelLocation(&Loc, &Coords))
+      {
+        GameEnv->VoxelTypeManager.GetVoxelType( Loc.Sector->Data[Loc.Offset] )->Event_Start_Selected(&Loc, &Coords);
+      }
+
+    }
+
+    PointedVoxel_Previous = PointedVoxel;
+  }
+  else if (PointedVoxel.Collided)
+  {
+    ZVoxelLocation Loc;
+    ZVector3L Coords;
+
+    PointedVoxel.PointedVoxel.GetCo(&Coords);
+    if(GameEnv->World->GetVoxelLocation(&Loc, &Coords))
+    {
+      GameEnv->VoxelTypeManager.GetVoxelType( Loc.Sector->Data[Loc.Offset] )->Event_Is_Selected(&Loc, &Coords);
+    }
+  }
+
 
 
   // Voxel Help System
@@ -1190,7 +1272,7 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
         LastHelpVoxel.x = PointedVoxel.PointedVoxel.x;
         LastHelpVoxel.y = PointedVoxel.PointedVoxel.y;
         LastHelpVoxel.z = PointedVoxel.PointedVoxel.z;
-        GameEnv->GameWindow_Advertising->Advertise(GameEnv->VoxelTypeManager.VoxelTable[VoxelType]->HelpingMessage.String, ZGameWindow_Advertising::VISIBILITY_VERYHARDTOREAD, 0, 3000.0,100.0 );
+        GameEnv->GameWindow_Advertising->Advertise(GameEnv->VoxelTypeManager.VoxelTable[VoxelType]->HelpingMessage.String, ZGameWindow_Advertising::VISIBILITY_VERYHARDTOREAD, 0, 3000.0,0.0 );
       }
     }
 
@@ -1292,7 +1374,7 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
   {
     this->IsDead = true;
     GameEnv->GameWindow_Advertising->Advertise("YOU ARE DEAD", 0, 0, 10000.0, 10000.0);
-    DeathChronometer = 10000.0;
+    DeathChronometer = 5000.0;
   }
 
   if (IsDead)
@@ -1500,7 +1582,44 @@ void ZActor_Player::DoPhysic_GroundPlayer(double CycleTime)
       switch(Out[CollisionIndice].CollisionAxe)
       {
         case 0: Dep.x=0.0; Event_Collision(Velocity.x); Velocity.x = 0.0; IsCollided_h = true; break;
-        case 1: Dep.y=0.0; Event_Collision(Velocity.y); Velocity.y = 0.0; JumpDebounce = 0;break;
+        case 1: Dep.y=0.0;
+                           // The snow, a particular physic behavior when falling on it...
+                           {
+                             bool CollisionOn = true;
+                             if (Velocity.y <= -1000.0)
+                             {
+                               UShort VoxelUnderPlayer = GameEnv->World->GetVoxel(Out[CollisionIndice].PointedVoxel.x, Out[CollisionIndice].PointedVoxel.y, Out[CollisionIndice].PointedVoxel.z);
+
+                               if (GameEnv->VoxelTypeManager.VoxelTable[VoxelUnderPlayer]->BvProp_AccelerateOnFall)
+                               {
+                                 CollisionOn = false; // No collision event on snow.
+                                 // printf("err...%lf\n", Velocity.y);
+                                 if ( (!JumpDebounce) || Velocity.y < -3000.0) // Don't try to jump to get velocity on a flat snow surface.
+                                 {
+                                   double Norm = sqrt(Velocity.x*Velocity.x + Velocity.z * Velocity.z);
+                                   double Vel = fabs(Velocity.y);
+
+                                   double NewVelocityFactor = Norm + Vel / 10.0;
+                                   if (NewVelocityFactor > 15000.0) NewVelocityFactor = 15000.0; // Limit speed
+                                   if (Norm > 1.0)
+                                   {
+                                     Velocity.x = Velocity.x / Norm * NewVelocityFactor; // Get the new acceleration without changing velocity direction.
+                                     Velocity.z = Velocity.z / Norm * NewVelocityFactor; // ...
+                                   }
+                                   if (Velocity.x > 15000.0) Velocity.x = 15000.0;
+                                   if (Velocity.x <-15000.0) Velocity.x = -15000.0;
+                                   if (Velocity.z > 15000.0) Velocity.z = 15000.0;
+                                   if (Velocity.z <-15000.0) Velocity.z =-15000.0;
+                                 }
+                                 //printf("Vx %f, Vz %f\n",Velocity.x, Velocity.z);
+                               }
+                             }
+                             // Colision and death are disabled on snow.
+                             if (CollisionOn) Event_Collision(Velocity.y);
+                             Velocity.y = 0.0;
+                             JumpDebounce = 0;
+                           }
+                           break;
         case 2: Dep.z=0.0; Event_Collision(Velocity.z); Velocity.z = 0.0; IsCollided_h = true; break;
       }
       //Deplacement = 0.0;
@@ -1907,8 +2026,8 @@ void ZActor_Player::Action_GoForward()
              if (PlaneEngineOn)
              {
                PlaneEngineThrust += 50.0 * GameEnv->Time_GameLoop;
-               if (PlaneEngineThrust > PlaneMaxThrust) PlaneEngineThrust = PlaneMaxThrust;
-               if (PlaneEngineThrust < PlaneMinThrust) PlaneEngineThrust = PlaneMinThrust;
+               if (PlaneEngineThrust > PlaneMaxThrust[Vehicle_Subtype]) PlaneEngineThrust = PlaneMaxThrust[Vehicle_Subtype];
+               if (PlaneEngineThrust < PlaneMinThrust[Vehicle_Subtype]) PlaneEngineThrust = PlaneMinThrust[Vehicle_Subtype];
              }
              break;
 
@@ -1935,7 +2054,7 @@ void ZActor_Player::Action_GoBackward()
              if (PlaneEngineOn)
              {
                PlaneEngineThrust -= 50.0 * GameEnv->Time_GameLoop;
-               if (PlaneEngineThrust < PlaneMinThrust) PlaneEngineThrust = PlaneMinThrust;
+               if (PlaneEngineThrust < PlaneMinThrust[Vehicle_Subtype]) PlaneEngineThrust = PlaneMinThrust[Vehicle_Subtype];
              }
              break;
     case 3:
@@ -1990,7 +2109,7 @@ void ZActor_Player::Action_GoRightStraff()
              {
                PlaneEngineOn = true;
                PlaneEngineThrust = 0.0;
-               if (PlaneToohighAlt) { PlaneToohighAlt = false; PlaneEngineThrust = PlaneMaxThrust; PlaneSpeed = 30000.0; }
+               if (PlaneToohighAlt) { PlaneToohighAlt = false; PlaneEngineThrust = PlaneMaxThrust[Vehicle_Subtype]; PlaneSpeed = 30000.0; }
                GameEnv->GameWindow_Advertising->Advertise("ENGINE ON",ZGameWindow_Advertising::VISIBILITY_MEDLOW,0,1000.0, 500.0 );
                PlaneToohighAlt = false;
                PlaneWaitForRectorStartSound = false;
@@ -2040,9 +2159,11 @@ void ZActor_Player::Action_Jump()
   }
 }
 
+
+
 void ZActor_Player::Start_Riding(Long x, Long y, Long z)
 {
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
 
   if ( (!Riding_IsRiding) && GameEnv->World->GetVoxelLocation(&Loc, x,y,z))
   {
@@ -2064,6 +2185,7 @@ void ZActor_Player::Start_Riding(Long x, Long y, Long z)
 
       switch(Riding_Voxel)
       {
+        case 239:
         case 96: ActorMode = 2;
                  ViewDirection.pitch = 0.0;
                  ViewDirection.roll  = 0.0;
@@ -2078,6 +2200,15 @@ void ZActor_Player::Start_Riding(Long x, Long y, Long z)
                  break;
 
       }
+
+      // Subtype
+
+      switch(Riding_Voxel)
+      {
+        case 239: Vehicle_Subtype = 1; break;
+        case 96:  Vehicle_Subtype = 0; break;
+      }
+
     }
   }
 }
@@ -2085,7 +2216,7 @@ void ZActor_Player::Start_Riding(Long x, Long y, Long z)
 void ZActor_Player::Stop_Riding()
 {
   ZVector3L VLoc;
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
 
   if (Riding_IsRiding)
   {
@@ -2105,6 +2236,7 @@ void ZActor_Player::Stop_Riding()
 
 void ZActor_Player::Event_Death()
 {
+  GameEnv->GameWindow_Advertising->Advertise("RESPAWNED TO POINT ZERO", ZGameWindow_Advertising::VISIBILITY_HIGH, 0, 3500.0, 0.0);
   Init(true);
 }
 
@@ -2112,21 +2244,49 @@ void ZActor_Player::Event_Death()
 void ZActor_Player::Event_PlaneCrash()
 {
   GameEnv->GameWindow_Advertising->Clear();
-  GameEnv->GameWindow_Advertising->Advertise("CRASH", ZGameWindow_Advertising::VISIBILITY_MEDLOW, 0, 3000.0, 0.0);
+  GameEnv->GameWindow_Advertising->Advertise("CRASH", ZGameWindow_Advertising::VISIBILITY_MEDLOW, 0, 1000.0, 0.0);
   if ((PlaneReactorSoundHandle)) { GameEnv->Sound->Stop_PlaySound(PlaneReactorSoundHandle); PlaneReactorSoundHandle = 0; }
   GameEnv->Sound->PlaySound(1);
   IsDead = true;
-  DeathChronometer = 10000.0;
+  DeathChronometer = 5000.0;
   PlaneEngineThrust = 0.0;
 }
 
 void ZActor_Player::Event_DeadlyFall()
 {
   GameEnv->GameWindow_Advertising->Clear();
-  GameEnv->GameWindow_Advertising->Advertise("FATAL FALL : YOU ARE DEAD", ZGameWindow_Advertising::VISIBILITY_HIGH, 0, 8000.0, 0.0);
+  GameEnv->GameWindow_Advertising->Advertise("FATAL FALL : YOU ARE DEAD", ZGameWindow_Advertising::VISIBILITY_HIGH, 0, 5000.0, 0.0);
   GameEnv->Sound->PlaySound(1);
   IsDead = true;
-  DeathChronometer = 10000.0;
+  DeathChronometer = 5000.0;
   Location.y -= 256.0;
 }
 
+void ZActor_Player::Process_Powers()
+{
+  ULong SlotNum;
+  ZVoxelType * PreviousVoxelType, * ActualVoxelType;
+  ZInventory::Entry * InventoryEntry;
+
+  // Detect if powers have changed in order to start and stop these like services.
+  // At game start or resume, powers receive start events.
+
+  for (SlotNum=ZInventory::Powers_StartSlot ; SlotNum<=ZInventory::Powers_EndSlot ; SlotNum++)
+  {
+    InventoryEntry = Inventory->GetSlotRef(SlotNum);
+    ActualVoxelType = GameEnv->VoxelTypeManager.GetVoxelType(InventoryEntry->VoxelType);
+
+    if (InventoryEntry->VoxelType != PreviousVoxelTypes[SlotNum])
+    {
+      PreviousVoxelType = GameEnv->VoxelTypeManager.GetVoxelType(PreviousVoxelTypes[SlotNum]);
+
+      if (PreviousVoxelType->Is_Power) PreviousVoxelType->Power_End();
+      if (ActualVoxelType->Is_Power)   ActualVoxelType->Power_Start();
+    }
+
+    if (ActualVoxelType->Is_Power) ActualVoxelType->Power_DoWork();
+
+    PreviousVoxelTypes[SlotNum] = InventoryEntry->VoxelType;
+  }
+
+}

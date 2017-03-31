@@ -197,11 +197,13 @@ class ZString
 
     ZString & Append_pchar(char const * Str);
     ZString & Append_ULong(ULong Number);
+    ZString & Append_Long(Long Number );
     ZString & Append_char(char c);
     ZString & Append_CStringPart(char const * Str, ZMemSize PartLen);
     ZString & Append_CStringUpToEOL(char const * Str);
     ZString & Append_Formated_Long (Long Number , ZNumberFormat * Format);
     ZString & Append_Formated_ULong(ULong Number, ZNumberFormat * Format);
+    ZString & Append_Formated_Float(float Number, ZNumberFormat * Format);
     ZString & Append_BinaryNumber_UByte(UByte Number);
     ZString & Append_BinaryNumber_UShort(UShort Number);
     ZString & Append_BinaryNumber_ULong(ULong Number);
@@ -209,8 +211,11 @@ class ZString
     ZString & Append_HexNumber_UByte(UByte Number);
     ZString & Append_HexNumber_UShort(UShort Number);
     ZString & Append_HexNumber_ULong(ULong Number);
+    ZString & Append_Double(double Number);
+    ZString & Append_Double(double Number, UShort Digits, bool ForceDecimals);
     ZString & Append_Mids(ZString const * InString, ZMemSize Start, ZMemSize End);
     ZString & Append_SubString(ZString const * InString, ZMemSize Start, ZMemSize Len);
+
 
 
     ZString & AddToPath(char const * Str);
@@ -235,6 +240,7 @@ class ZString
     Bool Split(char c, ZString & FirstPart);
     void StripAll(char c);
     void StripLeading(char c);
+    void StripTrailling(char c);
 
     ZString & SearchReplace(char Searched, char Replacement);
     bool SearchInString_Forward (ZString const * StringToFind, ZMemSize & OutPosition, ZMemSize Start);

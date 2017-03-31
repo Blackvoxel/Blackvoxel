@@ -58,18 +58,19 @@ class ZInventory
 
   public:
 
-    enum { Inventory_StartSlot = 0,
+    enum { Inventory_SlotCount = 60,
+           Inventory_StartSlot = 0,
            Inventory_EndSlot   = 39,
            Tools_StartSlot     = 40,
            Tools_EndSlot       = 49,
            Powers_StartSlot    = 50,
-           Powers_EndSlot       = 59 };
+           Powers_EndSlot       = 59};
 
     ZInventory()
     {
       ULong i;
 
-      SlotCount = 60;
+      SlotCount = Inventory_SlotCount;
 
       ActualItem = Inventory_StartSlot;
       ActualTool = Tools_StartSlot;
@@ -122,6 +123,27 @@ class ZInventory
     bool Save(ZStream_SpecialRamStream * Stream);
     bool Load(ZStream_SpecialRamStream * Stream);
 
+    // Some family of voxel will be regrouped to a single type when stored.
+
+    UShort GetGroupLeader(UShort VoxelType)
+    {
+      UShort NewVoxelType;
+
+      switch(VoxelType)
+      {
+        default: NewVoxelType = VoxelType; break;
+        case 103:
+        case 104:
+        case 105:
+        case 106: NewVoxelType = 103; break;
+        case 244:
+        case 245:
+        case 246:
+        case 247: NewVoxelType = 244; break;
+      }
+      return(NewVoxelType);
+    }
+
     bool FindSlot(UShort VoxelType, ULong &Slot)
     {
       ULong i;
@@ -148,6 +170,8 @@ class ZInventory
     bool StoreBlocks(UShort VoxelType, ULong VoxelQuantity)
     {
       ULong Slot;
+
+      VoxelType = GetGroupLeader(VoxelType);
 
       if (FindSlot(VoxelType,Slot))
       {
@@ -219,6 +243,72 @@ class ZInventory
         if (SlotTable[i].VoxelType > 0 && SlotTable[i].Quantity > 0) return((ULong)i);
       }
       return(-1);
+    }
+
+    void NextTool()
+    {
+      ULong i, Index;
+      Entry Buffer[Tools_EndSlot - Tools_StartSlot + 1];
+
+      // Search for next tool availlable.
+
+      for (i=Tools_StartSlot+1;i<= Tools_EndSlot;i++)
+      {
+        if (SlotTable[i].VoxelType > 0 && SlotTable[i].Quantity > 0) {break;}
+      }
+      if (i>Tools_EndSlot) return;
+
+      Index = i;
+
+      // Copy in new order
+
+      for (i=0;i <= (Tools_EndSlot - Tools_StartSlot); i++)
+      {
+        Buffer[i] = SlotTable[Index];
+        Index++;
+        if (Index > Tools_EndSlot) Index = Tools_StartSlot;
+      }
+
+      // Copy back into inventory.
+
+      for (i=0;i <= (Tools_EndSlot - Tools_StartSlot); i++)
+      {
+        SlotTable[Tools_StartSlot + i ] = Buffer[i];
+      }
+
+    }
+
+    void PrevTool()
+    {
+      Long i, Index;
+      Entry Buffer[Tools_EndSlot - Tools_StartSlot + 1];
+
+      // Search for next tool availlable.
+
+      for (i=Tools_EndSlot;i>=Tools_StartSlot ;i--)
+      {
+        if (SlotTable[i].VoxelType > 0 && SlotTable[i].Quantity > 0) {break;}
+      }
+      if (i<Tools_StartSlot) return;
+
+      Index = i;
+
+      // Copy in new order
+
+      for (i=0;i <= (Tools_EndSlot - Tools_StartSlot); i++)
+      {
+        Buffer[i] = SlotTable[Index];
+        Index++;
+        if (Index > Tools_EndSlot) Index = Tools_StartSlot;
+      }
+
+      // Copy back into inventory.
+
+      for (i=0;i <= (Tools_EndSlot - Tools_StartSlot); i++)
+      {
+        SlotTable[Tools_StartSlot + i ] = Buffer[i];
+      }
+
     }
 
 };

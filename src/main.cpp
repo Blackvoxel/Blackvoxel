@@ -175,10 +175,10 @@ int main(int argc, char *argv[])
   // Test Code
 
   #if DEVELOPPEMENT_ON == 1
-
-   // ZTest_Parts TestParts;
-   // if (!TestParts.RunTestCode()) exit(0);
-
+/*
+     ZTest_Parts TestParts;
+     if (!TestParts.RunTestCode()) exit(0);
+*/
   #endif
 
   // Game main object
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 
     #if COMPILEOPTION_FABDATABASEOUTPUT == 1
       GameEnv.VoxelTypeManager.OutFabInfos();
-      GameEnv.VoxelTypeManager.FindFabConflics();
+      GameEnv.VoxelTypeManager.FindFabConflicts_V2();
       GameEnv.OutputHelperFiles();
 
     #endif
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
                                                   switch( Screen_ChooseOption.ResultCode )
                                                   {
                                                     case ZScreen_ChooseOption::CHOICE_DISPLAY:  { ZScreen_Options_Display Screen_Options_Display; Screen_Options_Display.ProcessScreen(&GameEnv); break; }
-                                                    case ZScreen_ChooseOption::CHOICE_SOUND:    { ZScreen_Options_Sound Screen_Options_Sound;     Screen_Options_Sound.ProcessScreen(&GameEnv);   break; }
+                                                    case ZScreen_ChooseOption::CHOICE_SOUND:    { ZScreen_Options_Sound Screen_Options_Sound;     Screen_Options_Sound.ProcessScreen(&GameEnv); break; }
                                                     case ZScreen_ChooseOption::CHOICE_MOUSE:    { ZScreen_Options_Game Screen_Options_Mouse;     Screen_Options_Mouse.ProcessScreen(&GameEnv);   break; }
                                                     case ZScreen_ChooseOption::CHOICE_KEYMAP:  { ZScreen_Options_Keymap Screen_Options_Keymap;    Screen_Options_Keymap.ProcessScreen(&GameEnv);  break; }
                                                   }
@@ -299,9 +299,11 @@ int main(int argc, char *argv[])
 
           GameEnv.Game_Run = true;
           GameEnv.Time_FrameTime = 20;
+          //ULong PerfTable[100];
+
+
           while (GameEnv.Game_Run)
           {
-//            Time_Start = SDL_GetTicks();
             Timer.Start();
 
             // Process Input events (Mouse, Keyboard)
@@ -317,7 +319,7 @@ int main(int argc, char *argv[])
 
             // Player physics
 
-            GameEnv.PhysicEngine->DoPhysic(GameEnv.Time_FrameTime);
+            GameEnv.PhysicEngine->DoPhysic(COMPILEOPTION_ADD_MIDLOOP_PHYSIC_ITERATION ? GameEnv.Time_FrameTime >> 1 : GameEnv.Time_FrameTime);
 
             // Voxel Processor Get Player Position.
 
@@ -336,15 +338,28 @@ int main(int argc, char *argv[])
             // Tool activation and desactivation
 
             GameEnv.ToolManager->ProcessAndDisplay();
+            GameEnv.PhysicEngine->GetSelectedActor()->Process_Powers();
 
             // Rendering
 
             GameEnv.Basic_Renderer->Render();
+            //PerfTable[8] = Timer.GetIntermediateSlice();
+
             GameEnv.GuiManager.Render();
+            //PerfTable[9] = Timer.GetIntermediateSlice();
+
+            // On some little devices, this extra step helps getting better reactivity
+            #if COMPILEOPTION_ADD_MIDLOOP_PHYSIC_ITERATION==1
+            GameEnv.EventManager.ProcessEvents();       // Process incoming events.
+            GameEnv.Game_Events->Process_StillEvents(); // Process repeating checked events.
+            GameEnv.PhysicEngine->DoPhysic(GameEnv.Time_FrameTime >> 1);
+            #endif
 
             // Swapping OpenGL Surfaces.
 
             SDL_GL_SwapBuffers( );
+            //PerfTable[10] = Timer.GetIntermediateSlice();
+
 
             // Game Events.
 
@@ -372,6 +387,12 @@ int main(int argc, char *argv[])
                 ZString As;
 
                 As = "FPS: "; As << (ULong)( 1000.0 / FrameTime) << " FTM: " << FrameTime;
+                /*
+                for (ULong i=0;i<12;i++)
+                {
+                  As<<"\n" <<(ULong)i<<":"<<(ULong)PerfTable[i];
+                }
+                */
                 GameEnv.GameWindow_DisplayInfos->SetText(&As);
               }
             }
@@ -393,7 +414,7 @@ int main(int argc, char *argv[])
 
       // Getting out of the game.
 
-#if DEVELOPPEMENT_ON!=1
+#if COMPILEOPTION_HELP_SCREEN==1
       ZScreen_Message Screen_Message;
       Screen_Message.ProcessScreen(&GameEnv);
 #endif

@@ -1207,7 +1207,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
           case OPCODE_ASR_W:            // asr.w reg,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
-                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_SWord = (GeneralRegister[(Op1&0xf0)].Reg_SWord >> GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SWord & 0x8000)
+                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)>>4].Reg_SWord = (GeneralRegister[(Op1&0xf0)].Reg_SWord >> GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SWord & 0x8000)
                                                            ,Status );
                                         ElapsedCycles += 6;
                                         break;
@@ -1215,7 +1215,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
           case OPCODE_ASR_L:            // asr.l reg,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
-                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_SLong = (GeneralRegister[(Op1&0xf0)].Reg_SLong >> GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SLong & 0x80000000UL)
+                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_SLong = (GeneralRegister[(Op1&0xf0)].Reg_SLong >> GeneralRegister[Op1&0xf].Reg_UByte) || (GeneralRegister[(Op1&0xf0)].Reg_SLong & 0x80000000UL)
                                                            ,Status );
                                         ElapsedCycles += 6;
                                         break;
@@ -1223,7 +1223,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
           case OPCODE_LSL_B:            // lsl.b reg,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
-                                        Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_SByte <<= GeneralRegister[Op1&0xf].Reg_UByte
+                                        Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)>>4].Reg_SByte <<= GeneralRegister[Op1&0xf].Reg_UByte
                                                           ,Status );
                                         ElapsedCycles += 6;
                                         break;
@@ -1231,7 +1231,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
           case OPCODE_LSL_W:            // lsl.w reg,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
-                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_SWord <<= GeneralRegister[Op1&0xf].Reg_UByte
+                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)>>4].Reg_SWord <<= GeneralRegister[Op1&0xf].Reg_UByte
                                                            ,Status );
                                         ElapsedCycles += 6;
                                         break;
@@ -1239,7 +1239,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
           case OPCODE_LSL_L:            // lsl.l reg,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
-                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_SLong <<= GeneralRegister[Op1&0xf].Reg_UByte
+                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_SLong <<= GeneralRegister[Op1&0xf].Reg_UByte
                                                            ,Status );
                                         ElapsedCycles += 6;
                                         break;
@@ -1247,7 +1247,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
           case OPCODE_LSR_B:            // lsr.b reg,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
-                                        Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_SByte >>= GeneralRegister[Op1&0xf].Reg_UByte
+                                        Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)>>4].Reg_SByte >>= GeneralRegister[Op1&0xf].Reg_UByte
                                                           ,Status );
                                         ElapsedCycles += 6;
                                         break;
@@ -1255,7 +1255,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
           case OPCODE_LSR_W:            // lsr.w reg,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
-                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_SWord >>= GeneralRegister[Op1&0xf].Reg_UByte
+                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)>>4].Reg_SWord >>= GeneralRegister[Op1&0xf].Reg_UByte
                                                            ,Status );
                                         ElapsedCycles += 6;
                                         break;
@@ -1263,7 +1263,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
           case OPCODE_LSR_L:            // lsr.l reg,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
-                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_SLong >>= GeneralRegister[Op1&0xf].Reg_UByte
+                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_SLong >>= GeneralRegister[Op1&0xf].Reg_UByte
                                                            ,Status );
                                         ElapsedCycles += 6;
                                         break;
@@ -1273,8 +1273,8 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         {
                                           register bool Carry;
                                           Carry = Status.Flags.CarryFlag;
-                                          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte < 0;
-                                          Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_UByte = GeneralRegister[(Op1&0xf0)].Reg_UByte >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)>>4].Reg_SByte < 0;
+                                          Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)>>4].Reg_UByte = GeneralRegister[(Op1&0xf0)].Reg_UByte >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
                                                             ,Status );
                                           ElapsedCycles += 6;
                                         }
@@ -1285,8 +1285,8 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         {
                                           register bool Carry;
                                           Carry = Status.Flags.CarryFlag;
-                                          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord < 0;
-                                          Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_UWord = GeneralRegister[(Op1&0xf0)].Reg_UByte >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)>>4].Reg_SWord < 0;
+                                          Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)>>4].Reg_UWord = GeneralRegister[(Op1&0xf0)].Reg_UByte >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
                                                              ,Status );
                                           ElapsedCycles += 6;
                                         }
@@ -1297,8 +1297,8 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         {
                                           register bool Carry;
                                           Carry = Status.Flags.CarryFlag;
-                                          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong < 0;
-                                          Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_ULong = GeneralRegister[(Op1&0xf0)].Reg_ULong >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)>>4].Reg_SLong < 0;
+                                          Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_ULong = GeneralRegister[(Op1&0xf0)].Reg_ULong >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
                                                              ,Status );
                                           ElapsedCycles += 6;
                                         }
@@ -1309,8 +1309,8 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         {
                                           register bool Carry;
                                           Carry = Status.Flags.CarryFlag;
-                                          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SByte | 1;
-                                          Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)].Reg_UByte = GeneralRegister[(Op1&0xf0)].Reg_UByte >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)>>4].Reg_SByte | 1;
+                                          Status_Test_ZN_8( GeneralRegister[(Op1&0xf0)>>4].Reg_UByte = GeneralRegister[(Op1&0xf0)].Reg_UByte >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
                                                             ,Status );
                                           ElapsedCycles += 6;
                                         }
@@ -1321,8 +1321,8 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         {
                                           register bool Carry;
                                           Carry = Status.Flags.CarryFlag;
-                                          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord | 1;
-                                          Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_UWord = GeneralRegister[(Op1&0xf0)].Reg_UWord >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)>>4].Reg_SWord | 1;
+                                          Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)>>4].Reg_UWord = GeneralRegister[(Op1&0xf0)].Reg_UWord >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
                                                             ,Status );
                                           ElapsedCycles += 6;
                                         }
@@ -1333,8 +1333,8 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         {
                                           register bool Carry;
                                           Carry = Status.Flags.CarryFlag;
-                                          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong | 1;
-                                          Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_ULong = GeneralRegister[(Op1&0xf0)].Reg_ULong >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
+                                          Status.Flags.CarryFlag = GeneralRegister[(Op1&0xf0)>>4].Reg_SLong | 1;
+                                          Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_ULong = GeneralRegister[(Op1&0xf0)].Reg_ULong >> GeneralRegister[Op1&0xf].Reg_UByte | (Carry ? 1:0)
                                                             ,Status );
                                           ElapsedCycles += 6;
                                         }
@@ -1342,17 +1342,17 @@ class BlackCPU : public ZVCPU_Chip_Interface
 
           case OPCODE_UMUL_B:           // umul.b reg,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        GeneralRegister[(Op1&0xf0)].Reg_UWord = (GeneralRegister[(Op1&0xf0)].Reg_UByte) * (GeneralRegister[Op1&0xf].Reg_UByte);
-                                        Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_UWord > 255;
-                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_UWord ,Status );
+                                        GeneralRegister[(Op1&0xf0)>>4].Reg_UWord = (GeneralRegister[(Op1&0xf0)>>4].Reg_UByte) * (GeneralRegister[Op1&0xf].Reg_UByte);
+                                        Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord > 255;
+                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)>>4].Reg_UWord ,Status );
                                         ElapsedCycles += 150;
                                         break;
 
           case OPCODE_UMUL_W:           // umul.w reg,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        GeneralRegister[(Op1&0xf0)].Reg_ULong = (GeneralRegister[(Op1&0xf0)].Reg_UWord) * (GeneralRegister[Op1&0xf].Reg_UWord);
-                                        Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_UWord > 65535;
-                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_UWord ,Status );
+                                        GeneralRegister[(Op1&0xf0)>>4].Reg_ULong = (GeneralRegister[(Op1&0xf0)].Reg_UWord) * (GeneralRegister[Op1&0xf].Reg_UWord);
+                                        Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord > 65535;
+                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_UWord ,Status );
                                         ElapsedCycles += 150;
                                         break;
 
@@ -1360,28 +1360,28 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         {
                                           UELong Tmp;
-                                          Tmp = GeneralRegister[(Op1&0xf0)].Reg_ULong * GeneralRegister[Op1&0xf].Reg_ULong;
-                                          GeneralRegister[(Op1&0xf0)].Reg_ULong = (ULong)Tmp;
-                                          GeneralRegister[((Op1+0x10)&0xf0)].Reg_ULong = (ULong)(Tmp>>32);
-                                          Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_ULong != 0;
-                                          Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_ULong ,Status );
+                                          Tmp = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong * GeneralRegister[Op1&0xf].Reg_ULong;
+                                          GeneralRegister[(Op1&0xf0)>>4].Reg_ULong = (ULong)Tmp;
+                                          GeneralRegister[((Op1+0x10)&0xf0)>>4].Reg_ULong = (ULong)(Tmp>>32);
+                                          Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)>>4].Reg_ULong != 0;
+                                          Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_ULong ,Status );
                                           ElapsedCycles += 150;
                                         }
                                         break;
 
           case OPCODE_SMUL_B:           // smul.b reg,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        GeneralRegister[(Op1&0xf0)].Reg_SWord = (GeneralRegister[(Op1&0xf0)].Reg_SByte) * (GeneralRegister[Op1&0xf].Reg_SByte);
-                                        Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_SWord > 255;
-                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)].Reg_UWord ,Status );
+                                        GeneralRegister[(Op1&0xf0)>>4].Reg_SWord = (GeneralRegister[(Op1&0xf0)>>4].Reg_SByte) * (GeneralRegister[Op1&0xf].Reg_SByte);
+                                        Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)>>4].Reg_SWord > 255;
+                                        Status_Test_ZN_16( GeneralRegister[(Op1&0xf0)>>4].Reg_UWord ,Status );
                                         ElapsedCycles += 150;
                                         break;
 
           case OPCODE_SMUL_W:           // smul.w reg,reg
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                        GeneralRegister[(Op1&0xf0)].Reg_SLong = (GeneralRegister[(Op1&0xf0)].Reg_SWord) * (GeneralRegister[Op1&0xf].Reg_SWord);
-                                        Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_UWord > 65535;
-                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_UWord ,Status );
+                                        GeneralRegister[(Op1&0xf0)>>4].Reg_SLong = (GeneralRegister[(Op1&0xf0)>>4].Reg_SWord) * (GeneralRegister[Op1&0xf].Reg_SWord);
+                                        Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)>>4].Reg_UWord > 65535;
+                                        Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_UWord ,Status );
                                         ElapsedCycles += 150;
                                         break;
 
@@ -1389,11 +1389,11 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         Op1 = FetchOperand_8(ProgramCounter++); // Register
                                         {
                                           ELong Tmp;
-                                          Tmp = GeneralRegister[(Op1&0xf0)].Reg_SLong * GeneralRegister[Op1&0xf].Reg_SLong;
-                                          GeneralRegister[(Op1&0xf0)].Reg_ULong = (ULong)Tmp;
-                                          GeneralRegister[((Op1+0x10)&0xf0)].Reg_ULong = (ULong)(Tmp>>32);
-                                          Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)].Reg_SLong != 0;
-                                          Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)].Reg_ULong ,Status );
+                                          Tmp = GeneralRegister[(Op1&0xf0)>>4].Reg_SLong * GeneralRegister[Op1&0xf].Reg_SLong;
+                                          GeneralRegister[(Op1&0xf0)>>4].Reg_ULong = (ULong)Tmp;
+                                          GeneralRegister[((Op1+0x10)&0xf0)>>4].Reg_ULong = (ULong)(Tmp>>32);
+                                          Status.Flags.CarryFlag = Status.Flags.NegativeFlag = GeneralRegister[(Op1&0xf0)>>4].Reg_SLong != 0;
+                                          Status_Test_ZN_32( GeneralRegister[(Op1&0xf0)>>4].Reg_ULong ,Status );
                                           ElapsedCycles += 150;
                                         }
                                         break;
@@ -1996,7 +1996,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                     Opc = "movex.w";
                                     Ope = "#";
                                     Op1 = FetchOperand_8(ProgramCounter++); // Register
-                                    Op2 = FetchOperand_16(ProgramCounter++); // Immediate value
+                                    Op2 = FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Immediate value
                                     RD = Op1 & 0x0f;
                                     Ope << (ULong)Op2 << RS << ",r" << RD;
                                     break;
@@ -2784,9 +2784,9 @@ class BlackCPU : public ZVCPU_Chip_Interface
     Out << RegisterOpcode(Db, Fi,1032,3, OPCODE_PUSHREGS,       "OPCODE_PUSHREGS",       "    ", "pushregs","",     "rx-rx/rx...",            "0MMMMMMM MMMMMMMM", "Push selected registers (by bitmask) to stack" );
     Out << RegisterOpcode(Db, Fi,1032,3, OPCODE_POPREGS,        "OPCODE_POPREGS",        "    ", "popregs", "",     "rx-rx/rx...",            "0MMMMMMM MMMMMMMM", "Pop selected registers (by bitmask) to stack" );
     Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_INC,            "OPCODE_INC",            " XXX", "inc",     ".l",   "#4BitSignedValue,rx",    "IIIIDDDD", "Increment selected register with the immediate 4 bit value" );
-    Out << RegisterOpcode(Db, Fi,  2, 1, OPCODE_INCLR,          "OPCODE_INCLR",          " XXX", "inclr",    ".l",   "",                      "", "Increment last used indirect register or offset" );
+    Out << RegisterOpcode(Db, Fi,  2, 1, OPCODE_INCLR,          "OPCODE_INCLR",          " XXX", "inclr",    "",   "",                      "", "Increment last used indirect register or offset" );
     Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_DEC,            "OPCODE_DEC",            " XXX", "dec",     ".l",   "#4BitSignedValue,rx",    "IIIIDDDD", "Decrement selected register with the immediate 4 bit value" );
-    Out << RegisterOpcode(Db, Fi,  2, 1, OPCODE_DECLR,          "OPCODE_DECLR",          " XXX", "declr",    ".l",   "",                      "", "Decrement last used indirect register or offset" );
+    Out << RegisterOpcode(Db, Fi,  2, 1, OPCODE_DECLR,          "OPCODE_DECLR",          " XXX", "declr",    "",   "",                      "", "Decrement last used indirect register or offset" );
     Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ADD_B,          "OPCODE_ADD_B",          "XXXX", "add",     ".b",   "ry,rx",                  "SSSSDDDD", "8  bit Addition from the source register to the destination register" );
     Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ADD_W,          "OPCODE_ADD_W",          "XXXX", "add",     ".w",   "ry,rx",                  "SSSSDDDD", "16 bit Addition from the source register to the destination register" );
     Out << RegisterOpcode(Db, Fi,  6, 2, OPCODE_ADD_L,          "OPCODE_ADD_L",          "XXXX", "add",     ".l",   "ry,rx",                  "SSSSDDDD", "32 bit Addition from the source register to the destination register" );

@@ -74,7 +74,14 @@
   typedef struct { double Start, End; } ZRect1d;
   typedef struct { ZVector2d Start, End; } ZLineCoords;
 
-#define MANUAL_BREAKPOINT  asm volatile ("int3;")
+// Manual breakpoint
+
+#ifndef __arm__
+  #define MANUAL_BREAKPOINT  asm volatile ("int3;")
+#else
+  #define MANUAL_BREAKPOINT
+#endif
+
   // User defined complex class types.
 
 #ifndef Z_ZTYPE_ZVECTOR3D_H
@@ -88,6 +95,11 @@
 #ifndef Z_TYPE_ZVECTOR3L_H
 #  include "ZType_ZVector3L.h"
 #endif
+
+#ifndef Z_TYPE_ZVECTOR3B_H
+#  include "ZType_ZVector3B.h"
+#endif
+
 
   // User defined class cross functions and aftermath code needed to be declared after main classes.
 
@@ -106,10 +118,11 @@
 typedef struct { ZVector3L Start, End; } ZRect3L;
 
 class ZVoxelSector;
-struct VoxelLocation
+struct ZVoxelLocation
 {
   ZVoxelSector * Sector;
   ULong          Offset;
+
 };
 
 class ZVoxelCoords
@@ -135,7 +148,11 @@ class ZVoxelCoords
         VoxelCoords->y = ((double)((ny << 8))) + 128.0;
         VoxelCoords->z = ((double)((nz << 8))) + 128.0;
       }
+
+      inline void GetCo(ZVector3L * Coords) {Coords->x = x; Coords->y = y; Coords->z = z; }
 };
+
+
 
 
 

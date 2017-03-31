@@ -60,6 +60,7 @@
 
 class ZScreen_ChooseOption : public ZScreen
 {
+    virtual ULong ProcessScreen_OldLook(ZGame * GameEnv);
   public:
     enum {CHOICE_QUIT, CHOICE_DISPLAY, CHOICE_SOUND, CHOICE_MOUSE, CHOICE_KEYMAP};
     virtual ULong ProcessScreen(ZGame * GameEnv);

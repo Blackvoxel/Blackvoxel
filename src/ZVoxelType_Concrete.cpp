@@ -43,7 +43,7 @@ ZVoxelExtension * ZVoxelType_Concrete::CreateVoxelExtension(bool IsLoadingPhase)
   return( (ZVoxelExtension *)Ms);
 }
 
-void  ZVoxelType_Concrete::GetBlockInformations(VoxelLocation * DestLocation, ZString & Infos)
+void  ZVoxelType_Concrete::GetBlockInformations(ZVoxelLocation * DestLocation, ZString & Infos)
 {
   ZVoxelExtensionType_VoxelFluid * VoxelInfo;
   UShort   Pressure;

@@ -88,7 +88,7 @@ void  ZVoxelType_Programmable::UserAction_Activate(ZMemSize VoxelInfo, Long x, L
   GameEnv->GameWindow_Programmable->Show();
 }
 
-ULong ZVoxelType_Programmable::Interface_PushBlock_Push( VoxelLocation * DestLocation, UShort VoxelType, ULong Count )
+ULong ZVoxelType_Programmable::Interface_PushBlock_Push( ZVoxelLocation * DestLocation, UShort VoxelType, ULong Count )
 {
   ZVoxelExtension_Programmable * Ext_Storage;
 
@@ -103,7 +103,7 @@ ULong ZVoxelType_Programmable::Interface_PushBlock_Push( VoxelLocation * DestLoc
 }
 
 
-ULong ZVoxelType_Programmable::Interface_PushBlock_Pull( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+ULong ZVoxelType_Programmable::Interface_PushBlock_Pull( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
   ZVoxelExtension_Programmable * Ext_Storage;
   ULong SlotNum;
@@ -120,7 +120,7 @@ ULong ZVoxelType_Programmable::Interface_PushBlock_Pull( VoxelLocation * DestLoc
   return(0);
 }
 
-ULong ZVoxelType_Programmable::Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+ULong ZVoxelType_Programmable::Interface_PushBlock_PullTest( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
   ZVoxelExtension_Programmable * Ext_Storage;
   ULong SlotNum;

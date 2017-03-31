@@ -46,12 +46,37 @@
 #  include "z/ZBitmapImage.h"
 #endif
 
+
 //#ifndef Z_ZVCPU_H
 //#  include "ZVCPU.h"
 //#endif
 
+#ifndef Z_ZHARDWAREDEPENDENT_H
+#  include "ZOs_Specific_HardwareDependent.h"
+#endif
+
+
+
+
+
 bool ZTest_Parts::RunTestCode()
 {
+
+  //Bmp.SetPixel()
+
+
+
+
+  ZHardwareInfo Hi;
+
+  Hi.DetectHardware();
+
+  /*
+  ZNet_SocketTest Test;
+
+  Test.TestReceive();
+  */
+/*
   ZBitmapImage Bmp;
   long x,y;
   unsigned char xp,yp;
@@ -85,15 +110,8 @@ bool ZTest_Parts::RunTestCode()
     Bmp.SetPixel(128,i,0,0,0,0);
   }
 
-
-/*
-  Bmp.SetPixel(0,0,255,255,255,0);
-  Bmp.SetPixel(255,0,255,0,0,0);
-  Bmp.SetPixel(255,255,0,255,0,0);
-  Bmp.SetPixel(0,255,0,0,255,0);
-*/
   Bmp.SaveBMP("Out/test.bmp");
-
+*/
   return(false);
 }
 

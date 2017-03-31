@@ -39,6 +39,10 @@
 #  include "ZGui_InventoryBox.h"
 #endif
 
+#ifndef Z_ZGUI_VOXELQUANTITYBOX_H
+#  include "ZGui_VoxelQuantityBox.h"
+#endif
+
 #ifndef Z_GUI_FONTFRAME_H
 #  include "ZGui_FontFrame.h"
 #endif
@@ -75,7 +79,8 @@ class ZGameWindow_Sequencer : public ZFrame
     ZFrame_FontFrame SequenceTitle;
     ZFrame_FontFrame InventoryTitle;
 
-    ZInventoryBox * MainStorage;
+    ZInventoryBox     * MainStorage;
+    ZVoxelQuantityBox * SequencerStorage;
 
     ZString Text_MainTitle;
     ZString Text_InputTitle;
@@ -91,8 +96,10 @@ class ZGameWindow_Sequencer : public ZFrame
 
   ZGameWindow_Sequencer()
   {
+    GameEnv = 0;
     MainWindow = this;
-    MainStorage = new ZInventoryBox[256];
+    MainStorage = new ZInventoryBox[60];
+    SequencerStorage = new ZVoxelQuantityBox[80];
     Flag_Shown = false;
     Text_MainTitle = "SEQUENCER";
     Text_InputTitle = "INPUT";
@@ -100,11 +107,14 @@ class ZGameWindow_Sequencer : public ZFrame
     Text_SequenceTitle = "SEQUENCE";
     Text_InventoryTitle = "INVENTORY";
     VoxelExtension_Sequencer = 0;
+    i1 = i2 = i3 = 0;
+    Q1 = Q2 = Q3 = 0;
   }
 
   ~ZGameWindow_Sequencer()
   {
     if (MainStorage) delete [] MainStorage;
+    if (SequencerStorage) delete [] SequencerStorage;
   }
 
   void SetGameEnv(ZGame * GameEnv) {this->GameEnv = GameEnv;}

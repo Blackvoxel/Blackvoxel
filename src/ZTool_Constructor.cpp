@@ -33,9 +33,9 @@
 
 bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
 {
-  ZActor * Actor;
+  ZActor_Player * Actor;
 
-  Actor = GameEnv->PhysicEngine->GetSelectedActor();
+  Actor = (ZActor_Player *)GameEnv->PhysicEngine->GetSelectedActor();
 
   // printf("Click : %ld\n",Button);
 
@@ -48,7 +48,7 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
              {
                ZInventory::Entry * InventorySlot;
                UShort VoxelType;
-               VoxelLocation VLoc;
+               ZVoxelLocation VLoc;
                //ULong  OtherInfos;
                ZVector3d VoxelCenter, VoxelDistance;
                bool IsOnGround;;
@@ -115,13 +115,25 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
              {
                UShort Voxel;
                ZVoxelType * VoxelType;
+               ZVoxelLocation Loc;
+               ZString Reason;
 
                if (Actor->PointedVoxel.Collided)
                {
-                 Voxel = GameEnv->World->GetVoxel(Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z);
+                 if ( !GameEnv->World->GetVoxelLocation(&Loc, Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z )) break;
+                 Voxel = Loc.Sector->Data[Loc.Offset];
                  VoxelType = GameEnv->VoxelTypeManager.GetVoxelType(Voxel);
                  if (ToolCompatibleTypes[VoxelType->MiningType])
                  {
+                   // Does the voxel accept to be destroyed.
+                   if (!VoxelType->UserAction_TryToDestroy(&Loc, &Reason))
+                   {
+                     GameEnv->GameWindow_Advertising->Clear();
+                     GameEnv->GameWindow_Advertising->Advertise(Reason.String, ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
+                     break;
+                   }
+
+                   // So do it...
                    Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
                    MiningInProgress = true;
                    MinedVoxel = Actor->PointedVoxel.PointedVoxel;
@@ -135,6 +147,7 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
                  {
                    GameEnv->GameWindow_Advertising->Advertise("TOO HARD", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
                  }
+
                }
                /*
                UShort VoxelType;
@@ -208,8 +221,9 @@ bool ZTool_Constructor::Tool_MouseButtonRelease(ULong Button)
 
 bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMatrix, UByte * KeyboardMatrix )
 {
-  ZActor * Actor;
-  Actor = GameEnv->PhysicEngine->GetSelectedActor(); if (!Actor) return(true);
+  ZString Reason;
+  ZActor_Player * Actor;
+  Actor = (ZActor_Player *)GameEnv->PhysicEngine->GetSelectedActor(); if (!Actor) return(true);
 
 
   // Breaking material in progress
@@ -218,7 +232,7 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
   {
     UShort Voxel;
     ZVoxelType * VoxelType;
-    VoxelLocation VLoc;
+    ZVoxelLocation VLoc;
 
     // Get actualy pointed voxel
 
@@ -230,7 +244,9 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
     }
 
 
-    Voxel = GameEnv->World->GetVoxel(Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z);
+    if (!GameEnv->World->GetVoxelLocation(&VLoc, Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z)) return(true);
+
+    Voxel = VLoc.Sector->Data[VLoc.Offset];
     VoxelType = GameEnv->VoxelTypeManager.GetVoxelType(Voxel);
 
     // Uhhh, the player has moved is tool on another voxel, so resetting mining.
@@ -240,6 +256,14 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
       // Does this tool can break this material ?
       if (ToolCompatibleTypes[VoxelType->MiningType])
       {
+        // Does the voxel accept to be destroyed ?
+        if (!VoxelType->UserAction_TryToDestroy(&VLoc, &Reason))
+        {
+          GameEnv->GameWindow_Advertising->Clear();
+          GameEnv->GameWindow_Advertising->Advertise(Reason.String, ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
+          return(true);
+        }
+        // So, do it...
         Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
         MiningInProgress = true;
         MinedVoxel = Actor->PointedVoxel.PointedVoxel;

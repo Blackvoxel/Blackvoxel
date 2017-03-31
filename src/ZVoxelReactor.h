@@ -71,6 +71,10 @@
 #  include "ZEgmyTargetManager.h"
 #endif
 
+#ifndef Z_ZINCLUSIONPROBABILIZER_H
+#  include "ZInclusionProbabilizer.h"
+#endif
+
 
 class ZGame;
 
@@ -85,6 +89,7 @@ class ZVoxelReactor
     ZVoxelWorld * World;
     ZVoxelTypeManager * VoxelTypeManager;
     ZEgmyTargetManager    EgmyWaveManager;
+    ZInclusionProbabilizer RobotSC_Proba;
     ULong               CycleNum;
 
     ZVoxelSector * DummySector;

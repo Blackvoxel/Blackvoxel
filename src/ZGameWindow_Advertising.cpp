@@ -67,7 +67,11 @@ void ZGameWindow_Advertising::Advertising_Actions(double FrameTime)
         case VISIBILITY_HIGH:
           ActualText   = ActualyDisplayedEntry->Message;
           Frame_Text.SetDisplayText(ActualText.String);
-          Frame_Text.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
+#if COMPILEOPTION_PLATFORM_RASPBERRY_PI ==1
+          Frame_Text.SetStyle(GameEnv->TileSetStyles->GetStyle(3)); //2
+#else
+          Frame_Text.SetStyle(GameEnv->TileSetStyles->GetStyle(2)); //2
+#endif
           Frame_Text.GetTextDisplaySize(&Size);
           if (Size.x > ScreenSize.x-128.0f) Size.x = ScreenSize.x -128.0f;
           Frame_Text.SetPosition( (ScreenSize.x - Size.x) / 2.0f , (ScreenSize.y / 4.0f) - (Size.y / 2.0f) );

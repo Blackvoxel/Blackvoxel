@@ -52,6 +52,7 @@ class ZVoxelExtension_Programmable : public ZVoxelExtension
     ULong   RobotLevel;
     ULong   RobotSerialNumber;
     ULong   ScriptNum;
+    ULong   Overclock;
     ZString ProgramText;
 
     bool    IsAllowedToRun;
@@ -77,8 +78,9 @@ class ZVoxelExtension_Programmable : public ZVoxelExtension
       ScriptNum = 0;
       RobotLevel = 3;
       RobotSerialNumber = 0;
-      IsAllowedToRun = true;
+      IsAllowedToRun = false;
       ImageInUse = 0;
+      Overclock = 0;
       for (i=0;i<ImageTable_Size;i++) ImageTable[i] = 0;
     }
 

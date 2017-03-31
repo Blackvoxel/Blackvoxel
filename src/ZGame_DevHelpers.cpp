@@ -31,6 +31,70 @@
 #  include "ZVCPU.h"
 #endif
 
+#ifndef Z_ZWORLDGENESIS_H
+#  include "ZWorldGenesis.h"
+#endif
+
+#ifndef Z_BITMAP_IMAGE_H
+#  include "z/ZBitmapImage.h"
+#endif
+
+bool ZGame_DevHelpers::OutputZoneImage(ZString & HelperDirectory)
+{
+  int x,y;
+  char v;
+  ZBitmapImage Bmp;
+  ZString FileName;
+
+  FileName = HelperDirectory;
+  FileName.AddToPath("ZoneMap.bmp");
+
+  Bmp.CreateBitmap(128,128,32);
+  Bmp.Clear();
+
+  for (y=0;y<Z_GENESISMAP_SIZE;y++)
+    for (x=0;x<Z_GENESISMAP_SIZE;x++)
+    {
+      v = ZWorldGenesis::ZoneMap_New[x][y];
+      if (v>='0' && v<='9') v=v-'0';
+      if (v>='A' && v<='Z') v=v-'A'+10;
+      Bmp.SetPixel(x,y,v*16,v*16,v*16,0);
+    }
+
+  Bmp.SaveBMP(FileName.String);
+
+  return(true);
+}
+
+bool ZGame_DevHelpers::OutputZoneHeight(ZString & HelperDirectory)
+{
+  int x,y;
+  char v;
+
+  ZBitmapImage Bmp;
+  ZString FileName;
+
+  FileName = HelperDirectory;
+  FileName.AddToPath("ZoneHeight.bmp");
+
+  Bmp.CreateBitmap(128,128,32);
+  Bmp.Clear();
+
+  for (y=0;y<Z_GENESISMAP_SIZE;y++)
+    for (x=0;x<Z_GENESISMAP_SIZE;x++)
+    {
+      v = ZWorldGenesis::HeightMap_New[x][y];
+      if (v>='0' && v<='9') v=v-'0';
+      if (v>='A' && v<='Z') v=v-'A'+10;
+      Bmp.SetPixel(x,y,v*16,v*16,v*16,0);
+    }
+
+  Bmp.SaveBMP(FileName.String);
+
+  return(true);
+}
+
+
 
 bool ZGame_DevHelpers::OutputHelpers(ZString & HelperDirectory)
 {
@@ -52,13 +116,22 @@ bool ZGame_DevHelpers::OutputHelpers(ZString & HelperDirectory)
   Out = BlackCPU<int>::OutputOpcodeDatabase(1);
   if (!Out.SaveToFile(FileName.String)) return(false);
 
-  // Outpur BlackCPU V1 Opcode table (Compact html version)
+  // Output BlackCPU V1 Opcode table (Compact html version)
 
   FileName = HelperDirectory;
   FileName.AddToPath("BlackCPU_V1_OpcodeListCompact.htm");
   Out.Clear();
   Out = BlackCPU<int>::OutputOpcodeDatabase(2);
   if (!Out.SaveToFile(FileName.String)) return(false);
+
+  // Output Zone Map
+
+  if(!OutputZoneImage(HelperDirectory)) return(false);
+
+  // Output Zone Height
+
+  if(!OutputZoneHeight(HelperDirectory)) return(false);
+
 
 
   return(true);

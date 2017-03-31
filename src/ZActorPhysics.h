@@ -85,7 +85,8 @@ class ZActor
     double    DeathChronometer;
 
     ZCamera      Camera;
-    ZRayCast_out PointedVoxel;
+
+
     char      MouseButtonMatrix[8];
 
     ZInventory * Inventory;
@@ -179,6 +180,8 @@ class ZActor
     virtual bool Action_StillEvents( bool * MouseMatrix, UByte * KeyboardMatrix);
     virtual void Action_NextBuildingMaterial();
     virtual void Action_PrevBuildingMaterial();
+    virtual void Action_NextTool();
+    virtual void Action_PrevTool();
 
 
     virtual void Event_Collision(double RelativeVelocity ) {}
@@ -188,6 +191,8 @@ class ZActor
     virtual void Start_Riding(Long x, Long y, Long z) {}
     virtual void Stop_Riding() {}
     virtual void Action_GetInOutOfVehicle() {}
+
+    virtual void Process_Powers() {}
 };
 
 

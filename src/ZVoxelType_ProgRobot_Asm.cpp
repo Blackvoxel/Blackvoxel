@@ -87,7 +87,7 @@ void  ZVoxelType_ProgRobot_Asm::UserAction_Activate(ZMemSize VoxelInfo, Long x, 
   GameEnv->GameWindow_ProgRobot_Asm->Show();
 }
 
-ULong ZVoxelType_ProgRobot_Asm::Interface_PushBlock_Push( VoxelLocation * DestLocation, UShort VoxelType, ULong Count )
+ULong ZVoxelType_ProgRobot_Asm::Interface_PushBlock_Push( ZVoxelLocation * DestLocation, UShort VoxelType, ULong Count )
 {
   ZVoxelExtension_ProgRobot_Asm * Ext_Storage;
 
@@ -101,7 +101,7 @@ ULong ZVoxelType_ProgRobot_Asm::Interface_PushBlock_Push( VoxelLocation * DestLo
   return(0);
 }
 
-ULong ZVoxelType_ProgRobot_Asm::Interface_PushBlock_Pull( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+ULong ZVoxelType_ProgRobot_Asm::Interface_PushBlock_Pull( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
   ZVoxelExtension_ProgRobot_Asm * Ext_Storage;
   ULong SlotNum;
@@ -118,7 +118,7 @@ ULong ZVoxelType_ProgRobot_Asm::Interface_PushBlock_Pull( VoxelLocation * DestLo
   return(0);
 }
 
-ULong ZVoxelType_ProgRobot_Asm::Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+ULong ZVoxelType_ProgRobot_Asm::Interface_PushBlock_PullTest( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
   ZVoxelExtension_ProgRobot_Asm * Ext_Storage;
   ULong SlotNum;

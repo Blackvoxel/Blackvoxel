@@ -147,6 +147,16 @@ void ZActor::Action_PrevBuildingMaterial()
   }
 }
 
+void ZActor::Action_NextTool()
+{
+  Inventory->NextTool();
+}
+
+void ZActor::Action_PrevTool()
+{
+  Inventory->PrevTool();
+}
+
 
 void ZActorPhysicEngine::DoPhysic(UELong FrameTime)
 {

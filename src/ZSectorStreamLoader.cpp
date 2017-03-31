@@ -62,8 +62,7 @@ int ZFileSectorLoader::thread_func(void * Data)
   ZFileSectorLoader * SectorLoader = (ZFileSectorLoader *) Data;
   while (SectorLoader->ThreadContinue)
   {
-    SectorLoader->MakeTasks();
-    //SDL_Delay(10);
+    if (!SectorLoader->MakeTasks()) SDL_Delay(10);
   }
 
   return(0);
@@ -195,13 +194,15 @@ bool ZFileSectorLoader::LoadSector(Long x, Long y, Long z)
 
 ULong CarZCounter=0;
 
-void ZFileSectorLoader::MakeTasks()
+bool ZFileSectorLoader::MakeTasks()
 {
   Long x,y,z;
   UByte Pri;
+  bool WorkRemain;
 
   // Sector Loading
 
+  WorkRemain = false;
   while (1)
   {
     if      (RequestList[5].PullFromList(x,y,z)) {Pri = 4; }
@@ -212,7 +213,7 @@ void ZFileSectorLoader::MakeTasks()
     else if (RequestList[0].PullFromList(x,y,z)) {Pri = 0; }
     else break;
 
-    if (LoadSector(x,y,z) && Pri<4) break;
+    if (LoadSector(x,y,z) && Pri<4) { WorkRemain = true; break; }
   }
 
   // Sector Unloading
@@ -238,8 +239,7 @@ void ZFileSectorLoader::MakeTasks()
      SectorRecycling->PushToList(Sector);
   }
 
-  return;
-
+  return(WorkRemain);
 }
 
 void ZFileSectorLoader::Request_Sector(Long x, Long y, Long z, Long Priority)

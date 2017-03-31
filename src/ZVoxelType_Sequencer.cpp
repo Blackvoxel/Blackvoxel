@@ -47,14 +47,14 @@ void  ZVoxelType_Sequencer::UserAction_Activate(ZMemSize VoxelInfo, Long x, Long
   GameEnv->GameWindow_Sequencer->Show();
 }
 
-ULong ZVoxelType_Sequencer::Interface_PushBlock_Push( VoxelLocation * DestLocation, UShort VoxelType, ULong Count )
+ULong ZVoxelType_Sequencer::Interface_PushBlock_Push( ZVoxelLocation * DestLocation, UShort VoxelType, ULong Count )
 {
 
   return(0);
 }
 
 
-ULong ZVoxelType_Sequencer::Interface_PushBlock_Pull( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+ULong ZVoxelType_Sequencer::Interface_PushBlock_Pull( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
 
   return(0);

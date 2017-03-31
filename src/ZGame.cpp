@@ -39,6 +39,35 @@
 #  include "ZGame_DevHelpers.h"
 #endif
 
+#ifndef Z_ZTOOLS_H
+#  include "ZTools.h"
+#endif
+
+#ifndef Z_ZTOOL_CONSTRUCTOR_H
+#  include "ZTool_Constructor.h"
+#endif
+
+#ifndef Z_ZTOOL_SCAN_H
+#  include "ZTool_Scan.h"
+#endif
+
+#ifndef Z_ZTOOL_ROTATE_H
+#  include "ZTool_Rotate.h"
+#endif
+
+#ifndef Z_ZTOOL_ORESCAN_H
+#  include "ZTool_OreScan.h"
+#endif
+
+#ifndef Z_ZTOOL_WIRELESSLINKER_H
+#  include "ZTool_Linker.h"
+#endif
+
+#ifndef Z_ZLOADINGSCREEN_H
+#  include "ZLoadingScreen.h"
+#endif
+
+
 bool ZGame::Init_UserDataStorage(ZLog * InitLog)
 {
   ZString ErrorMsg;
@@ -75,6 +104,26 @@ bool ZGame::Init_UserDataStorage(ZLog * InitLog)
   return(true);
 }
 
+bool ZGame::Init_HardwareDetection(ZLog * InitLog)
+{
+  ZString Text;
+  InitLog->Log( 1, ZLog::INFO, "Starting : Hardware Detection");
+  HardwareInfo = new ZHardwareInfo();
+  HardwareInfo->DetectHardware();
+  (Text = "Info : Selected Hardware Profile : ") << HardwareInfo->GetProfileText();
+  InitLog->Log( 2, ZLog::INFO, Text);
+  Initialized_HardwareInfo = true;
+  InitLog->Log( 3, ZLog::INFO, "Ended OK : Hardware Detection");
+  return(true);
+}
+
+bool ZGame::Cleanup_HardwareDetection(ZLog * InitLog)
+{
+  InitLog->Log( 0, ZLog::INFO, "Cleanup : Hardware Detection");
+  if (Initialized_HardwareInfo) {delete(HardwareInfo); Initialized_HardwareInfo = false;}
+  return(true);
+}
+
 bool ZGame::Cleanup_UserDataStorage(ZLog * InitLog)
 {
   InitLog->Log(0, ZLog::INFO, "Cleanup : UserDataStorage");
@@ -84,6 +133,7 @@ bool ZGame::Cleanup_UserDataStorage(ZLog * InitLog)
 bool ZGame::Init_Settings(ZLog * InitLog)
 {
   bool Res;
+  ZString Text;
 
   InitLog->Log(1, ZLog::INFO, "Starting : Settings");
 
@@ -93,9 +143,16 @@ bool ZGame::Init_Settings(ZLog * InitLog)
   if (Res) InitLog->Log(3, ZLog::INFO, "Info : Hardware Settings Loaded From File");
   else     InitLog->Log(4, ZLog::INFO, "Info : Can't load Settings from file, default settings taken.");
 
+  // Some settings are now computed from recorded settings and/or hardware info.
+
+  Settings_Hardware->AdjustForRealHardware(HardwareInfo);
+
+  (Text = "Info : Rendering distance(in sectors) : [") << Settings_Hardware->RenderingDistance_Horizontal << "," << Settings_Hardware->RenderingDistance_Vertical << "]";
+  InitLog->Log(2, ZLog::INFO, Text);
+
   Initialized_Settings = true;
 
-  InitLog->Log(2, ZLog::INFO, "Ended OK : Settings");
+  InitLog->Log(3, ZLog::INFO, "Ended OK : Settings");
   return(true);
 }
 
@@ -183,7 +240,22 @@ bool ZGame::Init_GraphicMode(ZLog * InitLog)
     HardwareResolution.x = DesktopResolution.x;
     HardwareResolution.y = DesktopResolution.y;
     // If not full screen, lower resolution to take account of borders.
-    if (!(Flags & SDL_FULLSCREEN)) {HardwareResolution.x -= 50;HardwareResolution.y -= 100; }
+    if (!(Flags & SDL_FULLSCREEN))
+    {
+      HardwareResolution.x -= 50;HardwareResolution.y -= 100;
+
+      // Raspberry Pi Have very limited fillrate capability, so clip size to avoid too big display size.
+      #if COMPILEOPTION_PLATFORM_RASPBERRY_PI==1
+      if ( HardwareResolution.x > 1024 && HardwareResolution.y > 600)
+      {
+        HardwareResolution.x = 1024;
+        HardwareResolution.y = 600;
+      }
+
+      #endif
+
+    }
+
   }
   else
   {
@@ -204,6 +276,13 @@ bool ZGame::Init_GraphicMode(ZLog * InitLog)
       HardwareResolution.x = DesktopResolution.x;
       HardwareResolution.y = (Long)(((double)DesktopResolution.x) / 1.77);
     }
+  }
+
+  // No frame window (Specific uses like video recording).
+
+  if (Settings_Hardware->Setting_NoframeWindow)
+  {
+    Flags |= SDL_NOFRAME;
   }
 
   // Starting video mode
@@ -269,30 +348,42 @@ bool ZGame::Init_TextureManager(ZLog * InitLog)
   bool Result;
   ZString Path;
   ZString Err, ErrMsg;
+  bool Ol,Hs, Pi;
 
   InitLog->Log(1, ZLog::INFO, "Starting : Texture Manager Init");
+
 
   Result = true;
   ErrMsg = "*** ERROR : Missing gui texture file ";
 
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/title_1_2.bmp");              Result = TextureManager.LoadBMPTexture(Path.String,0);       if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(3, ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/blackvoxel_title_1_3.bmp");   Result = TextureManager.LoadBMPTexture(Path.String,1);       if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(4, ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/panel_2.bmp");                Result = TextureManager.LoadBMPTexture(Path.String,2);       if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(5, ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/font_1_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,3,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(6, ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/title_1_2.bmp");              Result = TextureManager.LoadBMPTexture(Path.String,4,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(7, ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_1_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,5,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(8, ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_2_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,6,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(9, ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/gui_tiles_1_3.bmp");          Result = TextureManager.LoadBMPTexture(Path.String,7,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(10,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/dialog_background_1_2.bmp");  Result = TextureManager.LoadBMPTexture(Path.String,8,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(11,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/dialog_voxeltype_1_1.bmp");   Result = TextureManager.LoadBMPTexture(Path.String,9,false); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(12,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/button_1_5.bmp");             Result = TextureManager.LoadBMPTexture(Path.String,10,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(13,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_2_2.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,11,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(14,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_3_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,12,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(15,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/contribute_1_1.bmp");         Result = TextureManager.LoadBMPTexture(Path.String,13,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(16,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/background_black.bmp");       Result = TextureManager.LoadBMPTexture(Path.String,14,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(17,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/dialog_modalbox.bmp");        Result = TextureManager.LoadBMPTexture(Path.String,15,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(18,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/font_symbols.bmp");           Result = TextureManager.LoadBMPTexture(Path.String,16,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(19,ZLog::FAIL, Err); return(false); }
-  Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/buttonpushed.bmp");           Result = TextureManager.LoadBMPTexture(Path.String,17,false);if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }
+  Ol = Settings_Hardware->Setting_OldLooked;
+  Hs = COMPILEOPTION_HELP_SCREEN==1 ? true:false;
+  Pi = COMPILEOPTION_PLATFORM_RASPBERRY_PI ? true:false;
+  if (Ol) {Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/title_1_2.bmp");              Result = TextureManager.LoadBMPTexture(Path.String,0 ,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(7, ZLog::FAIL, Err); return(false); } }
+  else    {Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/title_2_0.bmp");              Result = TextureManager.LoadBMPTexture(Path.String,0 ,true ,false,32);      if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(3, ZLog::FAIL, Err); return(false); } }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/blackvoxel_title_1_3.bmp");   Result = TextureManager.LoadBMPTexture(Path.String,1 ,!Pi  ,false,128); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(4, ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/panel_2.bmp");                Result = TextureManager.LoadBMPTexture(Path.String,2 ,true ,true,32 );      if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(5, ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/font_1_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,3 ,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(6, ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/title_1_2.bmp");              Result = TextureManager.LoadBMPTexture(Path.String,4 ,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(7, ZLog::FAIL, Err); return(false); }
+  if (Ol) {Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_1_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,5 ,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(8, ZLog::FAIL, Err); return(false); }}
+  else    {Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/screen_button_settings.bmp"); Result = TextureManager.LoadBMPTexture(Path.String,5 ,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(8, ZLog::FAIL, Err); return(false); }}
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_2_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,6 ,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(9, ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/gui_tiles_1_3.bmp");          Result = TextureManager.LoadBMPTexture(Path.String,7 ,false,false,64);     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(10,ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/dialog_background_1_2.bmp");  Result = TextureManager.LoadBMPTexture(Path.String,8 ,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(11,ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/dialog_voxeltype_1_1.bmp");   Result = TextureManager.LoadBMPTexture(Path.String,9 ,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(12,ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/button_1_5.bmp");             Result = TextureManager.LoadBMPTexture(Path.String,10,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(13,ZLog::FAIL, Err); return(false); }
+  if (Ol) {Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_2_2.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,11,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(14,ZLog::FAIL, Err); return(false); }}
+  else    {Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/slot_inactive.bmp");          Result = TextureManager.LoadBMPTexture(Path.String,11,!Pi,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(14,ZLog::FAIL, Err); return(false); }}
+  if (Ol) {Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/tile_3_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,12,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(15,ZLog::FAIL, Err); return(false); }}
+  else    {Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/slot_active.bmp");            Result = TextureManager.LoadBMPTexture(Path.String,12,!Pi,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(15,ZLog::FAIL, Err); return(false); }}
+  if (Hs) {Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/contribute_1_1.bmp");         Result = TextureManager.LoadBMPTexture(Path.String,13,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(16,ZLog::FAIL, Err); return(false); }}
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/background_black.bmp");       Result = TextureManager.LoadBMPTexture(Path.String,14,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(17,ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/dialog_modalbox.bmp");        Result = TextureManager.LoadBMPTexture(Path.String,15,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(18,ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/font_symbols.bmp");           Result = TextureManager.LoadBMPTexture(Path.String,16,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(19,ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/buttonpushed.bmp");           Result = TextureManager.LoadBMPTexture(Path.String,17,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }
+  if (!Ol){Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/universe_choice_back.bmp");   Result = TextureManager.LoadBMPTexture(Path.String,18,!Pi  ,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }}
+  if (!Ol){Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/settings_background.bmp");    Result = TextureManager.LoadBMPTexture(Path.String,19,true ,true,32 );      if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }}
+
 
   Initialized_TextureManager = true;
   InitLog->Log(2, ZLog::INFO, "Ended Ok : Texture Manager Init");
@@ -388,6 +479,18 @@ bool ZGame::Init_TileSetsAndFonts(ZLog * InitLog)
   TileSetStyles->CreateStyle(3,Font_1,2.0,2.0,0.0,0.0);
   TileSetStyles->CreateStyle(4,Font_1,3.0,3.0,0.0,0.0);
 
+  // Variable Size Font style
+
+  double Fx,Fy;
+  Fx = ((double)HardwareResolution.x)/1920.0;
+  Fy = ((double)HardwareResolution.y)/1080.0;
+
+  TileSetStyles->CreateStyle(5,Font_1, Fx * 1.0, Fy * 1.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle(6,Font_1, Fx * 2.0, Fy * 2.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle(7,Font_1, Fx * 3.0, Fy * 3.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle(8,Font_1, Fx * 4.0, Fy * 4.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle(9,Font_1, Fx * 5.0, Fy * 5.0 ,0.0,0.0);
+
   Initialized_TileSetsAndFonts = true;
   InitLog->Log(2, ZLog::INFO, "Ended Ok : Tilesets and Fonts Init");
   return(true);
@@ -409,9 +512,13 @@ bool ZGame::Init_OpenGLGameSettings(ZLog * InitLog)
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_LINE_SMOOTH);
   glShadeModel(GL_SMOOTH);
-
   glEnable(GL_CULL_FACE);
   glCullFace(GL_FRONT);
+  glEnable (GL_BLEND);
+  glEnable(GL_ALPHA_TEST);
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glAlphaFunc(GL_GREATER, 0.05);
+
   Initialized_OpenGLGameSettings = true;
   InitLog->Log(2, ZLog::INFO, "Ended Ok : OpenGL Game Settings");
   return(true);
@@ -445,6 +552,22 @@ bool ZGame::Cleanup_Glew(ZLog * InitLog)
 {
   InitLog->Log(0, ZLog::INFO, "Cleanup : Glew");
   Initialized_Glew = false;
+  return(true);
+}
+
+bool ZGame::Init_LoadingScreen(ZLog * InitLog)
+{
+  InitLog->Log(1, ZLog::INFO, "Starting : LoadingScreen");
+  ZLoadingScreen::Display(HardwareResolution.x, HardwareResolution.y);
+  InitLog->Log(0, ZLog::INFO, "Ended Ok : LoadingScreen");
+  Initialized_LoadingScreen = true;
+  return(true);
+}
+
+bool ZGame::Cleanup_LoadingScreen(ZLog * InitLog)
+{
+  InitLog->Log(0, ZLog::INFO, "Cleanup : LoadingScreen");
+  Initialized_LoadingScreen = false;
   return(true);
 }
 
@@ -554,10 +677,13 @@ bool ZGame::Init_Sound(ZLog * InitLog)
   Msg.Clear() << "Loaded " << Sound->GetSampleCount() << " Sound samples."; InitLog->Log(3, ZLog::INFO, Msg);
   if (Sound->GetSampleCount() < 8) { ZString Err; Err << "Missing Sound Sample Files (count : " << Sound->GetSampleCount()<< ")"; InitLog->Log(4, ZLog::FAIL, Err); return(false); }
 
-  Sound->SampleModify_Volume(4,0.5);
-  Sound->SampleModify_Volume(5,0.03); // Vrilleuse d'oreilles (0.1)
-  Sound->SampleModify_Volume(6,0.3); // Bloc Break (0.3)
-  Sound->SampleModify_Volume(7,0.3); // Bloc Place (0.3)
+  double Vol = Settings_Hardware->Setting_SoundVolume/100.0;
+
+  Sound->Activate(Settings_Hardware->Setting_SoundEnabled);
+  Sound->SampleModify_Volume(4,0.5 * Vol);
+  Sound->SampleModify_Volume(5,0.03* Vol ); // Vrilleuse d'oreilles (0.1)
+  Sound->SampleModify_Volume(6,0.3 * Vol); // Bloc Break (0.3)
+  Sound->SampleModify_Volume(7,0.3 * Vol); // Bloc Place (0.3)
 
   Initialized_Sound = true;
   InitLog->Log(2, ZLog::INFO, "Ended Ok : Sound Init");
@@ -837,7 +963,7 @@ bool ZGame::Start_RendererSettings()
   Basic_Renderer->SetRenderSectorRadius(Settings_Hardware->RenderingDistance_Horizontal,Settings_Hardware->RenderingDistance_Vertical);
   Basic_Renderer->SetWorld(World);
   Basic_Renderer->SetCamera(&PhysicEngine->GetSelectedActor()->Camera);
-  Basic_Renderer->SetPointedVoxel(&PhysicEngine->GetSelectedActor()->PointedVoxel);
+  Basic_Renderer->SetPointedVoxel(&((ZActor_Player *)PhysicEngine->GetSelectedActor())->PointedVoxel);
   Basic_Renderer->SetViewportResolution(ScreenResolution);
   Basic_Renderer->SetPixelAspectRatio(Settings_Hardware->PixelAspectRatio);
   Basic_Renderer->SetSectorCullingOptimisationFactor(Settings_Hardware->Opt_SectCFactor);
@@ -871,6 +997,9 @@ bool ZGame::Start_GameWindows()
   GameWindow_AsmExtendedRegisters = new ZGameWindow_AsmExtendedRegisters; GameWindow_AsmExtendedRegisters->SetGameEnv(this);
   GameWindow_Compilation_Result = new ZGameWindow_Compilation_Result;     GameWindow_Compilation_Result->SetGameEnv(this);
   GameWindow_ResumeRequest = new ZGameWindow_ResumeRequest; GameWindow_ResumeRequest->SetGameEnv(this);
+  GameWindow_SPS           = new ZGameWindow_SPS;         GameWindow_SPS->SetGameEnv(this);
+  GameWindow_Scan          = new ZGameWindow_Scan;        GameWindow_Scan->SetGameEnv(this);
+  GameWindow_RTFM          = new ZGameWindow_RTFM;        GameWindow_RTFM->SetGameEnv(this);
   GameWindow_Advertising->Show();
 
   Initialized_GameWindows = true;
@@ -880,6 +1009,7 @@ bool ZGame::Start_GameWindows()
 bool ZGame::End_GameWindows()
 {
   GuiManager.RemoveAllFrames();
+
   if (VoxelTypeBar) delete VoxelTypeBar;
   VoxelTypeBar = 0;
   if (GameWindow_Storage) delete GameWindow_Storage;
@@ -889,6 +1019,9 @@ bool ZGame::End_GameWindows()
   if (GameWindow_Inventory) delete GameWindow_Inventory;
   GameWindow_Inventory = 0;
   if (GameProgressBar)      delete GameProgressBar;
+  if (GameWindow_SPS)       {delete GameWindow_SPS; GameWindow_SPS = 0;}
+  if (GameWindow_Scan)      {delete GameWindow_Scan; GameWindow_Scan = 0;}
+
   Initialized_GameWindows = false;
   return(true);
 }
@@ -904,6 +1037,10 @@ bool ZGame::Start_ToolManager()
   ToolManager->AddTool(77, new ZTool_Constructor_P3);
   ToolManager->AddTool(78, new ZTool_Constructor_P4);
   ToolManager->AddTool(79, new ZTool_Constructor_P5);
+  ToolManager->AddTool(242,new ZTool_Scan);
+  ToolManager->AddTool(243,new ZTool_Rotate);
+  ToolManager->AddTool(251,new ZTool_OreScan);
+  ToolManager->AddTool(253,new ZTool_Linker);
 
   Initialized_ToolManager = true;
   return(true);

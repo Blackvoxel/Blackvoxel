@@ -56,3 +56,19 @@ void  ZVoxelType_FusionElement::UserAction_Activate(ZMemSize VoxelInfo, Long x, 
   printf("Temperature : %lf°C\n", Ext->Temperature);
 
 }
+
+void ZVoxelType_FusionElement::GetScanInformations(ZVoxelCoords * VoxelCoords, UShort VoxelType, ZMemSize VoxelInfo, ZString & Inf)
+{
+  char Buffer[1024];
+  ZVoxelExtension_FusionElement * Ext = (ZVoxelExtension_FusionElement *) VoxelInfo;
+  Inf.Append_pchar("TEMP : "); sprintf(Buffer, "%.02f°\n\n", Ext->Temperature);     Inf.Append_pchar(Buffer);
+  Inf.Append_pchar("Metalurgical Analysis\n");
+  Inf.Append_pchar("\nIRON     : ");  sprintf(Buffer, "%.02f", Ext->Quantity[ZVoxelExtension_FusionElement::Material_Iron]);     Inf.Append_pchar(Buffer);
+  Inf.Append_pchar("\nCARBON   : ");  sprintf(Buffer, "%.02f", Ext->Quantity[ZVoxelExtension_FusionElement::Material_Carbon]);   Inf.Append_pchar(Buffer);
+  Inf.Append_pchar("\nCHROME   : ");  sprintf(Buffer, "%.02f", Ext->Quantity[ZVoxelExtension_FusionElement::Material_Chrome]);   Inf.Append_pchar(Buffer);
+  Inf.Append_pchar("\nNICKEL   : ");  sprintf(Buffer, "%.02f", Ext->Quantity[ZVoxelExtension_FusionElement::Material_Nickel]);   Inf.Append_pchar(Buffer);
+  Inf.Append_pchar("\nVANADIUM : ");  sprintf(Buffer, "%.02f", Ext->Quantity[ZVoxelExtension_FusionElement::Material_Vanadium]); Inf.Append_pchar(Buffer);
+  Inf.Append_pchar("\nCOPPER   : ");  sprintf(Buffer, "%.02f", Ext->Quantity[ZVoxelExtension_FusionElement::Material_Copper]);   Inf.Append_pchar(Buffer);
+  Inf.Append_pchar("\nTIN      : ");  sprintf(Buffer, "%.02f", Ext->Quantity[ZVoxelExtension_FusionElement::Material_Tin]);      Inf.Append_pchar(Buffer);
+  Inf.Append_pchar("\nURANIUM  : ");  sprintf(Buffer, "%.02f", Ext->Quantity[ZVoxelExtension_FusionElement::Material_Uranium]);  Inf.Append_pchar(Buffer);
+}

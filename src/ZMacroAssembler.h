@@ -1251,11 +1251,11 @@ class ZMacroAssembler
       case KW_SZ_WORD:
       case KW_SZ_UWORD:  BinaryOut_Byte(BlackCPU<int>::OPCODE_MOVEX_IMM_UW, Asd);
                          BinaryOut_Byte( Register, Asd);
-                         BinaryOut_Byte(ImmediateValue, Asd);
+                         BinaryOut_Word(ImmediateValue, Asd);
                          break;
       case KW_SZ_SWORD:  BinaryOut_Byte(BlackCPU<int>::OPCODE_MOVEX_IMM_SW, Asd);
                          BinaryOut_Byte( Register, Asd);
-                         BinaryOut_Byte(ImmediateValue, Asd);
+                         BinaryOut_Word(ImmediateValue, Asd);
                          break;
       default:           ThrowError(Asd, &Token_Size,ERROR_EXPECTEDOPERANDSIZE); return(false);
 

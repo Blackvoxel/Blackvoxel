@@ -46,6 +46,17 @@ bool ZViewDoc::ViewDocPage(ULong Number, bool Online)
   {
     if (Online) URL.Clear() << "xdg-open http://www.blackvoxel.com/view.php?node=" << Number;
     else        URL.Clear() << "xdg-open manual/page_" << Number << ".htm";
+
+   // Development mode local test server
+   #if DEVELOPPEMENT_ON == 1
+    ZString LocalServer;
+    if (LocalServer.LoadFromFile("LocalServer.txt"))
+    {
+      LocalServer.StripTrailling(0xa);
+      URL.Clear() << "xdg-open " << LocalServer << Number;
+    }
+   #endif
+
   }
   else // Main manual page
   {

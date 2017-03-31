@@ -55,11 +55,34 @@ class ZGenericTable
       return(true);
     }
 
+    inline void RemoveFromTable(ZMemSize TablePos)
+    {
+      ZMemSize i, Limit;
+      if(TablePos>=ElementCount) return;
+
+      Limit = ElementCount-1;
+
+      for (i=TablePos; i<Limit; i++)
+      {
+        Table[i]=Table[i+1];
+      }
+
+      ElementCount--;
+
+      return;
+    }
+
     inline bool CreateNew(ZMemSize & ElementIndex)
     {
       if (ElementCount >= TableLen) return(false);
       ElementIndex = ElementCount++;
       return(true);
+    }
+
+    inline Type * CreateNewPnt()
+    {
+      if (ElementCount >= TableLen) return(0);
+      return( &Table[ElementCount++] );
     }
 
     inline Type * GetElement(ZMemSize TablePos)

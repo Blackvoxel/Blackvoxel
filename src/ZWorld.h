@@ -124,6 +124,7 @@ class ZVoxelWorld : public ZObject
 
     ULong UniverseNum;
 
+    static ZVector3B ProxLoc[6];
 
     ZVoxelWorld();
     ~ZVoxelWorld();
@@ -148,7 +149,7 @@ class ZVoxelWorld : public ZObject
 
 
     void SetVoxel(Long x, Long y, Long z, UShort VoxelValue);
-    bool SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension = true, VoxelLocation * Location = 0);
+    bool SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, UByte ImportanceFactor, bool CreateExtension = true, ZVoxelLocation * Location = 0);
 
     //bool SetVoxel_WithCullingUpdate(Long x, Long y, Long z, UShort VoxelValue, bool ImportanceFactor, bool CreateExtension = true, VoxelLocation * Location = 0);
     inline bool MoveVoxel(Long Sx, Long Sy, Long Sz, Long Ex, Long Ey, Long Ez, UShort ReplacementVoxel, UByte ImportanceFactor);
@@ -162,8 +163,8 @@ class ZVoxelWorld : public ZObject
 
     void Purge(UShort VoxelType);
 
-    inline bool   GetVoxelLocation(VoxelLocation * OutLocation, Long x, Long y, Long z);
-    inline bool   GetVoxelLocation(VoxelLocation * OutLocation, const ZVector3L * Coords);
+    inline bool   GetVoxelLocation(ZVoxelLocation * OutLocation, Long x, Long y, Long z);
+    inline bool   GetVoxelLocation(ZVoxelLocation * OutLocation, const ZVector3L * Coords);
 
 
     inline UShort GetVoxel(Long x, Long y, Long z);        // Get the voxel at the specified location. Fail with the "voxel not defined" voxeltype 65535 if the sector not in memory.
@@ -177,7 +178,7 @@ class ZVoxelWorld : public ZObject
     inline void Convert_Coords_PlayerToVoxel( const ZVector3d * PlayerCoords, ZVector3L * VoxelCoords);
     inline void Convert_Coords_VoxelToPlayer( Long Vx, Long Vy, Long Vz, double &Px, double &Py, double &Pz );
     inline void Convert_Coords_VoxelToPlayer( const ZVector3L * VoxelCoords, ZVector3d * PlayerCoords );
-    static inline void Convert_Location_ToCoords(VoxelLocation * InLoc, ZVector3L * OutCoords);
+    static inline void Convert_Location_ToCoords(ZVoxelLocation * InLoc, ZVector3L * OutCoords);
 
     bool RayCast(const ZRayCast_in * In, ZRayCast_out * Out );
     bool RayCast_Vector(const ZVector3d & Pos, const ZVector3d & Vector, const ZRayCast_in * In, ZRayCast_out * Out, bool InvertCollision = false );
@@ -246,7 +247,7 @@ class ZVoxelWorld : public ZObject
     {
       ZVector3L Size;
       Long tmp, xs, ys ,zs, xd, yd, zd;
-      VoxelLocation Loc;
+      ZVoxelLocation Loc;
       ULong Offset;
       ZVoxelSector * NewSector;
 
@@ -292,7 +293,7 @@ class ZVoxelWorld : public ZObject
     {
       Long xs,ys,zs,xd,yd,zd, LineX,LineZ;
       ULong Offset,i;
-      VoxelLocation Loc;
+      ZVoxelLocation Loc;
 
       LineX = SourceSector->Size_y;
       LineZ = LineX * SourceSector->Size_x;
@@ -342,6 +343,15 @@ class ZVoxelWorld : public ZObject
     }
 
 
+
+     inline bool GetVoxelLocationProx(ZVoxelLocation * OutLocation, const ZVector3L * Coords, ULong ProxCode )
+     {
+       ZVector3L NewLocation;
+
+       NewLocation = *Coords + ProxLoc[ProxCode];
+
+       return(GetVoxelLocation(OutLocation, &NewLocation));
+     }
 };
 
 
@@ -395,7 +405,7 @@ inline void ZVoxelWorld::Convert_Coords_VoxelToPlayer( const ZVector3L * VoxelCo
   PlayerCoords->z = ((ELong)VoxelCoords->z) << 8;
 }
 
-inline bool ZVoxelWorld::GetVoxelLocation(VoxelLocation * OutLocation, Long x, Long y, Long z)
+inline bool ZVoxelWorld::GetVoxelLocation(ZVoxelLocation * OutLocation, Long x, Long y, Long z)
 {
   OutLocation->Sector = FindSector( x>>ZVOXELBLOCSHIFT_X , y>>ZVOXELBLOCSHIFT_Y , z>>ZVOXELBLOCSHIFT_Z );
 
@@ -407,7 +417,7 @@ inline bool ZVoxelWorld::GetVoxelLocation(VoxelLocation * OutLocation, Long x, L
   return(true);
 }
 
-inline bool ZVoxelWorld::GetVoxelLocation(VoxelLocation * OutLocation, const ZVector3L * Coords)
+inline bool ZVoxelWorld::GetVoxelLocation(ZVoxelLocation * OutLocation, const ZVector3L * Coords)
 {
   OutLocation->Sector = FindSector( Coords->x>>ZVOXELBLOCSHIFT_X , Coords->y>>ZVOXELBLOCSHIFT_Y , Coords->z>>ZVOXELBLOCSHIFT_Z );
 
@@ -419,7 +429,7 @@ inline bool ZVoxelWorld::GetVoxelLocation(VoxelLocation * OutLocation, const ZVe
   return(true);
 }
 
-inline void ZVoxelWorld::Convert_Location_ToCoords(VoxelLocation * InLoc, ZVector3L * OutCoords)
+inline void ZVoxelWorld::Convert_Location_ToCoords(ZVoxelLocation * InLoc, ZVector3L * OutCoords)
 {
   OutCoords->x = (InLoc->Sector->Pos_x << ZVOXELBLOCSHIFT_X) + ((InLoc->Offset & (ZVOXELBLOCMASK_X << (ZVOXELBLOCSHIFT_Y))) >> ZVOXELBLOCSHIFT_Y);
   OutCoords->y = (InLoc->Sector->Pos_y << ZVOXELBLOCSHIFT_Y) + (InLoc->Offset & (ZVOXELBLOCMASK_Y));
@@ -492,7 +502,7 @@ inline UShort ZVoxelWorld::GetVoxelExt(Long x, Long y, Long z, ZMemSize & OtherI
 
 bool ZVoxelWorld::MoveVoxel(Long Sx, Long Sy, Long Sz, Long Ex, Long Ey, Long Ez, UShort ReplacementVoxel, UByte ImportanceFactor)
 {
-  VoxelLocation Location1, Location2;
+  ZVoxelLocation Location1, Location2;
 
   if (!GetVoxelLocation(&Location1, Sx,Sy,Sz)) return(false);
   if (!SetVoxel_WithCullingUpdate(Ex,Ey,Ez, Location1.Sector->Data[Location1.Offset], ImportanceFactor, false, &Location2 )) return(false);
@@ -509,7 +519,7 @@ bool ZVoxelWorld::MoveVoxel(Long Sx, Long Sy, Long Sz, Long Ex, Long Ey, Long Ez
 
 bool ZVoxelWorld::MoveVoxel( ZVector3L * SCoords, ZVector3L * DCoords, UShort ReplacementVoxel, UByte ImportanceFactor)
 {
-  VoxelLocation Location1, Location2;
+  ZVoxelLocation Location1, Location2;
 
   if (!GetVoxelLocation(&Location1, SCoords->x,SCoords->y,SCoords->z)) return(false);
   if (!SetVoxel_WithCullingUpdate(DCoords->x,DCoords->y,DCoords->z, Location1.Sector->Data[Location1.Offset], ImportanceFactor, false, &Location2 )) return(false);
@@ -526,7 +536,7 @@ bool ZVoxelWorld::MoveVoxel( ZVector3L * SCoords, ZVector3L * DCoords, UShort Re
 
 bool ZVoxelWorld::ExchangeVoxels(Long Sx, Long Sy, Long Sz, Long Dx, Long Dy, Long Dz, UByte ImportanceFactor, bool SetMoved)
 {
-  VoxelLocation Location1, Location2;
+  ZVoxelLocation Location1, Location2;
   UShort VoxelType1,VoxelType2,Temp1,Temp2;
   ZMemSize Extension1,Extension2;
 
@@ -575,7 +585,7 @@ bool ZVoxelWorld::ExchangeVoxels(Long Sx, Long Sy, Long Sz, Long Dx, Long Dy, Lo
 
 bool ZVoxelWorld::ExchangeVoxels( ZVector3L * V1, ZVector3L * V2, UByte ImportanceFactor, bool SetMoved)
 {
-  VoxelLocation Location1, Location2;
+  ZVoxelLocation Location1, Location2;
   UShort VoxelType1,VoxelType2,Temp1,Temp2;
   ZMemSize Extension1,Extension2;
 
@@ -626,7 +636,7 @@ bool ZVoxelWorld::ExchangeVoxels( ZVector3L * V1, ZVector3L * V2, UByte Importan
 
 bool ZVoxelWorld::MoveVoxel_Sm(Long Sx, Long Sy, Long Sz, Long Ex, Long Ey, Long Ez, UShort ReplacementVoxel, UByte ImportanceFactor)
 {
-  VoxelLocation Location1, Location2;
+  ZVoxelLocation Location1, Location2;
 
   if (!GetVoxelLocation(&Location1, Sx,Sy,Sz)) return(false);
   if (!SetVoxel_WithCullingUpdate(Ex,Ey,Ez, Location1.Sector->Data[Location1.Offset], ImportanceFactor, false, &Location2 )) return(false);
@@ -644,7 +654,7 @@ bool ZVoxelWorld::MoveVoxel_Sm(Long Sx, Long Sy, Long Sz, Long Ex, Long Ey, Long
 
 bool ZVoxelWorld::MoveVoxel_Sm( ZVector3L * SCoords, ZVector3L * DCoords, UShort ReplacementVoxel, UByte ImportanceFactor)
 {
-  VoxelLocation Location1, Location2;
+  ZVoxelLocation Location1, Location2;
 
   if (!GetVoxelLocation(&Location1, SCoords->x,SCoords->y,SCoords->z)) return(false);
   if (!SetVoxel_WithCullingUpdate(DCoords->x,DCoords->y,DCoords->z, Location1.Sector->Data[Location1.Offset], ImportanceFactor, false, &Location2 )) return(false);

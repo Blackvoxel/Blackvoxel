@@ -228,9 +228,24 @@ ZVoxelReactor::ZVoxelReactor()
   ReactionTable[86] = new ZVoxelReaction(89,0);
   // ReactionTable[86]->SetReaction(1,10,10);
 
-
-
   //ReactionTable[86]->Set(1,10);
+
+  // Robot SC Probabilities.
+
+  RobotSC_Proba.AddEntry( 26,0,0.1); // Gold.
+  RobotSC_Proba.AddEntry( 44,0,0.1); // X-Material
+  RobotSC_Proba.AddEntry( 60,0,3.0); // Carbon
+  RobotSC_Proba.AddEntry( 74,0,1.0); // Iron Ore
+  RobotSC_Proba.AddEntry(110,0,0.1); // Nickel Ore
+  RobotSC_Proba.AddEntry(112,0,1.0); // Copper Ore
+  RobotSC_Proba.AddEntry(121,0,0.2); // Chrome Ore
+  RobotSC_Proba.AddEntry(127,0,0.1); // Tin Ore
+
+  RobotSC_Proba.AddEntry(122,0,0.001);// Titanium Ore
+  RobotSC_Proba.AddEntry(150,0,0.5);  // Lead ORe
+  RobotSC_Proba.AddEntry(197,0,0.1);  // Aluminium Ore
+  RobotSC_Proba.ComputeProbabilities(1.0);
+
 }
 
 ZVoxelReactor::~ZVoxelReactor()
@@ -306,7 +321,7 @@ struct ZonePressure
 
 void ZVoxelReactor::VoxelFluid_ComputeVolumePressure_Recurse(ZVector3L * Location, ZonePressure * Pr  )
 {
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
   UShort VoxelType;
   ZVoxelExtensionType_VoxelFluid * Ext;
   ULong i;
@@ -348,7 +363,7 @@ void ZVoxelReactor::VoxelFluid_ComputeVolumePressure_Recurse(ZVector3L * Locatio
 
 void ZVoxelReactor::VoxelFluid_SetVolumePressure_Recurse(ZVector3L * Location, ZonePressure * Pr  )
 {
-  VoxelLocation Loc;
+  ZVoxelLocation Loc;
   UShort VoxelType;
   ZVoxelExtensionType_VoxelFluid * Ext;
   ULong i;
@@ -413,6 +428,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 {
   Long x,y,z;
 
+  // register ULong MainOffset asm ("r8");
   register ULong MainOffset;
   UShort VoxelType;
   ZVoxelSector * SectorTable[64];
@@ -677,7 +693,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                               ULong i,j, FallCount,SnoopCount, GrindCount;
                               bool  FallEn[4],SnoopEn[4],GrindEn[6];
                               register Long cx,cy,cz;
-                              VoxelLocation Location;
+                              ZVoxelLocation Location;
 
                               // Test if we can fall downward
                                 i=0;
@@ -925,7 +941,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                               ULong SecondaryOffset[32];
                               ULong i, TriggerCount;
                               register Long cx,cy,cz;
-                              VoxelLocation VxLoc;
+                              ZVoxelLocation VxLoc;
 
                               Short BlastPower = 30;
                               UShort LifeTime  = 200;
@@ -960,7 +976,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
                               Short BlastPower;
                               UShort LifeTime;
-                              VoxelLocation VxLoc;
+                              ZVoxelLocation VxLoc;
 
 
 
@@ -1043,7 +1059,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             ULong SecondaryOffset[8];
                             ULong i,j, Pumpable_Count, Pushable_Count;
                             ULong Pumpable[8], Pushable[8];
-                            VoxelLocation VInfo;
+                            ZVoxelLocation VInfo;
 
 
                             register Long cx,cy,cz;
@@ -1083,7 +1099,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             ULong SecondaryOffset[8];
                             ULong i,j, Pumpable_Count, Pushable_Count;
                             ULong Pumpable[8], Pushable[8];
-                            VoxelLocation VInfo;
+                            ZVoxelLocation VInfo;
 
 
                             register Long cx,cy,cz;
@@ -1123,7 +1139,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             UShort * Vp[8];
                             ULong SecondaryOffset[8];
                             ULong i, Opposite;
-                            VoxelLocation VInfo;
+                            ZVoxelLocation VInfo;
 
 
                             register Long cx,cy,cz;
@@ -1162,7 +1178,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             UShort * Vp[8];
                             ULong SecondaryOffset[8];
                             ULong i, Opposite;
-                            VoxelLocation VInfo, VInfo2;
+                            ZVoxelLocation VInfo, VInfo2;
                             UShort VoxelType2, VoxelType3;
 
 
@@ -1612,6 +1628,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                             if (Ext->VoxelToOutputQuantities[j])
                                             {
                                               World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x-1, RSy + y + bp6[Opposite].y - 1, RSz + z + bp6[Opposite].z-1 , Ext->VoxelToOutput[j], ZVoxelSector::CHANGE_CRITICAL);
+                                              St[Opposite]->ModifTracker.Set(SecondaryOffset[Opposite]);
                                               if (! --Ext->VoxelToOutputQuantities[j]) Ext->VoxelToOutput[j]=0;
                                               TransformationFound = true;
                                               break;
@@ -1669,10 +1686,13 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             Ext->SetGameEnv(GameEnv);
                             if (Ext->IsCompiledOk() & Ext->IsAllowedToRun)
                             {
-                              // If "stop robots" key is pressed, stop the robot."...
-                              if (GameEnv->Stop_Programmable_Robots) { printf("Robot %d stopped on user request signal.\n",Ext->RobotSerialNumber); Ext->Script_Engine.RunScript((char *)"Voxel_Unload", true, ZScripting_Squirrel3::RUNCONTEXT_PROGRAMCHANGE); Ext->IsAllowedToRun = false;}
-                              // Main robot program...
-                              Ext->Script_Engine.RunScript((char *)"Voxel_Step", true, ZScripting_Squirrel3::RUNCONTEXT_NORMALSTEP);
+                              for (ULong OverSteps=0; OverSteps <= Ext->Overclock; OverSteps++)
+                              {
+                                // If "stop robots" key is pressed, stop the robot."...
+                                if (GameEnv->Stop_Programmable_Robots) { printf("Robot %d stopped on user request signal.\n",Ext->RobotSerialNumber); Ext->Script_Engine.RunScript((char *)"Voxel_Unload", true, ZScripting_Squirrel3::RUNCONTEXT_PROGRAMCHANGE); Ext->IsAllowedToRun = false;}
+                                // Main robot program...
+                                Ext->Script_Engine.RunScript((char *)"Voxel_Step", true, ZScripting_Squirrel3::RUNCONTEXT_NORMALSTEP);
+                              }
                             }
                             break;
                           }
@@ -1726,7 +1746,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             ULong i, Opposite;
                             ZVoxelExtension_BlastFurnace * Ext;
                             ZVoxelExtension_FusionElement * Ext2;
-                            VoxelLocation Loc;
+                            ZVoxelLocation Loc;
 
                             Ext = (ZVoxelExtension_BlastFurnace *)Sector->OtherInfos[MainOffset];
 
@@ -1737,6 +1757,9 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             for (i=0, Cont=true; i<6 && Cont ; i++)
                             {
                               cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+
+                              // Only take a voxel if it has not moved.
+                              if (St[i]->ModifTracker.Get(SecondaryOffset[i])) continue;
 
                               switch (*Vp[i])
                               {
@@ -1998,12 +2021,16 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                            StorageLocation.x = RSx + cx - 1; StorageLocation.y = RSy + cy - 1; StorageLocation.z = RSz + cz - 1;
                            switch(VoxelType)
                            {
-                             case 153: Ext->Robot_Init( &StorageLocation, i, 8, 8, 16, 3, 1 ); break;
-                             case 154: Ext->Robot_Init( &StorageLocation, i, 8, 8, 32, 2, 2 ); break;
-                             case 155: Ext->Robot_Init( &StorageLocation, i, 8, 8, 32, 1, 3 ); break;
-                             case 156: Ext->Robot_Init( &StorageLocation, i, 8, 8, 64, 0, 4 ); break;
-                             case 157: Ext->Robot_Init( &StorageLocation, i, 16, 16, 64, -4 , 5 ); break;
-                             case 158: Ext->Robot_Init( &StorageLocation, i, 16, 16, 64, -37 , 6 ); break;
+                             case 153: Ext->Robot_Init( &StorageLocation, i,  8,  8, 16,  3,  1 , 1 ); break; // XR-1
+                             case 154: Ext->Robot_Init( &StorageLocation, i,  8,  8, 32,  1,  2 , 2 ); break; // XR-2
+                             case 155: Ext->Robot_Init( &StorageLocation, i, 16, 16, 32,  0,  8 , 3 ); break; // XR-3
+                             case 156: Ext->Robot_Init( &StorageLocation, i, 16, 16, 64, -4,  4 , 4 ); break; // XR-4
+                             case 157: Ext->Robot_Init( &StorageLocation, i, 32, 32, 64, -19, 64, 5 ); break; // XR-5
+                             case 158: Ext->Robot_Init( &StorageLocation, i, 32, 32, 64, -37 ,16, 6 );break; // XR-Test
+                             //case 159:
+                             // Ext->Robot_Init( &StorageLocation, i,  8,  8, 64,  0,  4, 4 );
+                             //case 157: Ext->Robot_Init( &StorageLocation, i, 16, 16, 64, -4 , 8, 5 ); break;
+                             //case 158: Ext->Robot_Init( &StorageLocation, i, 16, 16, 64, -37 ,16, 6 ); break;
                            }
                          }
                        }
@@ -2140,6 +2167,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                                              Ext->VoxelQuantity[i]--;
                                              if (Ext->VoxelQuantity[i] == 0) Ext->VoxelType[i]=0;
                                              World->SetVoxel_WithCullingUpdate(RSx + x + xbp6[Ext->OutputLocation].x-1, RSy + y + xbp6[Ext->OutputLocation].y - 1, RSz + z + xbp6[Ext->OutputLocation].z-1 , VoxelToOutput, ZVoxelSector::CHANGE_CRITICAL);
+                                             St[Ext->OutputLocation]->ModifTracker.Set(SecondaryOffset[Ext->OutputLocation]);
                                              if (!(--Ext->PositionRemain))
                                              {
                                                Advance = true;
@@ -2164,7 +2192,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                            IsLowActivityVoxels = true; // Maintain the low activity flag.
                            Sector->LowRefresh_Mask = 0xF; // Get 1/16 cycle
                            {
-                             VoxelLocation Loc;
+                             ZVoxelLocation Loc;
                              ZVector3L VoxelCoords;
                              ZVector3d VoxelLocation;
                              double Distance;
@@ -2231,7 +2259,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                              ULong i;
                              UByte DirCode;
 
-                             VoxelLocation Loc;
+                             ZVoxelLocation Loc;
 
                              Long cx,cy,cz;
 
@@ -2609,6 +2637,358 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
 
 
 
+
+
+                  case 244:  // Mover Right
+                          IsActiveVoxels = true;
+                          {
+                            ZVoxelSector * St[2];
+                            UShort * Vp[2];
+                            ULong SecondaryOffset[2];
+
+                            register Long cx,cy,cz;
+                            ULong i;
+                            Long Vx,Vy,Vz;
+                            Vx = RSx+x; Vy = RSy+y; Vz = RSz+z;
+
+                            if (CycleNum & 7) break;
+                            i=0;
+                            cx = x+1 ; cy = y+2 ; cz = z+1 ;
+                            SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
+                            St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
+                            Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+
+                            if (VoxelTypeManager->VoxelTable[*Vp[i]]->BvProp_MoveableByTreadmill && !St[i]->ModifTracker.Get(SecondaryOffset[i]))
+                            {
+                              i=1;
+
+                              cx = x+1 ; cy = y+2 ; cz = z+2 ;
+                              SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
+                              St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
+                              Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+
+                              if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_PlayerCanPassThrough)
+                              {
+                                World->ExchangeVoxels(Vx,Vy+1,Vz,Vx,Vy+1,Vz+1,ZVoxelSector::CHANGE_CRITICAL, true);
+                                /*
+                                World->MoveVoxel(Vx,Vy+1,Vz,Vx,Vy+1,Vz+1,0,ZVoxelSector::CHANGE_CRITICAL);
+                                St[0]->ModifTracker.Set(SecondaryOffset[0]);
+                                St[1]->ModifTracker.Set(SecondaryOffset[1]);
+                                */
+                              }
+                            }
+                            break;
+                          }
+                  case 245:  // Mover Left
+                          IsActiveVoxels = true;
+                          {
+                            ZVoxelSector * St[2];
+                            UShort * Vp[2];
+                            ULong SecondaryOffset[2];
+
+                            register Long cx,cy,cz;
+                            ULong i;
+                            Long Vx,Vy,Vz;
+                            Vx = RSx+x; Vy = RSy+y; Vz = RSz+z;
+
+                            if (CycleNum & 7) break;
+                            i=0;
+                            cx = x+1 ; cy = y+2 ; cz = z+1 ;
+                            SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
+                            St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
+                            Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+
+                            if (VoxelTypeManager->VoxelTable[*Vp[i]]->BvProp_MoveableByTreadmill && !St[i]->ModifTracker.Get(SecondaryOffset[i]))
+                            {
+                              i=1;
+
+                              cx = x+1 ; cy = y+2 ; cz = z ;
+                              SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
+                              St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
+                              Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+
+                              if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_PlayerCanPassThrough)
+                              {
+                                World->ExchangeVoxels(Vx,Vy+1,Vz,Vx,Vy+1,Vz-1,ZVoxelSector::CHANGE_CRITICAL, true);
+/*
+                                World->MoveVoxel(Vx,Vy+1,Vz,Vx,Vy+1,Vz-1,0,ZVoxelSector::CHANGE_CRITICAL);
+                                St[0]->ModifTracker.Set(SecondaryOffset[0]);
+                                St[1]->ModifTracker.Set(SecondaryOffset[1]);
+*/
+                              }
+                            }
+                            break;
+                          }
+                  case 246:  // Mover Top
+                          IsActiveVoxels = true;
+                          {
+                            ZVoxelSector * St[2];
+                            UShort * Vp[2];
+                            ULong SecondaryOffset[2];
+
+                            register Long cx,cy,cz;
+                            ULong i;
+                            Long Vx,Vy,Vz;
+                            Vx = RSx+x; Vy = RSy+y; Vz = RSz+z;
+
+                            if (CycleNum & 7) break;
+                            i=0;
+                            cx = x+1 ; cy = y+2 ; cz = z+1 ;
+                            SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
+                            St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
+                            Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+
+                            if (VoxelTypeManager->VoxelTable[*Vp[i]]->BvProp_MoveableByTreadmill && !St[i]->ModifTracker.Get(SecondaryOffset[i]))
+                            {
+                              i=1;
+
+                              cx = x ; cy = y+2 ; cz = z+1 ;
+                              SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
+                              St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
+                              Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+
+                              if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_PlayerCanPassThrough)
+                              {
+                                World->ExchangeVoxels(Vx,Vy+1,Vz,Vx-1,Vy+1,Vz,ZVoxelSector::CHANGE_CRITICAL, true);
+/*
+                                World->MoveVoxel(Vx,Vy+1,Vz,Vx-1,Vy+1,Vz,0,ZVoxelSector::CHANGE_CRITICAL);
+                                St[0]->ModifTracker.Set(SecondaryOffset[0]);
+                                St[1]->ModifTracker.Set(SecondaryOffset[1]);
+*/
+                              }
+                            }
+                            break;
+                          }
+                  case 247:  // Mover Bottom
+                          IsActiveVoxels = true;
+                          {
+                            ZVoxelSector * St[2];
+                            UShort * Vp[2];
+                            ULong SecondaryOffset[2];
+
+                            register Long cx,cy,cz;
+                            ULong i;
+                            Long Vx,Vy,Vz;
+                            Vx = RSx+x; Vy = RSy+y; Vz = RSz+z;
+
+                            if (CycleNum & 7) break;
+                            i=0;
+                            cx = x+1 ; cy = y+2 ; cz = z+1 ;
+                            SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
+                            St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
+                            Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+
+                            if (VoxelTypeManager->VoxelTable[*Vp[i]]->BvProp_MoveableByTreadmill && !St[i]->ModifTracker.Get(SecondaryOffset[i]))
+                            {
+                              i=1;
+
+                              cx = x+2 ; cy = y+2 ; cz = z+1 ;
+                              SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];
+                              St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
+                              Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+
+                              if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_PlayerCanPassThrough)
+                              {
+                                World->ExchangeVoxels(Vx,Vy+1,Vz,Vx+1,Vy+1,Vz,ZVoxelSector::CHANGE_CRITICAL, true);
+/*
+                                World->MoveVoxel(Vx,Vy+1,Vz,Vx+1,Vy+1,Vz,0,ZVoxelSector::CHANGE_CRITICAL);
+                                St[0]->ModifTracker.Set(SecondaryOffset[0]);
+                                St[1]->ModifTracker.Set(SecondaryOffset[1]); */
+                              }
+                            }
+                            break;
+                          }
+
+                  case 248:  // Slow Voxel Materializer
+
+                          IsActiveVoxels = true;
+                          {
+                            ZVoxelSector * St[8];
+                            UShort * Vp[8];
+                            ULong SecondaryOffset[8];
+                            ULong i, Opposite;
+                            ZVoxelLocation VInfo, VInfo2;
+                            UShort VoxelType2, VoxelType3;
+
+
+                            register Long cx,cy,cz;
+
+                            if (CycleNum & 15) break;
+                            for(i=0;i<6;i++)
+                            {
+                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_Interface_PullBlock)
+                              {
+                                Opposite = BlocOpposite[i];
+                                cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz];St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ];
+                                if (*Vp[Opposite]==0)
+                                {
+                                  VInfo.Sector = St[i];
+                                  VInfo.Offset = SecondaryOffset[i];
+                                  if (1==VoxelTypeManager->VoxelTable[ *Vp[i] ]->Interface_PushBlock_Pull(&VInfo, &VoxelType2 , 1 ))
+                                  {
+                                    World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x-1, RSy + y + bp6[Opposite].y - 1, RSz + z + bp6[Opposite].z-1 , VoxelType2, ZVoxelSector::CHANGE_CRITICAL);
+                                    St[Opposite]->ModifTracker.Set(SecondaryOffset[Opposite]);
+                                    break;
+                                  }
+
+                                }
+                                else if (*Vp[Opposite] == 249) // Is it a loader just in face.
+                                {
+                                  if (World->GetVoxelLocation(&VInfo2, RSx+x+bp6[Opposite].x+bp6[Opposite].x - 2 ,RSy+y+bp6[Opposite].y+bp6[Opposite].y - 2 ,RSz+z+bp6[Opposite].z+bp6[Opposite].z - 2))
+                                  {
+                                    VoxelType2 = VInfo2.Sector->Data[VInfo2.Offset];
+                                    //VoxelType = World->GetVoxel( RSx+x+bp6[Opposite].x+bp6[Opposite].x - 2 ,RSy+y+bp6[Opposite].y+bp6[Opposite].y - 2 ,RSz+z+bp6[Opposite].z+bp6[Opposite].z - 2 );
+                                    if (VoxelTypeManager->VoxelTable[VoxelType2]->Is_Interface_PushBlock)
+                                    {
+                                       VInfo.Sector = St[i];
+                                       VInfo.Offset = SecondaryOffset[i];
+                                       if (1==VoxelTypeManager->VoxelTable[ *Vp[i] ]->Interface_PushBlock_PullTest(&VInfo, &VoxelType3 , 1 )) // Test if we can pull a voxel and which type.
+                                       {
+                                         if (1==VoxelTypeManager->VoxelTable[VoxelType2]->Interface_PushBlock_Push(&VInfo2, VoxelType3, 1)) // Push it.
+                                         {
+                                           VoxelTypeManager->VoxelTable[ *Vp[i] ]->Interface_PushBlock_Pull(&VInfo, &VoxelType3 , 1 );      // If pushed ok, then pull it.
+                                         }
+                                       }
+                                    }
+                                  }
+                                }
+
+                              }
+                            }
+
+                            break;
+                          }
+
+                  case 249:  // Slow Voxel Dematerializer
+                          IsActiveVoxels = true;
+                          {
+                            ZVoxelSector * St[8];
+                            UShort * Vp[8];
+                            ULong SecondaryOffset[8];
+                            ULong i, Opposite;
+                            ZVoxelLocation VInfo;
+
+
+                            register Long cx,cy,cz;
+                            if (CycleNum & 15) break;
+                            for(i=0;i<6;i++)
+                            {
+                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_Interface_PushBlock)
+                              {
+                                Opposite = BlocOpposite[i];
+                                cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz];St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ];
+                                if (VoxelTypeManager->VoxelTable[*Vp[Opposite]]->Is_Loadable_ByLoader_L1 && ( (!St[Opposite]->ModifTracker.Get(SecondaryOffset[Opposite]) || ( VoxelTypeManager->VoxelTable[*Vp[Opposite]]->BvProp_FastMoving) ) ))
+                                {
+                                  VInfo.Sector = St[i];
+                                  VInfo.Offset = SecondaryOffset[i];
+                                  if (1==VoxelTypeManager->VoxelTable[ *Vp[i] ]->Interface_PushBlock_Push(&VInfo, *Vp[ Opposite ], 1 ))
+                                  {
+                                    World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x-1, RSy + y + bp6[Opposite].y - 1, RSz + z + bp6[Opposite].z-1 , 0, ZVoxelSector::CHANGE_IMPORTANT);
+                                    St[Opposite]->ModifTracker.Set(SecondaryOffset[Opposite]);
+                                    break;
+                                  }
+
+                                }
+
+                              }
+                            }
+
+                            break;
+                          }
+
+
+
+
+
+                 case 250:  // Slow Liquid Pump T0
+                          IsActiveVoxels = true;
+                          {
+                            ZVoxelSector * St[8];
+                            UShort * Vp[8];
+                            ULong SecondaryOffset[8];
+                            ULong i,j, Pumpable_Count, Pushable_Count;
+                            ULong Pumpable[8], Pushable[8];
+                            ZVoxelLocation VInfo;
+
+
+                            register Long cx,cy,cz;
+
+                            if (CycleNum & 31) break;
+                            Pumpable_Count = Pushable_Count = 0;
+                            for(i=0;i<6;i++)
+                            {
+                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_Pumpable_ByPump_T1)  { Pumpable[Pumpable_Count++] = i; }
+                              if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_Interface_PushBlock) { Pushable[Pushable_Count++] = i; }
+                            }
+
+                            if (Pumpable_Count>0 && Pushable_Count>0)
+                            {
+                              j = (Random.GetNumber() % Pumpable_Count);
+                              for (i=0;i<Pushable_Count;i++)
+                              {
+                                VInfo.Sector = St[ Pushable[i] ];
+                                VInfo.Offset = SecondaryOffset[ Pushable[i] ];
+                                if (1==VoxelTypeManager->VoxelTable[ *Vp[ Pushable[i]] ]->Interface_PushBlock_Push(&VInfo, *Vp[ Pumpable[j] ], 1 ))
+                                {
+                                  i = Pumpable[j];
+                                  World->SetVoxel_WithCullingUpdate(RSx + x + bp6[i].x-1, RSy + y + bp6[i].y - 1, RSz + z + bp6[i].z-1 , 0, ZVoxelSector::CHANGE_IMPORTANT);
+                                  St[i]->ModifTracker.Set(SecondaryOffset[i]);
+                                  break;
+                                }
+                              }
+                            }
+                            break;
+                          }
+
+                 case 252:  // Mining Robot Super Six.
+                          IsActiveVoxels = true;
+                          {
+                            ZVoxelSector * St[8];
+                            UShort * Vp[8];
+                            ULong SecondaryOffset[8];
+                            ULong i,Pushable_Count;
+                            ULong Pushable[8];
+                            ZVoxelLocation VInfo;
+                            UShort WonVoxelType;
+
+
+                            register Long cx,cy,cz;
+
+                            Pushable_Count = 0;
+
+                            if (CycleNum & 3) break;
+
+                            // Look around for all blocks having an interface for accepting blocks.
+
+                            for(i=0;i<6;i++)
+                            {
+                              cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                              if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_Interface_PushBlock) { Pushable[Pushable_Count++] = i; }
+                            }
+
+                            // Get VoxelType with computed probabilities.
+                            WonVoxelType = RobotSC_Proba.GetVoxelType(RobotSC_Proba.GetTypeNum(Random.GetNumber()));
+
+                            if (Pushable_Count>0)
+                            {
+                              for (i=0;i<Pushable_Count;i++)
+                              {
+                                VInfo.Sector = St[ Pushable[i] ];
+                                VInfo.Offset = SecondaryOffset[ Pushable[i] ];
+                                if (1==VoxelTypeManager->VoxelTable[ *Vp[ Pushable[i]] ]->Interface_PushBlock_Push(&VInfo, WonVoxelType , 1 ))
+                                {
+                                  break;
+                                }
+                              }
+                            }
+                            break;
+                          }
+
+                 case 254:  // Wireless Transmitter
+
                            // *** Active voxels mapped on voxeltype ***
                            //
                            // This was made to make modding easier to do.
@@ -2620,6 +3000,7 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                            // few in the world.
                            // For "massive" voxeltype presence where you want more speed, consider implementing it
                            // in the switch in this code file.
+
 
                    default:IsActiveVoxels = true;
                            ActiveVoxelInterface.Coords.x = RSx + x;

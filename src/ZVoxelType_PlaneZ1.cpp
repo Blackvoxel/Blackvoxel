@@ -53,7 +53,7 @@ void  ZVoxelType_PlaneZ1::UserAction_Activate(ZMemSize VoxelInfo, Long x, Long y
   // GameEnv->GameWindow_Storage->Show();
 }
 
-ULong ZVoxelType_PlaneZ1::Interface_PushBlock_Push( VoxelLocation * DestLocation, UShort VoxelType, ULong Count )
+ULong ZVoxelType_PlaneZ1::Interface_PushBlock_Push( ZVoxelLocation * DestLocation, UShort VoxelType, ULong Count )
 {
   ZVoxelExtension_Storage * Ext_Storage;
 

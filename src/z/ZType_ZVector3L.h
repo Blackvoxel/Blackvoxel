@@ -34,6 +34,9 @@
 #  include "ZTypes.h"
 #endif
 
+class ZVector3B;
+
+
 class ZVector3L
 {
   public:
@@ -56,6 +59,7 @@ class ZVector3L
     z = Vec3L.z;
   }
   inline ZVector3L ( const ZVector3d & Vec3d );
+  inline ZVector3L ( const ZVector3B & Vec3B );
   inline ZVector3L ( Long Scalar )
   {
     x = Scalar;
@@ -90,6 +94,7 @@ class ZVector3L
   }
 
   inline ZVector3L & operator = (const ZVector3d & Vec3d);
+  inline ZVector3L & operator = (const ZVector3B & Vec3B);
 
   inline ZVector3L & operator = (const Long Value)
   {
@@ -97,6 +102,7 @@ class ZVector3L
     return(*this);
   }
 
+  inline ZVector3L & operator += (const ZVector3B & Vec3B);
   inline ZVector3L & operator += (const ZVector3L & Vec3L)
   {
     x += Vec3L.x;
@@ -105,6 +111,7 @@ class ZVector3L
     return(*this);
   }
 
+  inline ZVector3L & operator -= (const ZVector3B & Vec3B);
   inline ZVector3L & operator -= (const ZVector3L & Vec3L)
   {
     x -= Vec3L.x;
@@ -140,6 +147,8 @@ class ZVector3L
     return(Result);
   }
 
+
+  inline ZVector3L operator - (const ZVector3B Vec3B) const;
   inline ZVector3L operator - (const ZVector3L Vec3L) const
   {
     ZVector3L Result;
@@ -150,6 +159,8 @@ class ZVector3L
 
     return(Result);
   }
+
+  inline ZVector3L operator + (const ZVector3B Vec3B) const;
 
   inline ZVector3L operator + (const ZVector3L Vec3L) const
   {

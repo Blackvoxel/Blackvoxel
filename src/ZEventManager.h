@@ -120,6 +120,12 @@ class ZEventManager
       return IsPressed;
     }
 
+    // Manual Triggering mouse button events in order to simulate a mouse button click
+
+    void ManualCall_MouseButtonClick(UShort ButtonCode);
+    void ManualCall_MouseButtonRelease(UShort ButtonCode);
+    void ManualCall_KeyPress(UShort Keycode);
+    void ManualCall_KeyRelease(UShort Keycode);
 };
 
 #endif

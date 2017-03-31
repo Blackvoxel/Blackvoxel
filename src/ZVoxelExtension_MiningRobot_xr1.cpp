@@ -56,7 +56,7 @@ bool ZVoxelExtension_MiningRobot_xr1::Save(ZStream_SpecialRamStream * Stream)
   ExtensionSize = Stream->GetPointer_ULong();
   Stream->Put(0u);       // The size of the extension (defered storage).
   StartLen = Stream->GetActualBufferLen();
-  Stream->Put((UShort)1); // Extension Version;
+  Stream->Put((UShort)2); // Extension Version;
 
   // Storage informations.
 
@@ -69,6 +69,7 @@ bool ZVoxelExtension_MiningRobot_xr1::Save(ZStream_SpecialRamStream * Stream)
   Stream->Put(Mine_Count);
   Stream->Put(Dir);
   Stream->Put(CycleSkip);
+  Stream->Put(StorePerCycle);
   Stream->Put(SkipCounter);
   Stream->Put(RobotLevel);
 
@@ -91,7 +92,7 @@ bool ZVoxelExtension_MiningRobot_xr1::Load(ZStream_SpecialRamStream * Stream)
 
   // Check for supported extension version. If unsupported new version, throw content and continue with a blank extension.
 
-  if (ExtensionVersion!=1) { ExtensionSize-=2; for(ZMemSize i=0;i<ExtensionSize;i++) Ok = Stream->Get(Temp_Byte); if (Ok) return(true); else return(false);}
+  if (ExtensionVersion>2) { ExtensionSize-=2; for(ZMemSize i=0;i<ExtensionSize;i++) Ok = Stream->Get(Temp_Byte); if (Ok) return(true); else return(false);}
 
   //Stream->Get(Quantity_Carbon);
   Stream->GetZone(&VoxelType, sizeof(VoxelType));
@@ -103,6 +104,7 @@ bool ZVoxelExtension_MiningRobot_xr1::Load(ZStream_SpecialRamStream * Stream)
   Stream->Get(Mine_Count);
   Stream->Get(Dir);
   Stream->Get(CycleSkip);
+  if (ExtensionVersion>1) Stream->Get(StorePerCycle);
   Stream->Get(SkipCounter);
   Stream->Get(RobotLevel);
   //DebugOut();
@@ -116,6 +118,7 @@ void ZVoxelExtension_MiningRobot_xr1::Robot_Init( ZVector3L * StorageLocation,
                  Long HoleWidth_z,
                  Long HoleDeep_y,
                  Long CycleSkip ,
+                 ULong StorePerCycle,
                  ULong RobotLevel )
 {
   this->StorageLocation = *StorageLocation;
@@ -135,6 +138,7 @@ void ZVoxelExtension_MiningRobot_xr1::Robot_Init( ZVector3L * StorageLocation,
   Mine_Count.y = Mine_InitialCount.y;
   this->CycleSkip = CycleSkip;
   this->SkipCounter = 0;
+  this->StorePerCycle = StorePerCycle;
   this->RobotLevel = RobotLevel;
 }
 
@@ -213,7 +217,7 @@ void ZVoxelExtension_MiningRobot_xr1::Robot_Move( ZVector3L * Pos, ZGame * GameE
       case 4: // Going UP to the storage.
               if (Mine_Count.y < 1)
               {
-                VoxelLocation Loc;
+                ZVoxelLocation Loc;
                 World->GetVoxelLocation( &Loc, Pos->x, Pos->y,Pos->z);
                 Loc.Sector->Data[Loc.Offset] = 159;
                 Loc.Sector->Flag_Render_Dirty = true;
@@ -236,15 +240,19 @@ void ZVoxelExtension_MiningRobot_xr1::Robot_Move( ZVector3L * Pos, ZGame * GameE
       case 5: // World->SetVoxel_WithCullingUpdate(Pos->x, Pos->y,Pos->z, 0, true, true, 0); break;
               // Putting data into storage.
               {
-                VoxelLocation Loc;
+                ZVoxelLocation Loc;
                 ULong Slot;
+                ULong StoreCount;
                 if (!World->GetVoxelLocation(&Loc, StorageLocation.x, StorageLocation.y, StorageLocation.z)) break;
                 VoxelType = Loc.Sector->Data[Loc.Offset];
                 if (!GameEnv->VoxelTypeManager.VoxelTable[VoxelType]->Is_Interface_PushBlock) { State = 6; break; }
+
                 if ( ((ULong)-1) != (Slot = FindFirstUsedBlock()))
                 {
-                  if (!GameEnv->VoxelTypeManager.VoxelTable[VoxelType]->Interface_PushBlock_Push(&Loc, this->VoxelType[Slot], 1)) break;
-                  VoxelQuantity[Slot] --;
+                  StoreCount = this->StorePerCycle;
+                  if (VoxelQuantity[Slot]<StoreCount) StoreCount = VoxelQuantity[Slot];
+                  if (!GameEnv->VoxelTypeManager.VoxelTable[VoxelType]->Interface_PushBlock_Push(&Loc, this->VoxelType[Slot], StoreCount)) break;
+                  VoxelQuantity[Slot] -=StoreCount;
                   if ( ! VoxelQuantity[Slot] ) this->VoxelType[Slot]=0;
                 }
                 else

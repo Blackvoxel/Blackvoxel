@@ -44,7 +44,8 @@ void ZGameWindow_ResumeRequest::Show()
   // Main Window
 
   ZVector2f MainWindow_Pos,MainWindow_Size;
-  MainWindow_Size.x = 600.0f; MainWindow_Size.y = 100.0f;
+//  MainWindow_Size.x = 600.0f; MainWindow_Size.y = 100.0f;
+  MainWindow_Size.x = 500.0f; MainWindow_Size.y = 200.0f;
   MainWindow_Pos.x = ((float)GameEnv->ScreenResolution.x - MainWindow_Size.x) / 2.0f;
   MainWindow_Pos.y = ((float)GameEnv->ScreenResolution.y - MainWindow_Size.y) / 2.0f;
   MainWindow->SetPosition( MainWindow_Pos.x, MainWindow_Pos.y );

@@ -70,35 +70,32 @@
 
 class ZWorldGenesis
 {
-   // static UShort ZoneMap[32][32];
-   // static Long  HeightMap[32][32];
-    enum { InclusionQuantity = 32000000,
-           BlackWoods_Level = -14};
+  public:
     static const char * ZoneMap_New[];
     static const char * HeightMap_New[];
     static const char * RingNum[];
     static const Long ZoneYOffset[];
+
+  protected:
+
+    enum { InclusionQuantity = 32000000,
+           BlackWoods_Level = -14};
     UShort         ConvCN[256];
 
     ZLightSpeedRandom RandomGen;
     ZFastRandom       AltRandomGen;
 
-
     double GetHeightMap(Long x, Long z);
   public:
-
-    ZBitmapImage Template_1;
-    ZBitmapImage Template_2;
-    ZBitmapImage Template_3_1;
-    ZBitmapImage Template_3_2;
-    ZBitmapImage Template_3_3;
-
 
     ZGenericCanva<UByte> Canva_1;
     ZGenericCanva<UByte> Canva_2;
     ZGenericCanva<UByte> Canva_3_1;
     ZGenericCanva<UByte> Canva_3_2;
     ZGenericCanva<UByte> Canva_3_3;
+    ZGenericCanva<UByte> Canva_3_4;
+    ZGenericCanva<UByte> Canva_4;
+
 
     ZVoxelSector T3dTemplate_1; // Tree
     ZVoxelSector T3dTemplate_2; // Boulder 1
@@ -248,7 +245,7 @@ class ZWorldGenesis
                   GenerateBigTrees(VoxelSector);
                   GenerateAddBombs(VoxelSector, 0.002, 200, true);
                   break;
-          case 6: GenerateZone_BigMountains( VoxelSector, HeightOffset, x,y,z);
+          case 6: GenerateZone_BigMountainsV2( VoxelSector, HeightOffset, x,y,z);
                   //GenerateBigTrees(VoxelSector);
                   break;
           case 7: GenerateZone_LavaRiver( VoxelSector );
@@ -295,6 +292,7 @@ class ZWorldGenesis
 
     void GenerateZone_LavaRiver(ZVoxelSector * VoxelSector);
     void GenerateZone_BigMountains(ZVoxelSector * VoxelSector, Long HeightOffset, Long Sector_x, Long Sector_y, Long Sector_z);
+    void GenerateZone_BigMountainsV2(ZVoxelSector * VoxelSector, Long HeightOffset, Long Sector_x, Long Sector_y, Long Sector_z);
     void GenerateZone_NaturalMountains(ZVoxelSector * VoxelSector, Long Sector_x, Long Sector_y, Long Sector_z);
     void GenerateZone_BlackWoods(ZVoxelSector * VoxelSector, Long Sector_x, Long Sector_y, Long Sector_z);
     void GenerateZone_PureSinusArea(ZVoxelSector * VoxelSector, Long Sector_x, Long Sector_y, Long Sector_z);

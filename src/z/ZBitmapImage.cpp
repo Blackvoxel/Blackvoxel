@@ -34,7 +34,7 @@
 
     ZBitmapImage::~ZBitmapImage()
     {
-      delete [](BitmapMemory);
+      if (BitmapMemory) delete [](BitmapMemory);
       Width = 0;
       Height = 0;
       BitsPerPixel = 0;

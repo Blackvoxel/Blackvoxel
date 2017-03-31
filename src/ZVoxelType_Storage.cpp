@@ -47,7 +47,7 @@ void  ZVoxelType_Storage::UserAction_Activate(ZMemSize VoxelInfo, Long x, Long y
   GameEnv->GameWindow_Storage->Show();
 }
 
-ULong ZVoxelType_Storage::Interface_PushBlock_Push( VoxelLocation * DestLocation, UShort VoxelType, ULong Count )
+ULong ZVoxelType_Storage::Interface_PushBlock_Push( ZVoxelLocation * DestLocation, UShort VoxelType, ULong Count )
 {
   ZVoxelExtension_Storage * Ext_Storage;
 
@@ -62,7 +62,7 @@ ULong ZVoxelType_Storage::Interface_PushBlock_Push( VoxelLocation * DestLocation
 }
 
 
-ULong ZVoxelType_Storage::Interface_PushBlock_Pull( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+ULong ZVoxelType_Storage::Interface_PushBlock_Pull( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
   ZVoxelExtension_Storage * Ext_Storage;
   ULong SlotNum;
@@ -79,7 +79,7 @@ ULong ZVoxelType_Storage::Interface_PushBlock_Pull( VoxelLocation * DestLocation
   return(0);
 }
 
-ULong ZVoxelType_Storage::Interface_PushBlock_PullTest( VoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+ULong ZVoxelType_Storage::Interface_PushBlock_PullTest( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
   ZVoxelExtension_Storage * Ext_Storage;
   ULong SlotNum;
@@ -95,5 +95,20 @@ ULong ZVoxelType_Storage::Interface_PushBlock_PullTest( VoxelLocation * DestLoca
   }
 
   return(0);
+}
+
+bool ZVoxelType_Storage::UserAction_TryToDestroy(ZVoxelLocation * DestLocation, ZString * Reason)
+{
+  ZVoxelExtension_Storage * Ext_Storage;
+  Ext_Storage = (ZVoxelExtension_Storage *)DestLocation->Sector->OtherInfos[DestLocation->Offset];
+
+  if (Ext_Storage)
+  {
+    if (Ext_Storage->IsInventoryEmpty()) return(true);
+
+    *Reason = "NOT EMPTY";
+  }
+
+  return(false);
 }
 

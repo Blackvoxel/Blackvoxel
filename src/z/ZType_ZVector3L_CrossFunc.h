@@ -57,4 +57,61 @@ inline ZVector3L::ZVector3L ( const ZVector3d & Vec3d )
   z = Vec3d.z;
 }
 
+inline ZVector3L & ZVector3L::operator = (const ZVector3B & Vec3B)
+{
+  x = Vec3B.x;
+  y = Vec3B.y;
+  z = Vec3B.z;
+
+  return(*this);
+}
+
+inline ZVector3L::ZVector3L ( const ZVector3B & Vec3B )
+{
+  x = Vec3B.x;
+  y = Vec3B.y;
+  z = Vec3B.z;
+}
+
+inline ZVector3L ZVector3L::operator + (const ZVector3B Vec3B) const
+{
+  ZVector3L Result;
+
+  Result.x = x + Vec3B.x;
+  Result.y = y + Vec3B.y;
+  Result.z = z + Vec3B.z;
+
+  return(Result);
+}
+
+inline ZVector3L & ZVector3L::operator += (const ZVector3B & Vec3B)
+{
+  x += Vec3B.x;
+  y += Vec3B.y;
+  z += Vec3B.z;
+
+  return(*this);
+}
+
+inline ZVector3L ZVector3L::operator - (const ZVector3B Vec3B) const
+{
+  ZVector3L Result;
+
+  Result.x = x - Vec3B.x;
+  Result.y = y - Vec3B.y;
+  Result.z = z - Vec3B.z;
+
+  return(Result);
+}
+
+inline ZVector3L & ZVector3L::operator -= (const ZVector3B & Vec3B)
+{
+  x -= Vec3B.x;
+  y -= Vec3B.y;
+  z -= Vec3B.z;
+
+  return(*this);
+}
+
+
 #endif /* Z_ZTYPE_ZVECTOR3L_CROSSFUNC_H */
