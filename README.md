@@ -155,6 +155,13 @@ command:
     make
     ./blackvoxel
 
+### Manjaro
+
+    sudo pacman -S base-devel glew1.10 sdl
+    tar xf blackvoxel_source*
+    make
+    ./blackvoxel
+
 ### Other Linux distributions
 
 Blackvoxel can be compiled in debian and ubuntu derived (like Mint) in
