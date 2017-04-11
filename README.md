@@ -148,6 +148,13 @@ command:
 
     cd ~/blackvoxel_source* && ./blackvoxel
 
+### openSUSE
+
+    sudo zypper in gcc-c++ glew-devel libSDL-devel
+    tar -xf blackvoxel_source*
+    make
+    ./blackvoxel
+
 ### Other Linux distributions
 
 Blackvoxel can be compiled in debian and ubuntu derived (like Mint) in
