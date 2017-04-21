@@ -38,7 +38,7 @@ ZFrame_NumericChoiceBox::ZFrame_NumericChoiceBox()
 
   ActualChoice = 0.0;
   Step = 1.0;
-  LowerLimit = 0.0;
+  LowerLimit = 0.05;
   UpperLimit = 100.0;
   FracDecimals = 0;
   MinDigits = 0;
@@ -92,6 +92,8 @@ void ZFrame_NumericChoiceBox::SetValue(double Value)
 ZString ZFrame_NumericChoiceBox::ConvertValue(double Value)
 {
   double Frac,Int;
+
+  Value+=0.00001; // Fix a rounding error problem.
 
   Frac = modf( Value, &Int );
 
@@ -163,7 +165,7 @@ Bool ZFrame_NumericChoiceBox::MouseButtonClick  (UShort nButton, Short Absolute_
   }
   if (Arrow_Left.Is_MouseClick(true))
   {
-    if (ActualChoice > 0 )
+    if (ActualChoice >= (LowerLimit + Step) )
     {
       SetValue( ActualChoice - Step );
       Event_ChoiceChange = true;

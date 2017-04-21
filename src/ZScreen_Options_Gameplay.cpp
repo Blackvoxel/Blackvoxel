@@ -77,7 +77,7 @@ ULong ZScreen_Options_Game::ProcessScreen(ZGame * GameEnv)
     Frame_MouseFactor.SetFontTileStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_MouseFactor.SetGUITileset(GameEnv->GuiTileset);
     Frame_MouseFactor.SetPosition(Pos.x , Pos.y);
-    Frame_MouseFactor.SetParameters(0.1,9.95, GameEnv->Settings_Hardware->Setting_MouseFactor,0.05, 2);
+    Frame_MouseFactor.SetParameters(0.05,9.95, GameEnv->Settings_Hardware->Setting_MouseFactor,0.05, 2);
     Frame_MouseFactor.GetTextDisplaySize(&Size);
     Frame_MouseFactor.SetSize(Size.x + 1.0f, Size.y);
     GameEnv->GuiManager.AddFrame(&Frame_MouseFactor);
