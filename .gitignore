@@ -3,6 +3,7 @@
 *.lo
 *.o
 *.obj
+/obj/
 
 # Compiled Dynamic libraries
 *.so
@@ -34,3 +35,6 @@
 Log.txt
 src/sc_Squirrel3/bin/sq
 FabDatabaseOutput.sql
+blackvoxel
+Settings_Hardware.dat
+/Universes/
