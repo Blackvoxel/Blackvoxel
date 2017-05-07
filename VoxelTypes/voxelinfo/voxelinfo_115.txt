@@ -10,4 +10,5 @@ BvProp_CanTriggerBomb=1
 BvProp_PlayerCanPassThrough=0
 FrictionCoef=3000.0
 Grip_Vertical=1.0
+BvProp_Loadable_ByLoader_L1=0
 Documentation_PageNum = 0
