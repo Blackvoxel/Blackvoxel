@@ -42,7 +42,7 @@ With time, the bunch of code slowly became a true game project.
 
 The game is written in C/C++ programming langage using OpenGL and running on Linux and Windows operating system.
 
-MacOs version may be planed in the future if users loves it...
+~~MacOs version may be planed in the future if users loves it...~~ *(It may be implemented in the original repo first)*
 
 Licence
 -------
@@ -94,14 +94,17 @@ Compile Blackvoxel from source
 
 Here are informations for compiling and running Blackvoxel from source.
 
-Don't forget to report any difficulty and errors in the [forum](http://forum.blackvoxel.com/) in the troubleshooting section.
+For version 1.\*: Don't forget to report any difficulty and errors in the [forum](http://forum.blackvoxel.com/) in the troubleshooting section.
 
 If you've made a port of Blackvoxel or compiled it for an unlisted (or
 not yet supported) platform, we would be happy to get feedback to
 improve this tutorial.
+*Warning with which version you are using: this fork is implementing some tools that the original repo doesn't.*
 
 Linux
 -----
+
+###### **/!\ This will compile version 1.\*:**
 
 Compiling and running blackvoxel with most Linux distributions is very
 simple.
@@ -120,11 +123,6 @@ CDT](https://www.eclipse.org/cdt/).
     sudo apt-get install build-essential libglew-dev libsdl1.2-dev
     tar -xjvf blackvoxel_source*
     cd blackvoxel_source*
-    ccmake .
-```
-4. Then configure Blackvoxel
-5. Then type
-```
     make
 ```
 
@@ -145,11 +143,6 @@ Once build succeded, you can launch Blackvoxel with the following command:
     sudo apt-get install build-essential libglew-dev libsdl1.2-devexit
     tar -xjvf blackvoxel_source*
     cd blackvoxel_source*
-    ccmake .
-```
-4. Then configure
-5. Then type
-```
     make
 ```
 
@@ -271,11 +264,11 @@ Anyway, you need to have hardware 3D OpenGL support to run Blackvoxel.
 Windows
 -------
 
-Version more than 1.38:
+Version 3.\*:
 You must use CMake to compile BlackVoxel.
 Unfortunately, I don't know how to do with Windows.
 
-Version less than 1.39:
+Version 2.\* or less:
 Infortunately, building Blackvoxel in Windows isn't as simple as in
 Linux because lacking of an equivalent software package management
 system.
