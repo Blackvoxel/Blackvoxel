@@ -22,6 +22,7 @@
 #include "SDL/SDL.h"
 
 #  include "ZRender_Basic.h"
+#  include "ZTool_Constructor.h"
 
 #ifndef Z_ZHIGHPERFTIMER_H
 #  include "ZHighPerfTimer.h"
@@ -524,12 +525,8 @@ void ZRender_Basic::Render()
         if (BvProp_DisplayVoxelSelector)
         {
           ZActor * Actor;
+
           Actor = GameEnv->PhysicEngine->GetSelectedActor();
-          
-          UShort Voxel;
-          ZVoxelType * VoxelType;
-          Voxel = GameEnv->World->GetVoxel(Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z);
-          VoxelType = GameEnv->VoxelTypeManager.GetVoxelType(Voxel);
 
           UShort VoxelToolType = Actor->Inventory->GetActualToolSlot()->VoxelType;
 
@@ -537,6 +534,16 @@ void ZRender_Basic::Render()
           if (VoxelTool != NULL)
           {
             ZTool_Constructor *VoxelToolConstructor = dynamic_cast<ZTool_Constructor*>(VoxelTool);
+
+            ZVoxelType * VoxelType;
+            ZMemSize OtherInfos=0;
+            Long x,y,z;
+            UShort VoxelExt;
+            x = PointedVoxel->PointedVoxel.x;
+            y = PointedVoxel->PointedVoxel.y;
+            z = PointedVoxel->PointedVoxel.z;
+            VoxelExt = GameEnv->World->GetVoxelExt( x, y, z, OtherInfos );
+            VoxelType = GameEnv->VoxelTypeManager.GetVoxelType(VoxelExt);
 
             if (VoxelToolConstructor->Compatible(VoxelType->MiningType))
               Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
