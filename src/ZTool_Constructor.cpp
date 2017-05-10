@@ -140,6 +140,7 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
 
                    // So do it...
                    Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
+                 }
                }
                /*
                UShort VoxelType;
