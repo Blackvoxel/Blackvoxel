@@ -34,8 +34,6 @@
 #  include "ZString.h"
 #endif
 
-#include <unistd.h>
-
 ULong * ZLightSpeedRandom::Pool = 0;
 ULong ZLightSpeedRandom::PoolLen = 0;
 
@@ -47,10 +45,7 @@ ZLightSpeedRandom::ZLightSpeedRandom()
     ZString FileName;
 
     Pool = new ULong[ZLIGHTSPEEDRANDOM_POOLLEN];
-    if (access(COMPILEOPTION_DATAFILESPATH, F_OK) == 0)
-        FileName = COMPILEOPTION_DATAFILESPATH;
-    else
-        FileName = ".";
+    FileName.SetToDataFilesPath();
     FileName.AddToPath("randomnum.dat");
     fh = fopen(FileName.String,"rb"); if (!fh) { printf("Error loading random file\n"); throw;}
     if (fh)

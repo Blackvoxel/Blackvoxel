@@ -36,6 +36,8 @@
 #  include "ZNumberFormat.h"
 #endif
 
+#include <unistd.h>
+
 #define ZSTRING_CONVERSIONSIZE 128
 #define ZSTRING_MINIMUMSTRINGSIZE 256
 
@@ -271,6 +273,7 @@ static inline char * GetPathSeparator()
 
     virtual ~ZString();
 
+    void SetToDataFilesPath();
 };
 
 
