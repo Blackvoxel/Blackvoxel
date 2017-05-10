@@ -265,13 +265,6 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
         Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
         MiningInProgress = true;
       }
-      else
-      {
-        GameEnv->GameWindow_Advertising->Advertise("TOO HARD", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
-        #if COMPILEOPTION_FNX_SOUNDS_1 == 1
-        if (SoundHandle != 0) { GameEnv->Sound->Stop_PlaySound(SoundHandle); SoundHandle = 0; }
-        #endif
-      }
     }
 
     if (ToolCompatibleTypes[VoxelType->MiningType])

@@ -67,7 +67,6 @@
 #  include "ZLoadingScreen.h"
 #endif
 
-#include <unistd.h>
 static const char *basePath = (access(COMPILEOPTION_DATAFILESPATH, F_OK) == 0) ? COMPILEOPTION_DATAFILESPATH : ".";
 
 bool ZGame::Init_UserDataStorage(ZLog * InitLog)

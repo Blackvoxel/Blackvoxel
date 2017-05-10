@@ -1342,4 +1342,3 @@ void ZRender_Basic::ComputeAndSetAspectRatio(double VerticalFOV, double PixelAsp
   glFrustum(Frustum_H, -Frustum_H, -Frustum_V, Frustum_V, FocusDistance, 1000000.0); // Official Way
 
 }
-
