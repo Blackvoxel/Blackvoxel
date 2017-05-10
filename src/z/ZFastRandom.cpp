@@ -45,7 +45,7 @@ ZLightSpeedRandom::ZLightSpeedRandom()
     ZString FileName;
 
     Pool = new ULong[ZLIGHTSPEEDRANDOM_POOLLEN];
-    FileName = COMPILEOPTION_DATAFILESPATH;
+    FileName.SetToDataFilesPath();
     FileName.AddToPath("randomnum.dat");
     fh = fopen(FileName.String,"rb"); if (!fh) { printf("Error loading random file\n"); throw;}
     if (fh)
