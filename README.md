@@ -200,7 +200,7 @@ Anyway, you need to have hardware 3D OpenGL support to run Blackvoxel.
 1. Open a terminal type: "term" in ubuntu lancher or press 'ctrl-alt-t'
 2. Enter the following commands:
 ```
-git clone https://github.com/rajdakin/Blackvoxel.git
+git clone https://github.com/Blackvoxel/Blackvoxel.git
 cd Blackvoxel
 sudo apt-get install build-essential libglew-dev libsdl1.2-dev cmake
 cmake .
@@ -222,7 +222,7 @@ cd ~/Blackvoxel && ./blackvoxel
 -   Click on the "terminal" (not the "root terminal") icon.
 2. Enter the following commands:
 ```
-git clone https://github.com/rajdakin/Blackvoxel.git
+git clone https://github.com/Blackvoxel/Blackvoxel.git
 cd Blackvoxel
 sudo apt-get install build-essential libglew-dev libsdl1.2-dev cmake
 cmake .
@@ -241,7 +241,7 @@ It might be the same as the other distributions:
 1. Open a terminal whichever way
 2. Enter the following commands:
 ```
-git clone https://github.com/rajdakin/Blackvoxel.git
+git clone https://github.com/Blackvoxel/Blackvoxel.git
 cd Blackvoxel
 sudo apt-get install build-essential libglew-dev libsdl1.2-dev cmake
 cmake .
