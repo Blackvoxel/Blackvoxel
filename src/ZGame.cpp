@@ -67,8 +67,6 @@
 #  include "ZLoadingScreen.h"
 #endif
 
-static const char *basePath = (access(COMPILEOPTION_DATAFILESPATH, F_OK) == 0) ? COMPILEOPTION_DATAFILESPATH : ".";
-
 bool ZGame::Init_UserDataStorage(ZLog * InitLog)
 {
   ZString ErrorMsg;
@@ -90,7 +88,7 @@ bool ZGame::Init_UserDataStorage(ZLog * InitLog)
 
   // Directory for game files
 
-  Path_GameFiles = basePath;
+  Path_GameFiles.SetToDataFilesPath();
 
   // Subdirectories
 

@@ -58,7 +58,7 @@ void ZLoadingScreen::Display(int Width, int Height)
 
   // Get filename with complete path.
 
-  FileSpec = COMPILEOPTION_DATAFILESPATH; FileSpec.AddToPath("gui/Loading.bmp");
+  FileSpec.SetToDataFilesPath(); FileSpec.AddToPath("gui/Loading.bmp");
 
   // Load the texture bitmap from file.
 
@@ -128,5 +128,3 @@ void ZLoadingScreen::Display(int Width, int Height)
    glDeleteTextures(1,&TextureRef);
 
 }
-
-

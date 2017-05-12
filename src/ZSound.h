@@ -207,10 +207,7 @@ class ZSound
 
         FileName.Clear();
         FileName << i << ".wav";
-        if (access(COMPILEOPTION_DATAFILESPATH, F_OK) == 0)
-            FileSpec = COMPILEOPTION_DATAFILESPATH;
-	    else
-	        FileSpec = ".";
+        FileSpec.SetToDataFilesPath();
         FileSpec.AddToPath("Sound").AddToPath(FileName);
         // sprintf(FileName, "Sound/%lu.wav",i);
 
