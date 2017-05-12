@@ -43,11 +43,6 @@
 #  include "ZToolsPointer.h"
 #endif
 
-
-
-
-
-
 ZVoxelType::ZVoxelType(UShort VoxelType)
 {
   VoxelTypeManager = 0;
@@ -127,7 +122,8 @@ Bool ZVoxelType::LoadTexture()
   if (VoxelType<32768)
   {
     FileName << "voxeltexture_" << (ULong)VoxelType << ".bmp";
-    FileSpec.AddToPath(COMPILEOPTION_DATAFILESPATH).AddToPath("VoxelTypes").AddToPath(FileName);
+    FileSpec.SetToDataFilesPath();
+    FileSpec.AddToPath("VoxelTypes").AddToPath(FileName);
   }
   else
   {
@@ -147,9 +143,8 @@ Bool ZVoxelType::LoadTexture()
 
   #if COMPILEOPTION_LOWRESTEXTURING>0
   if (Image->Width > 128) Image->ReduceSize();
-  if (COMPILEOPTION_LOWRESTEXTURING>2) while(Image->Width > 128)Image->ReduceSize();
-  if (COMPILEOPTION_LOWRESTEXTURING>3) while(Image->Width > 64) Image->ReduceSize();
-
+  if (COMPILEOPTION_LOWRESTEXTURING>=2) while(Image->Width > 128)Image->ReduceSize();
+  if (COMPILEOPTION_LOWRESTEXTURING>=3) while(Image->Width > 64) Image->ReduceSize();
   #endif
   MainTexture = Image;
   if (Image->BytesPerPixel !=4)
@@ -171,7 +166,8 @@ Bool ZVoxelType::LoadVoxelInformations()
   if (VoxelType<32768)
   {
     FileName << "voxelinfo_" << (ULong)VoxelType << ".txt";
-    FileSpec.AddToPath(COMPILEOPTION_DATAFILESPATH).AddToPath("VoxelTypes").AddToPath("voxelinfo").AddToPath(FileName);
+    FileSpec.SetToDataFilesPath();
+    FileSpec.AddToPath("VoxelTypes").AddToPath("voxelinfo").AddToPath(FileName);
 
   }
   else
@@ -272,6 +268,3 @@ bool ZVoxelType::Interface_SetPointingLocation(ZVoxelLocation * VLoc, ZToolsPoin
 
   return(true);
 }
-
-
-

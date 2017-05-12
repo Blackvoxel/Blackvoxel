@@ -27,7 +27,6 @@
 #define scvprintf vfprintf
 #endif
 
-
 void PrintVersionInfos();
 
 #if defined(_MSC_VER) && defined(_DEBUG)
@@ -349,4 +348,3 @@ int main(int argc, char* argv[])
 #endif
 	return retval;
 }
-

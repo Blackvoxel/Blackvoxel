@@ -1,6 +1,4 @@
-========================================================================
                        BLACKVOXEL Project
-========================================================================
 
 Creators (main team) :
 
@@ -13,4 +11,4 @@ Jim Buckeyne (d3x0r)   d3ck0r@gmail.com         Useful contributions, Github for
 Axel Viala (darnuria)  axel.viala@darnuria.eu   Readme.md file
 Bastien Guerry         bzg@gnu.org              English corrections
 Daniel Tartavel        contact@librepc.com      Mageia packages
-
+Loïc Chevalier         rajdakin@gmail.com       Github fork

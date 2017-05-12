@@ -740,10 +740,18 @@ void ZGame_Events::Process_StillEvents()
     {
       if (!SDL_WM_GrabInput(SDL_GRAB_QUERY))
       {
+#ifdef GOTOZERO_ZERO
+        SDL_WarpMouse(0,0);
+        GameEnv->Game_Events->SetEnableMouseEvents();
+#endif
         SDL_WM_GrabInput(SDL_GRAB_ON); SDL_ShowCursor(SDL_DISABLE);
       }
       else
       {
+#ifdef GOTOZERO_ZERO
+        GameEnv->Game_Events->SetDisableMouseEvents();
+        SDL_WarpMouse((Uint16)GameEnv->ScreenResolution.x / 2.0f,(Uint16)GameEnv->ScreenResolution.y / 2.0f);
+#endif
         SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE);
       }
       Keyboard_Matrix[SDLK_F2] = 0;

@@ -61,7 +61,6 @@
 #  include "z/ZStream_File.h"
 #endif
 
-
 extern ZGame * Ge;
 
 const char * ZWorldGenesis::ZoneMap_New[]=
@@ -2355,7 +2354,8 @@ bool ZWorldGenesis::LoadTemplateImages()
   ZBitmapImage Template_3_3;
   ZBitmapImage Template_4;
 
-  MiscDirectory.AddToPath(COMPILEOPTION_DATAFILESPATH).AddToPath("Misc");
+  MiscDirectory.SetToDataFilesPath();
+  MiscDirectory.AddToPath("Misc");
 
   FileName = MiscDirectory.Path("tmplt_1.dat");
   if (!Template_1.LoadBMP(FileName.String)) return false;

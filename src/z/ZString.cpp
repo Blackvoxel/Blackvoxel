@@ -625,7 +625,7 @@ ZString & ZString::AddToPath(char const * Str)
   Separator = '/';
 #endif
 
-  TotalLen = Len + GetOldCStringLen(Str);;
+  TotalLen = Len + GetOldCStringLen(Str);
   if (Len>0) TotalLen ++;
 
   if (MemLen<=TotalLen) RaiseMem_GetOldContent(TotalLen);
@@ -1265,3 +1265,10 @@ ZString & ZString::SearchReplace(char Searched, char Replacement)
   return(*this);
 }
 
+
+void ZString::SetToDataFilesPath()
+{
+  Clear();
+  if (access(COMPILEOPTION_DATAFILESPATH, F_OK) == 0) AddToPath(COMPILEOPTION_DATAFILESPATH);
+  else AddToPath(".");
+}

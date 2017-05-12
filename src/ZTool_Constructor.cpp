@@ -118,11 +118,16 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
                ZVoxelLocation Loc;
                ZString Reason;
 
+               MiningInProgress = true;
+               GameEnv->GameProgressBar->SetCompletion(0.0f);
+               GameEnv->GameProgressBar->Show();
                if (Actor->PointedVoxel.Collided)
                {
                  if ( !GameEnv->World->GetVoxelLocation(&Loc, Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z )) break;
                  Voxel = Loc.Sector->Data[Loc.Offset];
                  VoxelType = GameEnv->VoxelTypeManager.GetVoxelType(Voxel);
+                 MinedVoxel = Actor->PointedVoxel.PointedVoxel;
+                 Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
                  if (ToolCompatibleTypes[VoxelType->MiningType])
                  {
                    // Does the voxel accept to be destroyed.
@@ -135,19 +140,7 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
 
                    // So do it...
                    Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
-                   MiningInProgress = true;
-                   MinedVoxel = Actor->PointedVoxel.PointedVoxel;
-                   GameEnv->GameProgressBar->SetCompletion(0.0f);
-                   GameEnv->GameProgressBar->Show();
-                   #if COMPILEOPTION_FNX_SOUNDS_1 == 1
-                   if (SoundHandle == 0) SoundHandle = GameEnv->Sound->Start_PlaySound(5,true,true,1.0,0);
-                   #endif
                  }
-                 else
-                 {
-                   GameEnv->GameWindow_Advertising->Advertise("TOO HARD", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
-                 }
-
                }
                /*
                UShort VoxelType;
@@ -238,8 +231,12 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
 
     if (!Actor->PointedVoxel.Collided)
     {
-      Mining_MaterialResistanceCounter = 1000;
+      //Mining_MaterialResistanceCounter = 1000;
+      Mining_MaterialResistanceCounter = GameEnv->VoxelTypeManager.GetVoxelType(GameEnv->World->GetVoxel(MinedVoxel.x, MinedVoxel.y, MinedVoxel.z))->MiningHardness;
       GameEnv->GameProgressBar->SetCompletion(0.0f);
+      #if COMPILEOPTION_FNX_SOUNDS_1 == 1
+      if (SoundHandle != 0) { GameEnv->Sound->Stop_PlaySound(SoundHandle); SoundHandle = 0; }
+      #endif
       return(true);
     }
 
@@ -253,6 +250,7 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
 
     if (Actor->PointedVoxel.PointedVoxel != MinedVoxel)
     {
+      MinedVoxel = Actor->PointedVoxel.PointedVoxel;
       // Does this tool can break this material ?
       if (ToolCompatibleTypes[VoxelType->MiningType])
       {
@@ -266,9 +264,14 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
         // So, do it...
         Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
         MiningInProgress = true;
-        MinedVoxel = Actor->PointedVoxel.PointedVoxel;
-
       }
+    }
+
+    if (ToolCompatibleTypes[VoxelType->MiningType])
+    {
+      #if COMPILEOPTION_FNX_SOUNDS_1 == 1
+      if (SoundHandle == 0) SoundHandle = GameEnv->Sound->Start_PlaySound(5,true,true,1.0,0);
+      #endif
     }
 
     // Material resistance is slowly going down
@@ -290,6 +293,22 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
       GameEnv->Sound->PlaySound(6);
       if (SoundHandle != 0) { GameEnv->Sound->Stop_PlaySound(SoundHandle); SoundHandle = 0; }
       #endif
+      {
+        if (ToolCompatibleTypes[VoxelType->MiningType])
+        {
+          Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
+          MiningInProgress = true;
+          MinedVoxel = Actor->PointedVoxel.PointedVoxel;
+          GameEnv->GameProgressBar->SetCompletion(0.0f);
+          #if COMPILEOPTION_FNX_SOUNDS_1 == 1
+          if (SoundHandle == 0) SoundHandle = GameEnv->Sound->Start_PlaySound(5,true,true,1.0,0);
+          #endif
+        }
+        else
+        {
+          GameEnv->GameWindow_Advertising->Advertise("TOO HARD", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
+        }
+      }
       // Sector->Flag_HighPriorityRefresh
     }
   }

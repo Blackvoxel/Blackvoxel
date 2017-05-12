@@ -158,6 +158,9 @@ void ZGameWindow_Storage::Hide()
 {
   GameEnv->GuiManager.RemoveFrame(MainWindow);
   SDL_ShowCursor(SDL_DISABLE);
+#ifdef GOTOZERO_ZERO
+  SDL_WarpMouse(0,0);
+#endif
   SDL_WM_GrabInput(SDL_GRAB_ON);
   GameEnv->Game_Events->SetEnableMouseEvents();
   Flag_Shown = false;

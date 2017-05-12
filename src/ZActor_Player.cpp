@@ -346,6 +346,7 @@ void ZActor_Player::Action_MouseButtonClick(ULong Button)
   {
     Tool->Tool_MouseButtonClick(Button);
   }
+  else if (Button == 0) GameEnv->GameWindow_Advertising->Advertise("YOU SHOULD PROBABLY TAKE A TOOL", ZGameWindow_Advertising::VISIBILITY_MEDLOW, 0, 1000, 200);
 
   /*
   MouseButtonMatrix[Button] = 1;

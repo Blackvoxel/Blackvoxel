@@ -22,6 +22,7 @@
 #include "SDL/SDL.h"
 
 #  include "ZRender_Basic.h"
+#  include "ZTool_Constructor.h"
 
 #ifndef Z_ZHIGHPERFTIMER_H
 #  include "ZHighPerfTimer.h"
@@ -521,7 +522,36 @@ void ZRender_Basic::Render()
       if (PointedVoxel->CollisionDistance < In.MaxDetectionDistance)
       {
         PointedVoxel->Collided = true;
-        if (BvProp_DisplayVoxelSelector) Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
+        if (BvProp_DisplayVoxelSelector)
+        {
+          ZActor * Actor;
+
+          Actor = GameEnv->PhysicEngine->GetSelectedActor();
+
+          UShort VoxelToolType = Actor->Inventory->GetActualToolSlot()->VoxelType;
+
+          ZTool *VoxelTool = GameEnv->PhysicEngine->GetToolManager()->GetTool(VoxelToolType);
+          if (VoxelTool != NULL)
+          {
+            ZTool_Constructor *VoxelToolConstructor = dynamic_cast<ZTool_Constructor*>(VoxelTool);
+
+            ZVoxelType * VoxelType;
+            ZMemSize OtherInfos=0;
+            Long x,y,z;
+            UShort VoxelExt;
+            x = PointedVoxel->PointedVoxel.x;
+            y = PointedVoxel->PointedVoxel.y;
+            z = PointedVoxel->PointedVoxel.z;
+            VoxelExt = GameEnv->World->GetVoxelExt( x, y, z, OtherInfos );
+            VoxelType = GameEnv->VoxelTypeManager.GetVoxelType(VoxelExt);
+
+            if (VoxelToolConstructor->Compatible(VoxelType->MiningType))
+              Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,1.0,1.0 );
+            else
+              Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0,0.0,0.0 );
+          }
+          else Render_VoxelSelector( &PointedVoxel->PointedVoxel, 1.0, 1.0, 0.0);
+        }
       }
       else PointedVoxel->Collided = false;
     }
@@ -1312,4 +1342,3 @@ void ZRender_Basic::ComputeAndSetAspectRatio(double VerticalFOV, double PixelAsp
   glFrustum(Frustum_H, -Frustum_H, -Frustum_V, Frustum_V, FocusDistance, 1000000.0); // Official Way
 
 }
-
