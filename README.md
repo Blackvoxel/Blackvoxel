@@ -42,7 +42,7 @@ With time, the bunch of code slowly became a true game project.
 
 The game is written in C/C++ programming langage using OpenGL and running on Linux and Windows operating system.
 
-~~MacOs version may be planed in the future if users loves it...~~ *(It may be implemented in the original repo first)*
+MacOs version may be planed in the future if users loves it...
 
 Licence
 -------
@@ -102,6 +102,7 @@ improve this tutorial.
 
 Linux
 -----
+
 Compiling and running blackvoxel with most Linux distributions is very
 simple.
 
@@ -181,32 +182,6 @@ the following indications:
     package manager in your Linux Distribution.
 
 We hope to add distributions to this list with time.
-
-### Non Linux various Unix...
-
-No attempt to compile Blackvoxel on other unixes has been done at this
-time. In theory, it should work with minimal adaptations.
-
-Anyway, you need to have hardware 3D OpenGL support to run Blackvoxel.
-
-### Other Linux distribution
-
-It might be the same as the other distributions:
-1. Open a terminal whichever way
-2. Enter the following commands:
-```
-git clone https://github.com/Blackvoxel/Blackvoxel.git
-cd Blackvoxel
-sudo apt-get install build-essential libglew-dev libsdl1.2-dev cmake
-cmake .
-```
-3. Wait until it's done
-4. Type ```make all```
-
-Once build succeded, you can launch Blackvoxel with the following command:
-```
-cd ~/Blackvoxel && ./blackvoxel
-```
 
 ### Non Linux various Unix...
 
