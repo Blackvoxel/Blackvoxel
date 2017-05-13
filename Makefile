@@ -6,16 +6,24 @@ endif
 ifndef bindir
   bindir=""
 endif
+ifndef savefoldername
+  savefoldername="blackvoxel"
+endif
 
 # Base options
 
 CC=g++
 LD=g++
 PROGNAME=blackvoxel
-CFLAGS=-I "src/sc_Squirrel3/include"  -DCOMPILEOPTION_DEMO=0 -DDEVELOPPEMENT_ON=0 -DCOMPILEOPTION_SPECIAL=0 -DCOMPILEOPTION_DATAFILESPATH="\"$(blackvoxeldatadir)\""
+CFLAGS=-I "src/sc_Squirrel3/include"  -DCOMPILEOPTION_DEMO=0 -DDEVELOPPEMENT_ON=0 -DCOMPILEOPTION_SPECIAL=0 -DCOMPILEOPTION_DATAFILESPATH="\"$(blackvoxeldatadir)\"" -DCOMPILEOPTION_SAVEFOLDERNAME="\"$(savefoldername)\""
 SRC= $(wildcard src/*.cpp) $(wildcard src/z/*.cpp)
 OBJ= $(SRC:src/%.cpp=obj/%.o)
 
+ifeq ($(notusehomedirstorage),1)
+	CFLAGS+= -DCOMPILEOPTION_USEHOMEDIRSTORAGE=0
+else
+	CFLAGS+= -DCOMPILEOPTION_USEHOMEDIRSTORAGE=1
+endif
 # Operating system and architecture detection
 
 ifeq ($(OS),Windows_NT)
@@ -49,8 +57,8 @@ endif
 
 obj/%.o: src/%.cpp
 	@mkdir -p obj/z
-	$(CC) -o $@ -c $< $(CFLAGS) 
-	
+	$(CC) -o $@ -c $< $(CFLAGS)
+
 all: $(PROGNAME)
 
 $(PROGNAME): $(OBJ) squirrel
@@ -58,7 +66,7 @@ $(PROGNAME): $(OBJ) squirrel
 
 
 
-squirrel: 
+squirrel:
 	cd src/sc_Squirrel3 ; make sq$(CPU_BITS)
 
 clean:
@@ -132,5 +140,5 @@ debian_binary_package_install:
 	chmod -R u=rwX,g=rX,o=rX $(DESTDIR)/usr/share/pixmaps/blackvoxel-32x32.xpm
 	chmod -R u=rwX,g=rX,o=rX $(DESTDIR)/usr/share/icons/hicolor/128x128/apps/blackvoxel.png
 	chmod -R u=rwX,g=rX,o=rX $(DESTDIR)/usr/share/applications/blackvoxel.desktop
-	
+
 .PHONY: clean mrproper squirrel install debian_binary_package_install
