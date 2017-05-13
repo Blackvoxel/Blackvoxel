@@ -94,12 +94,11 @@ Compile Blackvoxel from source
 
 Here are informations for compiling and running Blackvoxel from source.
 
-For version 1.\*: Don't forget to report any difficulty and errors in the [forum](http://forum.blackvoxel.com/) in the troubleshooting section.
+Don't forget to report any difficulty and errors in the [forum](http://forum.blackvoxel.com/) in the troubleshooting section.
 
 If you've made a port of Blackvoxel or compiled it for an unlisted (or
 not yet supported) platform, we would be happy to get feedback to
 improve this tutorial.
-*Warning with which version you are using: this fork is implementing some tools that the original repo doesn't.*
 
 Linux
 -----
