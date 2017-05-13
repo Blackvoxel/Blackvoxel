@@ -131,25 +131,12 @@
 // Linux
 
 #ifdef __linux__
-//	#define COMPILEOPTION_SAVEFOLDERNAME "Blackvoxel"
-//	#define COMPILEOPTION_USEHOMEDIRSTORAGE 1
 	#define COMPILEOPTION_WINXPTIMECOMPUTING 0
-
-//	#if DEVELOPPEMENT_ON == 1
-//		#define COMPILEOPTION_DATAFILESPATH ""
-//	#else
-//		#ifndef COMPILEOPTION_DATAFILESPATH
-//			#define COMPILEOPTION_DATAFILESPATH "/usr/share/blackvoxel"
-//		#endif
-//	#endif
 
 // Windows Win32
 
 #elif _WIN32
 
-//	#define COMPILEOPTION_SAVEFOLDERNAME "Blackvoxel"
-//	#define COMPILEOPTION_USEHOMEDIRSTORAGE 1
-//	#define COMPILEOPTION_DATAFILESPATH ""
 	#define COMPILEOPTION_WINXPTIMECOMPUTING 1
 
 #endif
