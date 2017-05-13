@@ -120,6 +120,13 @@ CDT](https://www.eclipse.org/cdt/).
     sudo apt-get install build-essential libglew-dev libsdl1.2-dev
     tar -xjvf blackvoxel_source*
     cd blackvoxel_source*
+```
+If you have cmake, use:
+```
+    cmake .
+```
+In all case, do at the end:
+```
     make
 ```
 
@@ -140,6 +147,13 @@ Once build succeded, you can launch Blackvoxel with the following command:
     sudo apt-get install build-essential libglew-dev libsdl1.2-devexit
     tar -xjvf blackvoxel_source*
     cd blackvoxel_source*
+```
+If you have cmake, use:
+```
+        cmake .
+```
+In all case, do at the end:
+```
     make
 ```
 
@@ -150,24 +164,51 @@ command:
 
 ### openSUSE
 
+```
     sudo zypper in gcc-c++ glew-devel libSDL-devel
     tar -xf blackvoxel_source*
+```
+If you have cmake, use:
+```
+        cmake .
+```
+In all case, do at the end:
+```
     make
     ./blackvoxel
+```
 
 ### PCLinuxOS
 
+```
     sudo apt-get install gcc-c++ libglew-devel libSDL-devel
     tar -xf blackvoxel_source*
+```
+If you have cmake, use:
+```
+        cmake .
+```
+In all case, do at the end:
+```
     make
     ./blackvoxel
+```
 
 ### Manjaro
 
+```
     sudo pacman -S base-devel glew1.10 sdl
     tar xf blackvoxel_source*
+```
+If you have cmake, use:
+```
+        cmake .
+```
+In all case, do at the end:
+```
     make
     ./blackvoxel
+```
 
 ### Other Linux distributions
 
