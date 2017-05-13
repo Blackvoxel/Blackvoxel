@@ -103,9 +103,6 @@ improve this tutorial.
 
 Linux
 -----
-
-###### **/!\ This will compile version 1.\*:**
-
 Compiling and running blackvoxel with most Linux distributions is very
 simple.
 
@@ -192,48 +189,6 @@ No attempt to compile Blackvoxel on other unixes has been done at this
 time. In theory, it should work with minimal adaptations.
 
 Anyway, you need to have hardware 3D OpenGL support to run Blackvoxel.
-
-###### This will compile the last version:
-
-### Ubuntu
-
-1. Open a terminal type: "term" in ubuntu lancher or press 'ctrl-alt-t'
-2. Enter the following commands:
-```
-git clone https://github.com/Blackvoxel/Blackvoxel.git
-cd Blackvoxel
-sudo apt-get install build-essential libglew-dev libsdl1.2-dev cmake
-cmake .
-```
-3. Wait until it's done
-4. Type ```make all```
-
-Once build succeded, you can launch Blackvoxel with the following command:
-```
-cd ~/Blackvoxel && ./blackvoxel
-```
-
-### Debian
-
-1. Open a terminal:
--   Open the activity menu
--   Type "terminal" on the "type to search" field at the right of the
-    screen.
--   Click on the "terminal" (not the "root terminal") icon.
-2. Enter the following commands:
-```
-git clone https://github.com/Blackvoxel/Blackvoxel.git
-cd Blackvoxel
-sudo apt-get install build-essential libglew-dev libsdl1.2-dev cmake
-cmake .
-```
-3. Wait until it's done
-4. Type ```make all```
-
-Once build succeded, you can launch Blackvoxel with the following command:
-```
-cd ~/Blackvoxel && ./blackvoxel
-```
 
 ### Other Linux distribution
 
