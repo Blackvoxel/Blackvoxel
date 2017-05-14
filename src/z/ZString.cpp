@@ -1269,6 +1269,27 @@ ZString & ZString::SearchReplace(char Searched, char Replacement)
 void ZString::SetToDataFilesPath()
 {
   Clear();
-  if (access(COMPILEOPTION_DATAFILESPATH, F_OK) == 0) AddToPath(COMPILEOPTION_DATAFILESPATH);
+  if (access(COMPILEOPTION_DATAFILESPATH, F_OK) == 0)
+  {
+    ZString temp = COMPILEOPTION_DATAFILESPATH;
+    temp.AddToPath("version.txt");
+    if (temp.IsReadable())
+    {
+      FILE * file;
+
+      file = fopen(temp.String,"rb"); if (!file) { printf("Error loading version file\n"); AddToPath("."); return;}
+      if (file)
+      {
+        int versionNum;
+
+        if (versionNum!=fread(Pool,4,versionNum,file)) { printf("Error loading version file\n"); AddToPath("."); return; }
+        if (versionNum != COMPILEOPTION_VERSIONNUM) { AddToPath("."); return; }
+        fclose(file);
+      }
+      AddToPath(COMPILEOPTION_DATAFILESPATH);
+    }
+    else
+      AddToPath(".");
+  }
   else AddToPath(".");
 }

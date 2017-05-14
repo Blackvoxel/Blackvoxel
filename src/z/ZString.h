@@ -37,6 +37,7 @@
 #endif
 
 #include <unistd.h>
+#include <stdio.h>
 
 #define ZSTRING_CONVERSIONSIZE 128
 #define ZSTRING_MINIMUMSTRINGSIZE 256
@@ -274,6 +275,8 @@ static inline char * GetPathSeparator()
     virtual ~ZString();
 
     void SetToDataFilesPath();
+    inline bool DoesExists() { return access(String, F_OK) == 0; }
+    inline bool IsReadable() { return DoesExists() && (access(String, R_OK) == 0); }
 };
 
 
