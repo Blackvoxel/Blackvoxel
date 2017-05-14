@@ -120,6 +120,13 @@ CDT](https://www.eclipse.org/cdt/).
     sudo apt-get install build-essential libglew-dev libsdl1.2-dev
     tar -xjvf blackvoxel_source*
     cd blackvoxel_source*
+```
+If you have cmake, use:
+```
+    cmake .
+```
+In all case, do at the end:
+```
     make
 ```
 
@@ -140,6 +147,13 @@ Once build succeded, you can launch Blackvoxel with the following command:
     sudo apt-get install build-essential libglew-dev libsdl1.2-devexit
     tar -xjvf blackvoxel_source*
     cd blackvoxel_source*
+```
+If you have cmake, use:
+```
+        cmake .
+```
+In all case, do at the end:
+```
     make
 ```
 
@@ -150,24 +164,51 @@ command:
 
 ### openSUSE
 
+```
     sudo zypper in gcc-c++ glew-devel libSDL-devel
     tar -xf blackvoxel_source*
+```
+If you have cmake, use:
+```
+        cmake .
+```
+In all case, do at the end:
+```
     make
     ./blackvoxel
+```
 
 ### PCLinuxOS
 
+```
     sudo apt-get install gcc-c++ libglew-devel libSDL-devel
     tar -xf blackvoxel_source*
+```
+If you have cmake, use:
+```
+        cmake .
+```
+In all case, do at the end:
+```
     make
     ./blackvoxel
+```
 
 ### Manjaro
 
+```
     sudo pacman -S base-devel glew1.10 sdl
     tar xf blackvoxel_source*
+```
+If you have cmake, use:
+```
+        cmake .
+```
+In all case, do at the end:
+```
     make
     ./blackvoxel
+```
 
 ### Other Linux distributions
 
@@ -193,6 +234,11 @@ Anyway, you need to have hardware 3D OpenGL support to run Blackvoxel.
 Windows
 -------
 
+Version 3.\*:
+You must use CMake to compile BlackVoxel.
+Unfortunately, I don't know how to do with Windows.
+
+Version 2.\* or less:
 Infortunately, building Blackvoxel in Windows isn't as simple as in
 Linux because lacking of an equivalent software package management
 system.
@@ -222,6 +268,3 @@ any Mac).
 Some programmers told us it should work with minimal effort.
 We'll post any solution as soon as someone would publish it.
 Stay tuned with the forum.
-
-
-
