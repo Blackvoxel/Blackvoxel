@@ -45,5 +45,6 @@ Settings_Hardware.dat
 # CMake output files
 CMakeFiles/
 CMakeCache*
-*.cmake
+*.cmake*
 Makefile
+install_manifest.txt
