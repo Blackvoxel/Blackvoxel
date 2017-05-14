@@ -93,6 +93,7 @@ else
 	cp -r Sound      $(DESTDIR)$(blackvoxeldatadir)
 	cp -r VoxelTypes $(DESTDIR)$(blackvoxeldatadir)
 	cp randomnum.dat $(DESTDIR)$(blackvoxeldatadir)
+	cp version.txt   $(DESTDIR)$(blackvoxeldatadir)
 	cp Copyright.txt $(DESTDIR)$(blackvoxeldatadir)
 	cp Licence.txt   $(DESTDIR)$(blackvoxeldatadir)
 	cp Licence_3rdParty_libs.txt $(DESTDIR)$(blackvoxeldatadir)
@@ -128,6 +129,7 @@ debian_binary_package_install:
 	cp -r Sound      $(DESTDIR)/usr/share/blackvoxel/
 	cp -r VoxelTypes $(DESTDIR)/usr/share/blackvoxel/
 	cp randomnum.dat $(DESTDIR)/usr/share/blackvoxel/
+	cp version.txt   $(DESTDIR)/usr/share/blackvoxel/
 	chmod -R u=rwX,g=rX,o=rX $(DESTDIR)/usr/share/blackvoxel
 	mkdir -p $(DESTDIR)/usr/share/pixmaps/
 	mkdir -p $(DESTDIR)/usr/share/icons/hicolor/128x128/apps
