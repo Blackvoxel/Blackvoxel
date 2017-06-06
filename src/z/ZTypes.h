@@ -35,6 +35,8 @@
 #  define ZENV_OS_LINUX
 #elif _WIN32
 #  define ZENV_OS_WINDOWS
+#elif __APPLE__ && __MACH__
+#  define ZENV_OS_OSX
 #endif
 
 #define MulticharConst(a,b,c,d) (a + (b << 8) + (c<<16) + (d<<24))

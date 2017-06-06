@@ -222,6 +222,7 @@
       }
 */
       FlipY();
+      fclose(fh);
       return(true);
     }
 

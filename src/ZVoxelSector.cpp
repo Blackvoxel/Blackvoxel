@@ -342,6 +342,16 @@ Bool ZVoxelSector::CreateSectorPathSubstructure(ZString & SectorSaveBaseDirector
     sprintf( DirName, "%s/%lu/TL1_%ld_%ld_%ld/TL2_%ld_%ld_%ld/TL3_%ld_%ld_%ld", SectorSaveBaseDirectory.String, UniverseNum, Pos_x >> 12, Pos_y >> 12, Pos_z >> 12, Pos_x >> 8 , Pos_y >> 8,  Pos_z >> 8, Pos_x >> 4 , Pos_y >> 4,  Pos_z >> 4 );
     OutStream.Directory_Create(DirName);
 #endif
+#ifdef ZENV_OS_OSX
+    sprintf( DirName, "%s/%lu", SectorSaveBaseDirectory.String, (UNum)UniverseNum);
+    mkdir(DirName, S_IREAD | S_IWRITE | S_IEXEC | S_IRGRP | S_IWGRP | S_IXGRP);
+    sprintf( DirName, "%s/%lu/TL1_%ld_%ld_%ld", SectorSaveBaseDirectory.String, (UNum)UniverseNum, (UNum)(Pos_x >> 12), (UNum)(Pos_y >> 12), (UNum)(Pos_z >> 12) );
+    mkdir(DirName, S_IREAD | S_IWRITE | S_IEXEC | S_IRGRP | S_IWGRP | S_IXGRP);
+    sprintf( DirName, "%s/%lu/TL1_%ld_%ld_%ld/TL2_%ld_%ld_%ld", SectorSaveBaseDirectory.String, (UNum)UniverseNum, (UNum)(Pos_x >> 12), (UNum)(Pos_y >> 12), (UNum)(Pos_z >> 12), (UNum)(Pos_x >> 8) , (UNum)(Pos_y >> 8), (UNum)(Pos_z >> 8) );
+    mkdir(DirName, S_IREAD | S_IWRITE | S_IEXEC | S_IRGRP | S_IWGRP | S_IXGRP);
+    sprintf( DirName, "%s/%lu/TL1_%ld_%ld_%ld/TL2_%ld_%ld_%ld/TL3_%ld_%ld_%ld", SectorSaveBaseDirectory.String, (UNum)UniverseNum, (UNum)(Pos_x >> 12), (UNum)(Pos_y >> 12), (UNum)(Pos_z >> 12), (UNum)(Pos_x >> 8) , (UNum)(Pos_y >> 8), (UNum)(Pos_z >> 8), (UNum)(Pos_x >> 4) , (UNum)(Pos_y >> 4), (UNum)(Pos_z >> 4) );
+    mkdir(DirName, S_IREAD | S_IWRITE | S_IEXEC | S_IRGRP | S_IWGRP | S_IXGRP);
+#endif
     return(true);
 }
 

@@ -98,3 +98,43 @@ bool ZViewDoc::ViewDocPage(ULong Number, bool Online)
 }
 
 #endif
+
+#ifdef ZENV_OS_OSX
+
+#include <stdlib.h>
+#include <unistd.h>
+
+extern void SystemWithReturn(char * CommandLine);
+
+
+bool ZViewDoc::ViewDocPage(ULong Number, bool Online)
+{
+  ZString URL;
+  Online = true;
+  if (Number)
+  {
+    if (Online) URL.Clear() << "open http://www.blackvoxel.com/view.php?node=" << Number;
+    else        URL.Clear() << "open manual/page_" << Number << ".htm";
+
+   // Development mode local test server
+   #if DEVELOPPEMENT_ON == 1
+    ZString LocalServer;
+    if (LocalServer.LoadFromFile("LocalServer.txt"))
+    {
+      LocalServer.StripTrailling(0xa);
+      URL.Clear() << "open " << LocalServer << Number;
+    }
+   #endif
+
+  }
+  else // Main manual page
+  {
+    if (Online) URL.Clear() << "open http://www.blackvoxel.com/view.php?node=1251" << Number;
+    else        URL.Clear() << "open manual/index.htm";
+  }
+  SystemWithReturn(URL.String);
+
+  return(true);
+}
+
+#endif

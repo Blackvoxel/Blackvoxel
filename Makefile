@@ -8,7 +8,6 @@ ifndef bindir
 endif
 
 # Base options
-
 CC=g++
 LD=g++
 PROGNAME=blackvoxel
@@ -36,9 +35,8 @@ else
     CFLAGS+= -O3 -c -fmessage-length=0
     LDFLAGS=-s -L"src/sc_Squirrel3/lib" -lGLU -lSDL -lGLEW -lGL -lsquirrel -lsqstdlib
   else ifeq ($(KERNELNAME), Darwin)
-    # To be done...
     CFLAGS+= -O3 -c -fmessage-length=0
-    LDFLAGS=-s -L"src/sc_Squirrel3/lib" -lGLU -lSDL -lGLEW -lGL -lsquirrel -lsqstdlib
+    LDFLAGS=-s -L"src/sc_Squirrel3/lib" -L"/usr/local/Cellar/glew" -L"/usr/local/Cellar/sdl" -I"/usr/local/Cellar/glew" -I"/usr/local/Cellar/sdl" -framework Cocoa -framework OpenGL -lSDLmain -lSDL -lGLEW -lsquirrel -lsqstdlib
   else
     # Unknow kernel... trying default flags
     CFLAGS+= -O3 -c -fmessage-length=0

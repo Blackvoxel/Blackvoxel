@@ -23,6 +23,7 @@ class ZHardwareInfo
     // Platform specific processor detection
     void Detect_CPU_Linux();
     void Detect_CPU_Windows();
+    void Detect_CPU_OSX();
     static char const * String_Profile[];
     // Actions
 

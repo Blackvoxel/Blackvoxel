@@ -19,12 +19,16 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <time.h>
-    #include <GL/glew.h>
-// #include <GL/gl.h>
-    #include <GL/glext.h>
-   // #include <GL/glut.h>
-    #include "SDL/SDL.h"
     #include "z/ZTypes.h"
+#ifdef ZENV_OS_OSX
+#  include <OpenGL/gl.h>
+#else
+#  include <GL/glew.h>
+// #  include <GL/gl.h>
+#  include <GL/glext.h>
+// #  include <GL/glut.h>
+#endif
+    #include "SDL/SDL.h"
     #include "bmploader.h"
 
     #include "math.h"

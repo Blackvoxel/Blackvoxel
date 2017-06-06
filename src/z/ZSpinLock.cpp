@@ -34,6 +34,9 @@
 #  include "Windows.h"
 #endif
 
+#ifdef ZENV_OS_OSX
+#  include <sched.h>
+#endif
 
 void ZSpinLock::GoSleep()
 {
@@ -45,6 +48,9 @@ void ZSpinLock::GoSleep()
   Sleep(0); // Give the remaining time quantum to the system.
 #endif
 
+#ifdef ZENV_OS_OSX
+  sched_yield();
+#endif
 }
 
 

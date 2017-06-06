@@ -42,6 +42,9 @@ void ZHardwareInfo::Detect_CPU()
   #ifdef ZENV_OS_WINDOWS
       Detect_CPU_Windows();
   #endif
+  #ifdef ZENV_OS_OSX
+      Detect_CPU_OSX();
+  #endif
 }
 
 void ZHardwareInfo::Detect_CPU_Linux()
@@ -92,3 +95,11 @@ void ZHardwareInfo::Detect_CPU_Windows()
   HardwareProfile = X86_GENERAL_PROFILE;
 }
 
+void ZHardwareInfo::Detect_CPU_OSX()
+{
+  // No detection on OS X at this time.
+  // Only x86 and general profile is supported.
+
+  CpuType = CPUTYPE_X86;
+  HardwareProfile = X86_GENERAL_PROFILE;
+}

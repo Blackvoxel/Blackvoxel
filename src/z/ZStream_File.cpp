@@ -39,6 +39,11 @@
 #  include "Shlobj.h"
 #endif
 
+#ifdef ZENV_OS_OSX
+#  include "stdlib.h"
+#  include "limits.h"
+#  include "sys/stat.h"
+#endif
 
 
 void ZStream_File::AddToSavedLen(ULong &Len, ULong x) {Len += sizeof(ULong);}
@@ -501,6 +506,9 @@ bool ZStream_File::Set_CurrentDirectory(char const * const Directory)
 #ifdef ZENV_OS_LINUX
   return( chdir(Directory) ? true: false);
 #endif
+#ifdef ZENV_OS_OSX
+  return( chdir(Directory) ? true: false);
+#endif
 }
 
 ZString ZStream_File::Get_CurrentDirectory()
@@ -518,6 +526,12 @@ ZString ZStream_File::Get_CurrentDirectory()
   Writen = ::GetCurrentDirectory(4096UL,Directory.String);
   Directory.SetLen(Writen);
   return(Directory);
+#endif
+#ifdef ZENV_OS_OSX
+  ZString Buffer;
+  Buffer.RaiseMem_DiscardContent(PATH_MAX);
+  if (0 == getcwd(Buffer.String, PATH_MAX)) Buffer.Clear();
+  return(Buffer);
 #endif
 }
 
@@ -542,6 +556,16 @@ ZString ZStream_File::Get_Directory_UserData()
   if (Result == S_OK) Directory = Buffer.String;
   return(Directory);
 #endif
+#ifdef ZENV_OS_OSX
+  ZString Buffer;
+  char * Str;
+
+  Str = getenv("HOME");
+  if (Str) Buffer = Str;
+  else     Str = (char * )"/home/laurent";
+
+  return(Buffer);
+#endif
 }
 
 bool ZStream_File::Copy_File(char * ToCopy, char * NewFile, bool FailIfExists)
@@ -553,6 +577,11 @@ bool ZStream_File::Copy_File(char * ToCopy, char * NewFile, bool FailIfExists)
 
 #ifdef ZENV_OS_WINDOWS
   return(::CopyFile(ToCopy, NewFile, FailIfExists));
+#endif
+
+#ifdef ZENV_OS_OSX
+  // To do
+  return(false);
 #endif
 }
 
@@ -584,6 +613,9 @@ bool ZStream_File::Directory_Create(const char * NewDir)
 #ifdef ZENV_OS_WINDOWS
   return ::CreateDirectory(NewDir, 0) ? true:false;
 #endif
+#ifdef ZENV_OS_OSX
+  return (mkdir(NewDir, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP ) ? false : true);
+#endif
 }
 
 bool ZStream_File::Directory_Destroy(const char * DirectoryToRemove)
@@ -594,6 +626,9 @@ bool ZStream_File::Directory_Destroy(const char * DirectoryToRemove)
 #ifdef ZENV_OS_WINDOWS
   return RemoveDirectory( DirectoryToRemove );
 #endif
+#ifdef ZENV_OS_OSX
+  return(rmdir(DirectoryToRemove) ? false : true);
+#endif
 }
 
 bool ZStream_File::Destroy_File(char * FileToDestroy)
@@ -603,6 +638,9 @@ bool ZStream_File::Destroy_File(char * FileToDestroy)
 #endif
 #ifdef ZENV_OS_WINDOWS
   return DeleteFile(FileToDestroy);
+#endif
+#ifdef ZENV_OS_OSX
+  return( unlink(FileToDestroy) ? false:true);
 #endif
 }
 
@@ -700,6 +738,18 @@ bool ZStream_File::Directory_IsExists(const char * DirectoryName)
   return(false);
 
 #endif
+#ifdef ZENV_OS_OSX
+
+  int Result;
+  struct stat StatInfo;
+
+  Result = stat(DirectoryName, &StatInfo);
+
+  if (Result!=0) return(false);
+  if (StatInfo.st_mode & S_IFDIR) return(true);
+  return(false);
+
+#endif
 }
 
 bool ZStream_File::File_IsExists(const char * FileName)
@@ -726,6 +776,18 @@ bool ZStream_File::File_IsExists(const char * FileName)
   if (Result & ( FILE_ATTRIBUTE_DEVICE | FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_READONLY)) return(false);
 
   return(true);
+
+#endif
+#ifdef ZENV_OS_OSX
+
+  int Result;
+  struct stat StatInfo;
+
+  Result = stat(FileName, &StatInfo);
+
+  if (Result!=0) return(false);
+  if (StatInfo.st_mode & S_IFREG) return(true);
+  return(false);
 
 #endif
 }

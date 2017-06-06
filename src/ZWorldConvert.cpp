@@ -87,4 +87,41 @@ bool ZWorldConverter::WorldConvert(char const * Path)
   return(false);
 }
 #endif
+#ifdef ZENV_OS_OSX
+bool ZWorldConverter::WorldConvert(char const * Path)
+{
 
+  struct dirent * Entry;
+
+  ZVoxelSector Sector;
+
+  DIR * Directory;
+  ZString FileSpec, FileName;
+
+  if (!(Directory = opendir(Path))) { return(false); }
+  while (( Entry = readdir(Directory) ))
+  {
+    FileName = Entry->d_name;
+    FileSpec = Path; FileSpec << "/" << FileName;
+    // printf("%s %x\n",Entry->d_name, Entry->d_type);
+    if (Entry->d_type == DT_DIR)
+    {
+
+
+    }
+    else if (Entry->d_type == DT_REG)
+    {
+      if (FileName.Lefts(6)=="Sector")
+      {
+        printf("Loading Sector %s\n", FileSpec.String);
+        Sector.Load(0,FileSpec.String);
+        SectorConvert(&Sector);
+        Sector.Save(0,FileSpec.String);
+      }
+    }
+  }
+
+  closedir(Directory);
+  return(true);
+}
+#endif
