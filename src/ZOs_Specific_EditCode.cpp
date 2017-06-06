@@ -93,3 +93,44 @@ bool ZEditCode::EditCode(ZString * Tool, ZString * File)
 
 #endif
 
+#ifdef ZENV_OS_OSX
+
+#include <stdlib.h>
+#include <unistd.h>
+
+void SystemWithReturn(char * CommandLine)
+{
+  pid_t ChildPID;
+
+  switch (ChildPID = fork())
+  {
+    case -1: // Fail
+             break;
+    case 0:  // Child
+      execl("/bin/sh", "sh", "-c", CommandLine, NULL);
+      exit(0);
+      break;
+
+    default: // Parent
+             return;
+  }
+}
+
+bool ZEditCode::EditCode(ZString * Tool, ZString * File)
+{
+  ZString DefaultTool, CommandLine;
+
+  if ((!Tool) || (!Tool->Len))
+  {
+    DefaultTool = "open -e";
+    Tool = &DefaultTool;
+  }
+
+  CommandLine << *Tool << " " << *File;
+
+  SystemWithReturn(CommandLine.String);
+
+  return(true);
+}
+
+#endif

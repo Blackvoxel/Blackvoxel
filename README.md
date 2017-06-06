@@ -40,9 +40,7 @@ Blackvoxel is a new sandbox game based on a voxel engine.
 Developpment started in Aug. 2010 as a hobby research project because we wanted to play with voxel based paradigms.
 With time, the bunch of code slowly became a true game project.
 
-The game is written in C/C++ programming langage using OpenGL and running on Linux and Windows operating system.
-
-MacOs version may be planed in the future if users loves it...
+The game is written in the C++ programming language using OpenGL and running on Linux, Windows, and Mac OS X operating systems.
 
 Licence
 -------
@@ -213,15 +211,17 @@ version.
 
 Compilation with other developpement tools is untested.
 
-MacOs X
--------
+Mac OS X
+--------
 
-At current time, Blackvoxel hasn't been ported to MacOs (We don't own
-any Mac).
+Blackvoxel on OS X is buggy at the moment, so please report any difficulties in
+the [forum](http://forum.blackvoxel.com/) or
+[issue tracker](https://github.com/Blackvoxel/Blackvoxel)
 
-Some programmers told us it should work with minimal effort.
-We'll post any solution as soon as someone would publish it.
-Stay tuned with the forum.
-
-
-
+1. Execute `xcode-select --install` if you don't have Xcode's command line tools.
+2. For the GLEW and SDL dependencies, make sure [Homebrew](https://brew.sh/) is installed.
+3. `brew install glew sdl`
+4. Download the Blackvoxel source tarball (or zip file) [here](http://blackvoxel.com/view.php?node=1541) and extract it to somewhere in your home directory
+5. Use something like `cd blackvoxel_source*` to open your terminal to the root of your Blackvoxel source folder.
+6. `make`
+7. `./blackvoxel`

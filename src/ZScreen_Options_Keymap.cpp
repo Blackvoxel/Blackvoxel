@@ -71,7 +71,7 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
     Pos.y += Size.y + GameEnv->ScreenResolution.y * 0.10f;
 
 
-  ULong NumLines = 8;
+  const ULong NumLines = 8;
   ZFrame_KeyChooser KeyChooser[NumLines];
   ZFrame_FontFrame  KeyTitle[NumLines];
   ZVector2f         Position[NumLines];
@@ -187,7 +187,7 @@ ULong ZScreen_Options_Keymap::ProcessScreen(ZGame * GameEnv)
     Pos.y += Size.y + GameEnv->ScreenResolution.y * 0.10f;
     Pos.y += 32.0f + 16.0f;
 
-  ULong NumLines = 8;
+  const ULong NumLines = 8;
   ZFrame_KeyChooser KeyChooser[NumLines];
   ZFrame_FontFrame  KeyTitle[NumLines];
   ZVector2f         Position[NumLines];
