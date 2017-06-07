@@ -171,7 +171,7 @@ void ZVoxelExtension_MiningRobot_xr1::Robot_Move( ZVector3L * Pos, ZGame * GameE
               if (Mine_Count.y <1) {State = 4; Mine_Count.y = Mine_InitialCount.y; Redo = true;  break; }
               NewPos = *Pos; NewPos.y -= 1;
               VoxelType = World->GetVoxel(NewPos.x, NewPos.y , NewPos.z );
-              if (VoxelType == 655535) break;
+              if (VoxelType == 65535) break;
               if (VoxelType!=0)
               {
                 if (GameEnv->VoxelTypeManager.VoxelTable[VoxelType]->BvProp_XrRobotPickMinLevel > RobotLevel) break;
@@ -188,7 +188,7 @@ void ZVoxelExtension_MiningRobot_xr1::Robot_Move( ZVector3L * Pos, ZGame * GameE
               if (Mine_Count.x <= 1) {State = 3; Dir.x = -Dir.x; Redo = true; break;}
               NewPos = *Pos; NewPos.x += Dir.x;
               VoxelType = World->GetVoxel(NewPos.x, NewPos.y , NewPos.z );
-              if (VoxelType == 655535) break;
+              if (VoxelType == 65535) break;
               if (VoxelType!=0)
               {
                 if (GameEnv->VoxelTypeManager.VoxelTable[VoxelType]->BvProp_XrRobotPickMinLevel > RobotLevel) break;
@@ -202,7 +202,7 @@ void ZVoxelExtension_MiningRobot_xr1::Robot_Move( ZVector3L * Pos, ZGame * GameE
               if (Mine_Count.z <= 1) {State = 1; Dir.z = -Dir.z; Redo = true; break;}
               NewPos = *Pos; NewPos.z += Dir.z;
               VoxelType = World->GetVoxel(NewPos.x, NewPos.y , NewPos.z );
-              if (VoxelType == 655535) break;
+              if (VoxelType == 65535) break;
               if (VoxelType!=0)
               {
                 if (GameEnv->VoxelTypeManager.VoxelTable[VoxelType]->BvProp_XrRobotPickMinLevel > RobotLevel) break;
@@ -227,7 +227,7 @@ void ZVoxelExtension_MiningRobot_xr1::Robot_Move( ZVector3L * Pos, ZGame * GameE
               }
               NewPos = *Pos; NewPos.y += 1;
               VoxelType = World->GetVoxel(NewPos.x, NewPos.y , NewPos.z );
-              if (VoxelType == 655535) break;
+              if (VoxelType == 65535) break;
               if (VoxelType!=0)
               {
                 if (GameEnv->VoxelTypeManager.VoxelTable[VoxelType]->BvProp_XrRobotPickMinLevel > RobotLevel) break;
