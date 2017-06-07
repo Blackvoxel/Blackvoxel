@@ -8,16 +8,16 @@ The story take place in the future. Tired of the civilisation, you decided to re
 You bought a new discovered planet in your local planet selling agency.
 
 The dealer made a good price on a paradisiac planet with beautiful landscape with islands, sandy beaches, palm forest and a beautiful blue sky.
-The catalog showed a friendly world populated of peacefull animals.
+The catalog showed a friendly world populated of peaceful animals.
 
 You take your new ship and go through the long journey.
 During the trip, you dreamed of your new world.
-And finaly, after a year of boring travell you reached the orbit and started the landing procedure.
+And finally, after a year of boring travel you reached the orbit and started the landing procedure.
 
-Infortunately, you hit an asteroid that was not on the map and your ship was heavily damaged.
+Unfortunately, you hit an asteroid that was not on the map and your ship was heavily damaged.
 The ship wasn't controllable anymore and finally you crashed on your planet.
 
-By chance, you still alive, but most of your equipment and materials was destroyed.
+By chance, you still alive, but most of your equipment and materials were destroyed.
 
 As soon as you looked around you, your realized that the planet wasn't what the dealer promised to you.
 
@@ -25,8 +25,8 @@ What a strange and desolated world with a black sky and strange luminous blocks 
 
 All what you see is uncommon and you know nothing about it...
 
-As you look on your personal digital assistant, you noticed you received an important email that arrived using powerfull long distance intergalactic emitters: the agency said that they may have made a mistake because someone confused planet data files.
-They said that in the eventuality you remain alive, the sales contract did not mention the details of the surface of the planet, and infortunately, they can't made any exchange and refund.
+As you look on your personal digital assistant, you noticed you received an important email that arrived using powerful long distance intergalactic emitters: the agency said that they may have made a mistake because someone confused planet data files.
+They said that in the eventuality you remain alive, the sales contract did not mention the details of the surface of the planet, and unfortunately, they can't made any exchange and refund.
 
 But before you can do something, you have no choice: you have no intergalactic ship to escape and no suitable communication equipment to query some help.
 
@@ -37,14 +37,14 @@ The game
 
 Blackvoxel is a new sandbox game based on a voxel engine.
 
-Developpment started in Aug. 2010 as a hobby research project because we wanted to play with voxel based paradigms.
+Development started in Aug. 2010 as a hobby research project because we wanted to play with voxel based paradigms.
 With time, the bunch of code slowly became a true game project.
 
 The game is written in the C++ programming language using OpenGL and running on Linux, Windows, and Mac OS X operating systems.
 
-Licence
+License
 -------
-The game is released under the [GNU GPL V3 free licence](https://www.gnu.org/licenses/gpl.html) or (at your option) any later version.
+The game is released under the [GNU GPL V3 free license](https://www.gnu.org/licenses/gpl.html) or (at your option) any later version.
 
 (c) 2010-2014 Laurent Thiebaut and Olivia Merle.
 
@@ -59,13 +59,13 @@ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 PURPOSE.  See the GNU General Public License for more
 details.
 
-(See below for 3rd party libraries copyright and licence).
+(See below for 3rd party libraries copyright and license).
 
-3rd party library licence
+3rd party library license
 =========================
-Blackvoxel include in the source tree it's own modified version of the squirrel langage by Alberto Demichelis.
+Blackvoxel includes in the source tree its own modified version of the Squirrel langage by Alberto Demichelis.
 
-Here is the copyright and licence for the squirrel project.
+Here is the copyright and license for the Squirrel project.
 
 Copyright (c) 2003-2012 Alberto Demichelis
 
@@ -104,7 +104,7 @@ Linux
 Compiling and running blackvoxel with most Linux distributions is very
 simple.
 
-See bellow for per-distro step-by-step instructions.
+See below for per-distro step-by-step instructions.
 
 If you want to go further, modify and debug, we recommend using [Eclipse
 CDT](https://www.eclipse.org/cdt/).
@@ -112,7 +112,7 @@ CDT](https://www.eclipse.org/cdt/).
 ### Ubuntu
 
 1. Download source tarball (.tar.bz2 source archive) [here](http://blackvoxel.com/view.php?node=1541) and put it in your home directory
-2. Open a terminal type: "term" in ubuntu lancher or press 'ctrl-alt-t'
+2. Open a terminal type: "term" in Ubuntu lancher or press 'ctrl-alt-t'
 3. Enter the following commands:
 ```
     sudo apt-get install build-essential libglew-dev libsdl1.2-dev
@@ -121,7 +121,7 @@ CDT](https://www.eclipse.org/cdt/).
     make
 ```
 
-Once build succeded, you can launch Blackvoxel with the following command:
+Once build succeeded, you can launch Blackvoxel with the following command:
 
     cd ~/blackvoxel_source* && ./blackvoxel
 
@@ -141,7 +141,7 @@ Once build succeded, you can launch Blackvoxel with the following command:
     make
 ```
 
-Once build succeded, you can launch Blackvoxel with the following
+Once build succeeded, you can launch Blackvoxel with the following
 command:
 
     cd ~/blackvoxel_source* && ./blackvoxel
@@ -169,11 +169,11 @@ command:
 
 ### Other Linux distributions
 
-Blackvoxel can be compiled in debian and ubuntu derived (like Mint) in
+Blackvoxel can be compiled in other distros in
 the same ways described above.
 
-For non debian distributions, you'll have to find the exact way using
-the following indications:
+For non Debian distributions, you'll have to find the exact way using
+the following instructions:
 
 -   Install the gcc with g++ compiler, linker, tools and headers.
 -   Find and Install equivalent packages for required libraries with the
@@ -181,21 +181,14 @@ the following indications:
 
 We hope to add distributions to this list with time.
 
-### Non Linux various Unix...
-
-No attempt to compile Blackvoxel on other unixes has been done at this
-time. In theory, it should work with minimal adaptations.
-
-Anyway, you need to have hardware 3D OpenGL support to run Blackvoxel.
-
 Windows
 -------
 
-Infortunately, building Blackvoxel in Windows isn't as simple as in
-Linux because lacking of an equivalent software package management
+Unfortunately, building Blackvoxel in Windows isn't as simple as in
+Linux due to lacking an equivalent software package management
 system.
 
-So, it will be harder than in Linux if your aren't realy accustomed with
+So, it will be harder than in Linux if you aren't really accustomed with
 programming.
 
 Here is what you need to get for compiling Blackvoxel in Window
@@ -209,14 +202,14 @@ Here is what you need to get for compiling Blackvoxel in Window
 We have tested successfully the tools listed here for the Windows
 version.
 
-Compilation with other developpement tools is untested.
+Compilation with other development tools is untested.
 
 Mac OS X
 --------
 
 Blackvoxel on OS X is buggy at the moment, so please report any difficulties in
 the [forum](http://forum.blackvoxel.com/) or
-[issue tracker](https://github.com/Blackvoxel/Blackvoxel)
+[issue tracker](https://github.com/Blackvoxel/Blackvoxel/issues)
 
 1. Execute `xcode-select --install` if you don't have Xcode's command line tools.
 2. For the GLEW and SDL dependencies, make sure [Homebrew](https://brew.sh/) is installed.
@@ -225,3 +218,10 @@ the [forum](http://forum.blackvoxel.com/) or
 5. Use something like `cd blackvoxel_source*` to open your terminal to the root of your Blackvoxel source folder.
 6. `make`
 7. `./blackvoxel`
+
+### Other Unix variants...
+
+No attempt to compile Blackvoxel on other unixes has been done at this
+time. In theory, it should work with minimal adaptations.
+
+Anyway, you need to have hardware 3D OpenGL 1 support to run Blackvoxel.
