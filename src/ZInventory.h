@@ -140,6 +140,10 @@ class ZInventory
         case 245:
         case 246:
         case 247: NewVoxelType = 244; break;
+        case 256:
+        case 257:
+        case 258:
+        case 259: NewVoxelType = 256; break;
       }
       return(NewVoxelType);
     }
