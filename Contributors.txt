@@ -9,8 +9,8 @@ Olivia Merle         olivia@blackvoxel.com  : Programming
 
 Project contributors : Thanks to them for their useful contributions.
 
-Jim Buckeyne (d3x0r)   d3ck0r@gmail.com         Useful contributions, Github fork
+Jim Buckeyne (d3x0r)   d3ck0r@gmail.com         Useful contributions, GitHub fork
 Axel Viala (darnuria)  axel.viala@darnuria.eu   Readme.md file
 Bastien Guerry         bzg@gnu.org              English corrections
 Daniel Tartavel        contact@librepc.com      Mageia packages
-
+Joshua Olson           0joshua.olson1@gmail.com Mac OS X support
