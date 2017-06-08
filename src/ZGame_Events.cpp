@@ -50,6 +50,15 @@
 #  include "ZOs_Specific_ViewDoc.h"
 #endif
 
+#ifndef Z_ZGAMEWINDOW_RESUMEREQUEST_LITTLE_H
+#  include "ZGameWindow_ResumeRequest_Little.h"
+#endif
+
+#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_WEB_H
+#  include "ZGameWindow_ZProgRobot_Web.h"
+#endif
+
+
 Bool ZGame_Events::KeyDown( UShort KeySym )
 {
   ZActor * Actor;
@@ -233,6 +242,18 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                   }
 
                   break;
+
+    case SDLK_F12:
+                  {
+                    SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE);
+
+                    GameEnv->GameWindow_ResumeRequest_Little->SetGameEnv(GameEnv);
+                    GameEnv->GameWindow_ResumeRequest_Little->SetMessage((char *)"CLICK TO REGAIN CONTROL");
+                    GameEnv->GameWindow_ResumeRequest_Little->Show();
+                  }
+
+                  break;
+
 
     // THE "FEAR KEY" : Always the best way to destroy your world...
     case SDLK_F10:
@@ -912,6 +933,7 @@ void ZGame_Events::Process_StillEvents()
       else if (GameEnv->GameWindow_UserTextureTransformer->Is_Shown()) {GameEnv->GameWindow_UserTextureTransformer->Hide();}
       else if (GameEnv->GameWindow_Sequencer->Is_Shown())         { GameEnv->GameWindow_Sequencer->Hide();}
       else if (GameEnv->GameWindow_AsmDebug->Is_Shown())          { GameEnv->GameWindow_AsmDebug->Hide(); if (GameEnv->GameWindow_AsmHardware->Is_Shown()) GameEnv->GameWindow_AsmHardware->Hide(); }
+      else if (GameEnv->GameWindow_ProgRobot_Web->Is_Shown())         { GameEnv->GameWindow_ProgRobot_Web->Hide();}
       else
       {
         GameEnv->GameWindow_Inventory->SetGameEnv(GameEnv);
@@ -920,9 +942,9 @@ void ZGame_Events::Process_StillEvents()
       }
     }
 
-    if (Keyboard_Matrix[SDLK_F12])
+    if (Keyboard_Matrix[SDLK_F11])
     {
-      Keyboard_Matrix[SDLK_F12] = 0;
+      Keyboard_Matrix[SDLK_F11] = 0;
 
       if (GameEnv->GameWindow_DisplayInfos->Is_Shown()) { GameEnv->GameWindow_DisplayInfos->Hide(); }
       else                                              { GameEnv->GameWindow_DisplayInfos->Show(); }
