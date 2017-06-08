@@ -67,6 +67,14 @@
 #  include "ZLoadingScreen.h"
 #endif
 
+#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_WEB_H
+#  include "ZGameWindow_ZProgRobot_Web.h"
+#endif
+
+#ifndef Z_ZGAMEWINDOW_RESUMEREQUEST_LITTLE_H
+#  include "ZGameWindow_ResumeRequest_Little.h"
+#endif
+
 
 bool ZGame::Init_UserDataStorage(ZLog * InitLog)
 {
@@ -361,7 +369,7 @@ bool ZGame::Init_TextureManager(ZLog * InitLog)
   Pi = COMPILEOPTION_PLATFORM_RASPBERRY_PI ? true:false;
   if (Ol) {Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/title_1_2.bmp");              Result = TextureManager.LoadBMPTexture(Path.String,0 ,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(7, ZLog::FAIL, Err); return(false); } }
   else    {Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/title_2_0.bmp");              Result = TextureManager.LoadBMPTexture(Path.String,0 ,true ,false,32);      if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(3, ZLog::FAIL, Err); return(false); } }
-           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/blackvoxel_title_1_3.bmp");   Result = TextureManager.LoadBMPTexture(Path.String,1 ,!Pi  ,false,128); if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(4, ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/blackvoxel_title_1_3.bmp");   Result = TextureManager.LoadBMPTexture(Path.String,1 ,!Pi  ,false,128);    if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(4, ZLog::FAIL, Err); return(false); }
            Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/panel_2.bmp");                Result = TextureManager.LoadBMPTexture(Path.String,2 ,true ,true,32 );      if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(5, ZLog::FAIL, Err); return(false); }
            Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/font_1_1.bmp");               Result = TextureManager.LoadBMPTexture(Path.String,3 ,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(6, ZLog::FAIL, Err); return(false); }
            Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/title_1_2.bmp");              Result = TextureManager.LoadBMPTexture(Path.String,4 ,false,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(7, ZLog::FAIL, Err); return(false); }
@@ -987,6 +995,7 @@ bool ZGame::Start_GameWindows()
   GameWindow_Storage     = new ZGameWindow_Storage;       GameWindow_Storage->SetGameEnv(this);
   GameWindow_Programmable= new ZGameWindow_Programmable;  GameWindow_Programmable->SetGameEnv(this);
   GameWindow_ProgRobot_Asm=new ZGameWindow_ProgRobot_Asm; GameWindow_ProgRobot_Asm->SetGameEnv(this);
+  GameWindow_ProgRobot_Web=new ZGameWindow_ProgRobot_Web; GameWindow_ProgRobot_Web->SetGameEnv(this);
   GameProgressBar        = new ZGameWindow_ProgressBar;   GameProgressBar->SetGameEnv(this);
   GameWindow_Advertising = new ZGameWindow_Advertising;   GameWindow_Advertising->SetGameEnv(this);
   GameWindow_UserTextureTransformer = new ZGameWindow_UserTextureTransformer; GameWindow_UserTextureTransformer->SetGameEnv(this);
@@ -996,7 +1005,8 @@ bool ZGame::Start_GameWindows()
   GameWindow_AsmHardware = new ZGameWindow_AsmHardware;   GameWindow_AsmHardware->SetGameEnv(this);
   GameWindow_AsmExtendedRegisters = new ZGameWindow_AsmExtendedRegisters; GameWindow_AsmExtendedRegisters->SetGameEnv(this);
   GameWindow_Compilation_Result = new ZGameWindow_Compilation_Result;     GameWindow_Compilation_Result->SetGameEnv(this);
-  GameWindow_ResumeRequest = new ZGameWindow_ResumeRequest; GameWindow_ResumeRequest->SetGameEnv(this);
+  GameWindow_ResumeRequest = new ZGameWindow_ResumeRequest;               GameWindow_ResumeRequest->SetGameEnv(this);
+  GameWindow_ResumeRequest_Little = new ZGameWindow_ResumeRequest_Little; GameWindow_ResumeRequest_Little->SetGameEnv(this);
   GameWindow_SPS           = new ZGameWindow_SPS;         GameWindow_SPS->SetGameEnv(this);
   GameWindow_Scan          = new ZGameWindow_Scan;        GameWindow_Scan->SetGameEnv(this);
   GameWindow_RTFM          = new ZGameWindow_RTFM;        GameWindow_RTFM->SetGameEnv(this);
@@ -1010,17 +1020,15 @@ bool ZGame::End_GameWindows()
 {
   GuiManager.RemoveAllFrames();
 
-  if (VoxelTypeBar) delete VoxelTypeBar;
-  VoxelTypeBar = 0;
-  if (GameWindow_Storage) delete GameWindow_Storage;
-  GameWindow_Storage = 0;
-  if (GameWindow_UserTextureTransformer) delete GameWindow_UserTextureTransformer;
-  GameWindow_UserTextureTransformer = 0;
-  if (GameWindow_Inventory) delete GameWindow_Inventory;
-  GameWindow_Inventory = 0;
-  if (GameProgressBar)      delete GameProgressBar;
+  if (VoxelTypeBar)       {delete VoxelTypeBar; VoxelTypeBar = 0; }
+  if (GameWindow_Storage) {delete GameWindow_Storage; GameWindow_Storage = 0; }
+  if (GameWindow_UserTextureTransformer) { delete GameWindow_UserTextureTransformer; GameWindow_UserTextureTransformer = 0; }
+  if (GameWindow_Inventory) { delete GameWindow_Inventory; GameWindow_Inventory = 0; }
+  if (GameWindow_ResumeRequest_Little) {delete GameWindow_ResumeRequest_Little; GameWindow_ResumeRequest_Little = 0;}
+  if (GameProgressBar)      {delete GameProgressBar; GameProgressBar=0;}
   if (GameWindow_SPS)       {delete GameWindow_SPS; GameWindow_SPS = 0;}
   if (GameWindow_Scan)      {delete GameWindow_Scan; GameWindow_Scan = 0;}
+  if (GameWindow_ProgRobot_Web) {delete GameWindow_ProgRobot_Web; GameWindow_ProgRobot_Web = 0;}
 
   Initialized_GameWindows = false;
   return(true);
