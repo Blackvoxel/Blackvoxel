@@ -132,7 +132,7 @@ void ZChip_Parallel_Interface_Servo::DoChipManagement()
       UShort VoxelType;
       ZVoxelLocation Loc;
       Vm->HasMoved = true;
-      if (Vm->VoxelInterface->GetVoxelExt(Mv.x, Mv.y, Mv.z, VoxelType, &Loc ))
+      if (Vm->VoxelInterface->GetVoxelExt_Rel(Mv.x, Mv.y, Mv.z, VoxelType, &Loc ))
       {
         if (Vm->VoxelInterface->VoxelTypeManager->VoxelTable[VoxelType]->Is_PlayerCanPassThrough)
         {
