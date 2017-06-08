@@ -90,10 +90,22 @@ class ZList
       return(Head.Next);
     }
 
+    inline ZListItem * GetLast()
+    {
+      if (Tail.Prev == &Head) return(0);
+      return(Tail.Prev);
+    }
+
     inline ZListItem * GetNext(ZListItem * ListItem)
     {
       if (ListItem->Next == &Tail) return(0);
       return(ListItem->Next);
+    }
+
+    inline ZListItem * GetPrev(ZListItem * ListItem)
+    {
+      if (ListItem->Prev == &Head) return(0);
+      return(ListItem->Prev);
     }
 
     inline void Remove(ZListItem * ListItem)
@@ -103,6 +115,44 @@ class ZList
       ListItem->Next = 0;
       ListItem->Prev = 0;
       MemPool->FreeMem(ListItem);
+    }
+
+    ZObject * RemoveTail()
+    {
+      ZListItem * ListItem;
+      ZObject * Object;
+
+      ListItem = Tail.Prev;
+      if (ListItem == &Head) return(0);
+
+      Object = ListItem->GetObject();
+
+      ListItem->Next->Prev = ListItem->Prev;
+      ListItem->Prev->Next = ListItem->Next;
+      ListItem->Next = 0;
+      ListItem->Prev = 0;
+      MemPool->FreeMem(ListItem);
+
+      return(Object);
+    }
+
+    ZObject * RemoveHead()
+    {
+      ZListItem * ListItem;
+      ZObject * Object;
+
+      ListItem = Head.Next;
+      if (ListItem == &Tail) return(0);
+
+      Object = ListItem->GetObject();
+
+      ListItem->Next->Prev = ListItem->Prev;
+      ListItem->Prev->Next = ListItem->Next;
+      ListItem->Next = 0;
+      ListItem->Prev = 0;
+      MemPool->FreeMem(ListItem);
+
+      return(Object);
     }
 
     inline void RemoveAndFree(ZListItem * ListItem)
