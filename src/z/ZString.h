@@ -253,6 +253,23 @@ class ZString
     bool GetKeywordValue(ZString const * Keyword, ZString & KeywordValue);
 
     inline ZString & Clear() {if ((Len)) {Len=0;*String=0;} return(*this);}
+    ZString HexDump(ULong nChar = 10)
+    {
+      ZString Out;
+      ZMemSize Ln;
+      ULong Col;
+      char * P;
+
+
+      for (Ln = Len, P = String, Col=0; Ln > 0; Ln--,P++, Col++)
+      {
+        Out.Append_HexNumber_UByte(*P);
+        Out.Append_char(' ');
+        if (Col>=nChar) Out.Append_pchar(NewLine());
+      }
+
+      return(Out);
+    }
 
 #ifdef ZENV_OS_WINDOWS
     inline char * NewLine() { return ( (char *)"\r\n"); }
