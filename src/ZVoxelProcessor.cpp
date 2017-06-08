@@ -30,19 +30,52 @@
 #  include "ZGame.h"
 #endif
 
+
 ULong debug_DeleteRequests = 0;
 
 int ZVoxelProcessor::thread_func(void * Data)
 {
   ZVoxelProcessor * VoxelProcessor = (ZVoxelProcessor *) Data;
+
+  VoxelProcessor->StartTasks();
+
   while (VoxelProcessor->ThreadContinue)
   {
     VoxelProcessor->MakeTasks();
   }
 
+  VoxelProcessor->EndTasks();
+
   return(0);
 }
 
+ZVoxelProcessor::ZVoxelProcessor()
+{
+  World = 0;
+  PhysicEngine = 0;
+  SectorEjectDistance = 1000000.0;
+  Thread = 0;
+  ThreadContinue = false;
+  GameEnv = 0;
+}
+
+ZVoxelProcessor::~ZVoxelProcessor()
+{
+
+}
+
+void ZVoxelProcessor::Start()
+{
+  VoxelReactor.Init(this->GameEnv);
+  ThreadContinue = true;
+  Thread = (SDL_Thread * )SDL_CreateThread(thread_func, this);
+}
+
+void ZVoxelProcessor::End()
+{
+  ThreadContinue = false;
+  if (Thread) SDL_WaitThread((SDL_Thread*)Thread, NULL);
+}
 
 void ZVoxelProcessor::MakeTasks()
 {
@@ -56,6 +89,10 @@ void ZVoxelProcessor::MakeTasks()
   cnt=0;
 
   Timer.Start();
+
+  // Web Robots
+
+  WebRobotManager.Process();
 
   // Sector Tasks like face culling.
 
@@ -121,4 +158,27 @@ void ZVoxelProcessor::MakeSectorTasks(ZVoxelSector * Sector)
     EgmyScatter.ScatterEgmys_T1(Sector);
   } else {EgmyScatter.ResetWave();}
 
+}
+
+void ZVoxelProcessor::StartTasks()
+{
+  WebRobotManager.Start();
+}
+
+void ZVoxelProcessor::EndTasks()
+{
+  WebRobotManager.Stop();
+}
+
+void ZVoxelProcessor::SetPlayerPosition(double x,double y, double z)
+{
+  Player_Position.x = x;
+  Player_Position.y = y;
+  Player_Position.z = z;
+  Player_Sector.x = (Long) (x/4096.0);
+  Player_Sector.y = (Long) (y/16384.0);
+  Player_Sector.z = (Long) (z/4096.0);
+  Player_Voxel.x = (Long)  (x/256.0);
+  Player_Voxel.y = (Long)  (y/256.0);
+  Player_Voxel.z = (Long)  (z/256.0);
 }

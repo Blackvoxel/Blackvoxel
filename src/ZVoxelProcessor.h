@@ -66,6 +66,10 @@
 #  include "ZEgmyScatter.h"
 #endif
 
+#ifndef Z_ZWEBROBOTMANAGER_H
+#  include "ZWebRobotManager.h"
+#endif
+
 class ZGame;
 
 class test {};
@@ -82,64 +86,43 @@ class ZVoxelProcessor : public ZObject
     ZEgmyScatter  EgmyScatter;
     ZHighPerfTimer Timer;
 
-
-    static int thread_func(void * Data);
-
-
-    void MakeSectorTasks(ZVoxelSector * Sector);
-    void MakeTasks();
-
-
     ZVector3L Player_Sector;
     ZVector3d Player_Position;
     ZVector3L Player_Voxel;
-
     double SectorEjectDistance;
+
+    // The function called by the dedicated thread.
+
+    static int thread_func(void * Data);
+
+    // Thread task processing
+
+    void StartTasks(); // Launched when thread start
+    void MakeTasks();  // Repeating
+    void EndTasks();   // Launched at thread end.
+
+    // Sub tasks launched by MakeTasks
+
+    void MakeSectorTasks(ZVoxelSector * Sector);
+
+
   public:
-    ZVoxelProcessor()
-    {
-      World = 0;
-      PhysicEngine = 0;
-      SectorEjectDistance = 1000000.0;
-      Thread = 0;
-      ThreadContinue = false;
-      GameEnv = 0;
-    }
+    ZWebRobotManager WebRobotManager;
+    ZVoxelProcessor();
+    ~ZVoxelProcessor();
 
-    ~ZVoxelProcessor()
-    {
+    // Thread control. These command will start and stop the processor thread.
 
-    }
+    void Start();
+    void End();
+
+    // Set parameters
 
     void SetWorld(ZVoxelWorld * World) { this->World = World; }
     void SetGameEnv(ZGame * GameEnv) { this->GameEnv = GameEnv; }
     void SetSectorEjectDistance(double SectorEjectDistance) { this->SectorEjectDistance = SectorEjectDistance; }
+    void SetPlayerPosition(double x,double y, double z);
 
-    void SetPlayerPosition(double x,double y, double z)
-    {
-      Player_Position.x = x;
-      Player_Position.y = y;
-      Player_Position.z = z;
-      Player_Sector.x = (Long) (x/4096.0);
-      Player_Sector.y = (Long) (y/16384.0);
-      Player_Sector.z = (Long) (z/4096.0);
-      Player_Voxel.x = (Long)  (x/256.0);
-      Player_Voxel.y = (Long)  (y/256.0);
-      Player_Voxel.z = (Long)  (z/256.0);
-    }
-
-    void Start()
-    {
-      VoxelReactor.Init(this->GameEnv);
-      ThreadContinue = true;
-      Thread = (SDL_Thread * )SDL_CreateThread(thread_func, this);
-    }
-
-    void End()
-    {
-      ThreadContinue = false;
-      if (Thread) SDL_WaitThread((SDL_Thread*)Thread, NULL);
-    }
 };
 
 
