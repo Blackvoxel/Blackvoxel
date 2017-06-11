@@ -55,21 +55,98 @@
 #  include "ZOs_Specific_HardwareDependent.h"
 #endif
 
+    class ParsedRequest
+    {
+      public:
+        bool ParseRequest(ZString & Text)
+        {
+          ZString Txt,Txt2,Arg;
+          ULong i;
+          Bool Res, Stop;
+
+          Txt = Text;
+
+          Res = Txt.Split(' ',RequestType);  if (!Res) return(false);
+          Txt2 = Txt;
+          Res = Txt2.Split(' ',Txt); if (!Res) return(false);
+          Res = Txt2.Split('\n', Proto); if (!Res) return(false);
+          Txt.StripLeading('/');
+
+          if (!Txt.Split('?', Command)) {Command = Txt; return(true);}
+
+          for (i=0, Stop=false;i<16 && !Stop;i++)
+          {
+            if (!Txt.Split('&',Arg)) {Arg = Txt; Stop = true;}
+            if (!Arg.Split('=', Arg_Name[i])) break;
+            Arg_Value[i] = Arg;
+          }
+
+          return(true);
+        }
+
+        void Dump()
+        {
+          ULong i;
+
+          printf("-----------------------\n");
+          printf("Request Type :%s|\n",RequestType.String);
+          printf("Command      :%s|\n",Command.String);
+          printf("Proto        :%s|\n",Proto.String);
+
+          for(i=0;i<16;i++)
+          {
+            printf("%s=%s\n",Arg_Name[i].String, Arg_Value[i].String);
+          }
+
+        }
+
+        bool FindEntry(char * Name, ULong & Num)
+        {
+          ULong i;
+
+          for (i=0;i<16;i++)
+          {
+            if (Arg_Name[i]==Name) {Num = i; return(true);};
+          }
+
+          return(false);
+        }
 
 
+        ZString RequestType;
+        ZString Command;
+        ZString Proto;
+        ZString Arg_Name[16];
+        ZString Arg_Value[16];
+    };
 
 
 bool ZTest_Parts::RunTestCode()
 {
 
+  ZStream_File Stream;
+  ZString Text;
+  bool Result;
+
+  ParsedRequest Pr;
+
+  Stream.SetFileName("/home/laurent/workspace/a_newblackvoxel/Devdoc/Scratch_Request_Example.txt");
+  Result = Stream.GetFileContent(Text);
+
+  Pr.ParseRequest(Text);
+  Pr.Dump();
+
+
+
+
   //Bmp.SetPixel()
 
+//  ZTCPNet_Socket::Test();
 
 
+  // ZHardwareInfo Hi;
 
-  ZHardwareInfo Hi;
-
-  Hi.DetectHardware();
+  // Hi.DetectHardware();
 
   /*
   ZNet_SocketTest Test;
