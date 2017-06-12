@@ -207,7 +207,7 @@ Compilation with other development tools is untested.
 Mac OS X
 --------
 
-Blackvoxel on OS X is buggy at the moment, so please report any difficulties in
+Blackvoxel on OS X is experimental at the moment, so please report any difficulties in
 the [forum](http://forum.blackvoxel.com/) or
 [issue tracker](https://github.com/Blackvoxel/Blackvoxel/issues)
 
