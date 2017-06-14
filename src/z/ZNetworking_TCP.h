@@ -31,8 +31,8 @@
 //#endif
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+
+
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -42,67 +42,26 @@
 #  include "ZString.h"
 #endif
 
+struct sockaddr_in;
+
 
 class ZTCPNet_Connection
 {
     friend class ZTCPNet_Socket;
 
-    sockaddr_in Address;
-    int         ConnectionFileDescriptor;
-    bool        ValidConnection;
+    sockaddr_in * Address;
+    int           ConnectionFileDescriptor;
+    bool          ValidConnection;
 
   public:
 
-    ZTCPNet_Connection()
-    {
-      memset(&Address, 0, sizeof(sockaddr_in));
-      ConnectionFileDescriptor = 0;
-      ValidConnection = false;
-    }
+    ZTCPNet_Connection();
+    ~ZTCPNet_Connection();
 
-    ~ZTCPNet_Connection()
-    {
-      if (ValidConnection) Close();
-    }
-
-    bool ReadChar(char &c)
-    {
-      return(read(ConnectionFileDescriptor,&c,1)==1);
-    }
-
-    bool Write(char * Line, int Len)
-    {
-      return(Len == write(ConnectionFileDescriptor, Line, Len));
-    }
-
-    void Close()
-    {
-      if (ValidConnection)
-      {
-        close( ConnectionFileDescriptor);
-        ConnectionFileDescriptor = 0;
-        ValidConnection = false;
-        memset(&Address, 0, sizeof(sockaddr_in));
-      }
-    }
-
-    bool Set_NonBlockingMode(bool Enabled=true)
-    {
-      int Actual, Status;
-
-      Actual = fcntl(ConnectionFileDescriptor, F_GETFL, 0);
-
-      if (Enabled) Actual |= O_NONBLOCK;
-      else         Actual &= -1 ^ O_NONBLOCK;
-
-      Status = fcntl(ConnectionFileDescriptor, F_SETFL, Actual);
-
-      if (Status == -1) return(false);
-
-      return(true);
-    }
-
-
+    bool ReadChar(char &c);
+    bool Write(char * Line, int Len);
+    void Close();
+    bool Set_NonBlockingMode(bool Enabled=true);
 
 };
 
@@ -110,185 +69,28 @@ class ZTCPNet_Socket
 {
   protected:
 
-    sockaddr_in Address;
-    int         SocketFileDescriptor;
-    bool        Initialized_Socket;
-    bool        Bound_Socket;
+    sockaddr_in * Address;
+    int           SocketFileDescriptor;
+    bool          Initialized_Socket;
+    bool          Bound_Socket;
 
   public:
 
-    ZTCPNet_Socket()
-    {
-      SocketFileDescriptor = 0;
-      memset(&Address, 0, sizeof(sockaddr_in));
-      Initialized_Socket = false;
-      Bound_Socket = false;
-    }
+    ZTCPNet_Socket();
+    ~ZTCPNet_Socket();
 
-    ~ZTCPNet_Socket()
-    {
-      if (Initialized_Socket) Close();
-    }
+    bool Create();
+    void Close();
+    bool Bind(int Port);
+    bool Listen();
+    bool Accept(ZTCPNet_Connection * Connection);
+    bool Set_NonBlockingMode(bool Enabled=true);
+    bool Set_AbortiveClose(bool Enabled=true);
+    bool Set_ReceiveTimeOut(int Sec, int USec);
+    bool Set_SendTimeOut(int Sec, int USec);
 
-    bool Create()
-    {
-      // If already initialized, return error
+    static void Test();
 
-      if (Initialized_Socket) return(false);
-
-      // Create a socket
-
-      SocketFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
-      if (SocketFileDescriptor == -1) return(false);
-
-      Initialized_Socket = true;
-      return(true);
-    }
-
-    void Close()
-    {
-      if (Initialized_Socket)
-      {
-        close( SocketFileDescriptor);
-        SocketFileDescriptor = 0;
-        Initialized_Socket = false;
-        memset(&Address, 0, sizeof(sockaddr_in));
-      }
-    }
-
-    bool Bind(int Port)
-    {
-      // Server address
-
-      if (Bound_Socket) return(false);
-
-      Address.sin_family = AF_INET;
-      Address.sin_port = htons(Port);
-      Address.sin_addr.s_addr = INADDR_ANY;
-
-      if (bind(SocketFileDescriptor, (struct sockaddr *) &Address,sizeof(Address)) == -1) return(false);
-
-      Bound_Socket = true;
-
-      return(true);
-    }
-
-    bool Listen()
-    {
-      if (listen(SocketFileDescriptor, 5) == -1) return(false);
-
-      return(true);
-    }
-
-    bool Accept(ZTCPNet_Connection * Connection)
-    {
-      if (!Initialized_Socket || !Bound_Socket) return(false);
-
-
-      unsigned int Len = sizeof(Connection->Address);
-      Connection->ConnectionFileDescriptor = accept(SocketFileDescriptor, (struct sockaddr *) &Connection->Address, &Len);
-      if (Connection->ConnectionFileDescriptor == -1 ) return(false);
-
-      Connection->ValidConnection = true;
-
-      return(true);
-    }
-
-    bool Set_NonBlockingMode(bool Enabled=true)
-    {
-      int Actual, Status;
-
-      Actual = fcntl(SocketFileDescriptor, F_GETFL, 0);
-
-      if (Enabled) Actual |= O_NONBLOCK;
-      else         Actual &= -1 ^ O_NONBLOCK;
-
-      Status = fcntl(SocketFileDescriptor, F_SETFL, Actual);
-
-      if (Status == -1) return(false);
-
-      return(true);
-    }
-
-    bool Set_AbortiveClose(bool Enabled=true)
-    {
-      struct linger Ln;
-      int Res;
-
-      Ln.l_onoff = 1;
-      Ln.l_linger = 30;
-      Res = setsockopt(SocketFileDescriptor,
-                       SOL_SOCKET,
-                       SO_LINGER,
-                       &Ln,
-                       sizeof Ln);
-
-      return(Res ? false:true);
-    }
-
-    bool Set_ReceiveTimeOut(int Sec, int USec)
-    {
-      struct timeval Time;
-
-      Time.tv_sec  = Sec;
-      Time.tv_usec = USec;
-
-      if (setsockopt (SocketFileDescriptor, SOL_SOCKET, SO_RCVTIMEO, (char *)&Time, sizeof(Time)) < 0) return(false);
-
-      return(true);
-    }
-
-    bool Set_SendTimeOut(int Sec, int USec)
-    {
-      struct timeval Time;
-
-      Time.tv_sec  = Sec;
-      Time.tv_usec = USec;
-
-      if (setsockopt (SocketFileDescriptor, SOL_SOCKET, SO_SNDTIMEO, (char *)&Time, sizeof(Time)) < 0) return(false);
-
-      return(true);
-    }
-
-
-    static void Test()
-    {
-      ZTCPNet_Socket Socket;
-      ZTCPNet_Connection Connection;
-      char c;
-
-      if (Socket.Create())
-      {
-        if (Socket.Bind(5003))
-        {
-          Socket.Set_NonBlockingMode();
-          Socket.Listen();
-          while(true)
-          {
-            printf("Waiting connection\n");
-            usleep(1000000);
-            if(Socket.Accept(&Connection))
-            {
-              Connection.Set_NonBlockingMode();
-              printf("Accept new incoming connection...\n");
-
-              while(Connection.ReadChar(c)) putchar(c);
-
-              char * Line = (char *) "HTTP/1.0 200 OK\r\n"
-            "Content-Type: text/plain\r\n"
-            "\r\n"
-            "Hello, World!";
-
-              Connection.Write(Line, strlen((const char *)Line));
-
-              Connection.Close();
-            }
-          }
-        }
-
-
-      }
-    }
 };
 
 
