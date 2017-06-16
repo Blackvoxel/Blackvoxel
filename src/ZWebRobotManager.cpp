@@ -61,9 +61,10 @@ ZWebRobotManager::~ZWebRobotManager()
 
 }
 
-bool ZWebRobotManager::Start()
+bool ZWebRobotManager::Start(int Port)
 {
   bool Res;
+
   // Create socket
 
   Res = Socket->Create();    if (!Res) return(false);
@@ -74,8 +75,9 @@ bool ZWebRobotManager::Start()
   Socket->Set_AbortiveClose();
 
   // Bind socket with port 5000
+  if (!Port) Port = 48559;
 
-  Res = Socket->Bind(5000);  if (!Res) { Socket->Close(); return(false); }
+  Res = Socket->Bind(Port);  if (!Res) { Socket->Close(); return(false); }
 
   // Listen
 
@@ -84,7 +86,7 @@ bool ZWebRobotManager::Start()
   Socket->Set_ReceiveTimeOut(5,0);
   Socket->Set_SendTimeOut(5,0);
 
-  printf("Network System Launched Ok\n");
+  printf("Web Robot Extension server waiting on port %d\n", Port);
   return(true);
 }
 

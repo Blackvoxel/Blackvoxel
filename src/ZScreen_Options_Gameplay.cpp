@@ -117,6 +117,24 @@ ULong ZScreen_Options_Game::ProcessScreen(ZGame * GameEnv)
     Frame_CheckboxLearningMode.SetSize(32.0f,32.0f);
     Frame_CheckboxLearningMode.SetState(GameEnv->Settings_Hardware->Experimental_LearningMode);
     GameEnv->GuiManager.AddFrame(&Frame_CheckboxLearningMode);
+    Pos.y += 32.0f + GameEnv->ScreenResolution.y * 0.05f;
+    Pos.x = LeftMargin;
+
+  ZFrame_FontFrame Frame_WebExtensions;
+    Frame_WebExtensions.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
+    Frame_WebExtensions.SetDisplayText("WEB EXTNSIONS ");
+    Frame_WebExtensions.GetTextDisplaySize(&Size);
+    Frame_WebExtensions.SetPosition(Pos.x, Pos.y);
+    Frame_WebExtensions.SetSize(Size.x + 1.0f, Size.y);
+    GameEnv->GuiManager.AddFrame(&Frame_WebExtensions);
+    Pos.x += Size.x;
+
+  ZFrame_CheckBox Frame_CheckboxWebExtensions;
+    Frame_CheckboxWebExtensions.SetGUITileset(GameEnv->GuiTileset);
+    Frame_CheckboxWebExtensions.SetPosition(Pos.x , Pos.y);
+    Frame_CheckboxWebExtensions.SetSize(32.0f,32.0f);
+    Frame_CheckboxWebExtensions.SetState(GameEnv->Settings_Hardware->WebExtension_Enable);
+    GameEnv->GuiManager.AddFrame(&Frame_CheckboxWebExtensions);
     Pos.y += 32.0f + GameEnv->ScreenResolution.y * 0.20f;
     Pos.x = LeftMargin;
 
@@ -147,12 +165,17 @@ ULong ZScreen_Options_Game::ProcessScreen(ZGame * GameEnv)
         else                                        { GameEnv->Settings_Hardware->Experimental_LearningMode = false; }
       }
 
+      if (Frame_CheckboxWebExtensions.Is_StateChanged())
+      {
+        if (Frame_CheckboxWebExtensions.GetState())  { GameEnv->Settings_Hardware->WebExtension_Enable = true;  }
+        else                                         { GameEnv->Settings_Hardware->WebExtension_Enable = false; }
+      }
+
       if (Frame_MouseFlipY.Is_StateChanged())
       {
         if (Frame_MouseFlipY.GetState())  { GameEnv->Settings_Hardware->Setting_MouseFlipY = true;  }
         else                              { GameEnv->Settings_Hardware->Setting_MouseFlipY = false; }
       }
-
 
       if (Frame_Save.Is_MouseClick()) { Loop = false; }
 
