@@ -69,6 +69,7 @@ class ZActiveVoxelInterface
     inline bool                MoveThis( int x, int y, int z, ZChangeImportance ChangeImportance);
     inline bool                MoveThis( ULong PositionCode, ZChangeImportance ChangeImportance);
     inline bool                MoveThis_Abs( ZVector3L * Destination, ZChangeImportance ChangeImportance );
+    inline void                AnimateThis(UShort NewVoxelType, ZChangeImportance ChangeImportance);
     inline bool                MoveVoxel( ZVector3L * Source, ZVector3L * Destination, ZChangeImportance ChangeImportance = ZActiveVoxelInterface::CHANGE_CRITICAL );
     inline bool                ExchangeVoxels(ZVector3L * Voxel1, ZVector3L * Voxel2, ZChangeImportance ChangeImportance);
     inline bool                SetVoxel( ZVector3L * Coords, UShort VoxelType, ZChangeImportance ChangeImportance );
@@ -90,6 +91,13 @@ class ZActiveVoxelInterface
 inline bool  ZActiveVoxelInterface::MoveThis_Abs( ZVector3L * Destination, ZChangeImportance ChangeImportance )
 {
   return( World->MoveVoxel_Sm(&Coords, Destination, 0, (UByte) ChangeImportance) );
+}
+
+inline void ZActiveVoxelInterface::AnimateThis(UShort NewVoxelType, ZChangeImportance ChangeImportance)
+{
+  Location.Sector->Data[Location.Offset] = NewVoxelType;
+  Location.Sector->Flag_Render_Dirty = true;
+  Location.Sector->Flag_IsModified = ChangeImportance;
 }
 
 inline bool ZActiveVoxelInterface::MoveThis( int x, int y, int z, ZChangeImportance ChangeImportance)
