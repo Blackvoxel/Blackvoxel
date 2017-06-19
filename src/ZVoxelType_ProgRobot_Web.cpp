@@ -171,69 +171,15 @@ void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
 
         UShort Direction = (AvData->GetVoxelType_Main() - 256) & 3;
 
-/*
-        if (Parser.Command=="do_advance")
-        {
-          if (!AvData->GetNeighborVoxel(Direction))
-          {
-            AvData->MoveThis(Direction, ZActiveVoxelInterface::CHANGE_CRITICAL);
-          }
-
-          RobotManager->Answer_NoParameters(Parser, Req);
-        }
-
-        if (Parser.Command=="do_goback")
-        {
-          Direction = (Direction + 2) & 3;
-
-          if (!AvData->GetNeighborVoxel(Direction))
-          {
-            AvData->MoveThis(Direction, ZActiveVoxelInterface::CHANGE_CRITICAL);
-          }
-
-          RobotManager->Answer_NoParameters(Parser, Req);
-        }
-
-        if (Parser.Command=="do_goup")
-        {
-          if (!AvData->GetNeighborVoxel(4))
-          {
-            AvData->MoveThis(4, ZActiveVoxelInterface::CHANGE_CRITICAL);
-          }
-
-          RobotManager->Answer_NoParameters(Parser, Req);
-        }
-
-        if (Parser.Command=="do_godown")
-        {
-          AvData->MoveThis(5, ZActiveVoxelInterface::CHANGE_CRITICAL);
-
-          RobotManager->Answer_NoParameters(Parser, Req);
-        }
-
-        if (Parser.Command=="do_turnleft")
-        {
-          Direction = (Direction - 1) & 3;
-          AvData->SetVoxel_Main(256+Direction, ZActiveVoxelInterface::CHANGE_CRITICAL );
-
-          RobotManager->Answer_NoParameters(Parser, Req);
-        }
-
-        if (Parser.Command=="do_turnright")
-        {
-          Direction = (Direction + 1) & 3;
-          AvData->SetVoxel_Main(256+Direction, ZActiveVoxelInterface::CHANGE_CRITICAL );
-
-          RobotManager->Answer_NoParameters(Parser, Req);
-        }
-*/
-
-
         if (Parser.Command=="do_home")
         {
           if (!AvData->GetVoxel(&Ext->HomeLocation))
           {
-            AvData->MoveThis_Abs(&Ext->HomeLocation, ZActiveVoxelInterface::CHANGE_CRITICAL);
+            if (Ext->HomeLocation != AvData->Coords)
+            {
+              AvData->AnimateThis(256,ZActiveVoxelInterface::CHANGE_CRITICAL);
+              AvData->MoveThis_Abs(&Ext->HomeLocation, ZActiveVoxelInterface::CHANGE_CRITICAL);
+            }
           }
 
 
@@ -286,8 +232,6 @@ void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
             if (MoveDirection <= 3) MoveDirection = (Direction + MoveDirection) & 3;
 
             UShort VoxelType = AvData->GetNeighborVoxel(MoveDirection);
-            printf("Move Direction : %d\n", (ULong)MoveDirection);
-            printf("VoxelType=%d\n", VoxelType);
 
             if (VoxelType == 0)
             {
@@ -314,13 +258,17 @@ void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
             {
               default:
               case 0: Direction = (Direction + 1) & 3;
-                      AvData->SetVoxel_Main(256+Direction, ZActiveVoxelInterface::CHANGE_CRITICAL );
-                      RobotManager->Answer_NoParameters(Parser, Req);
+//                    AvData->SetVoxel_Main(256+Direction, ZActiveVoxelInterface::CHANGE_CRITICAL );
+
+                      AvData->AnimateThis(256+Direction, ZActiveVoxelInterface::CHANGE_CRITICAL);
+
                       break;
 
               case 1: Direction = (Direction - 1) & 3;
-                      AvData->SetVoxel_Main(256+Direction, ZActiveVoxelInterface::CHANGE_CRITICAL );
-                      RobotManager->Answer_NoParameters(Parser, Req);
+                      //AvData->SetVoxel_Main(256+Direction, ZActiveVoxelInterface::CHANGE_CRITICAL );
+
+                      AvData->AnimateThis(256+Direction, ZActiveVoxelInterface::CHANGE_CRITICAL);
+
                       break;
 
             }
@@ -345,8 +293,6 @@ void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
             if (PlaceDirection <= 3) PlaceDirection = (Direction + PlaceDirection) & 3;
 
             UShort VoxelType = AvData->GetNeighborVoxel(PlaceDirection);
-            printf("Place Direction : %d\n", (ULong)PlaceDirection);
-            printf("VoxelType=%d\n", VoxelType);
 
             if (VoxelType == 0)
             {
@@ -429,14 +375,13 @@ void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
             InvType = InvTextParameter.GetULong();
             VoxelType = VoxelTypeTextParameter.GetULong();
 
-
             switch(InvType)
             {
               case 6:
               default: for (i=0;i<ZVoxelExtension_ProgRobot_Web::Storage_NumSlots;i++)
                        {
                          if (Ext->VoxelType[i]==VoxelType) Quantity += Ext->VoxelQuantity[i];
-                         printf("%d:%d=%d\n", i, Ext->VoxelType[i], Ext->VoxelQuantity[i]);
+                         //printf("%d:%d=%d\n", i, Ext->VoxelType[i], Ext->VoxelQuantity[i]);
                        }
                        break;
             }
@@ -463,9 +408,6 @@ void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
           {
             PushDirection = DirTextParameter.GetULong();
             VoxelType = VoxelTypeTextParameter.GetULong();
-
-            printf("Place Direction : %d\n", (ULong)PushDirection);
-            printf("VoxelType=%d\n", VoxelType);
 
             if (PushDirection <= 3) PushDirection = (Direction + PushDirection) & 3;
             if (PushDirection>5) PushDirection = 0;
@@ -529,6 +471,75 @@ void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
           RobotManager->Answer_NoParameters(Parser, Req);
         }
 
+
+        if (Parser.Command=="do_special_setstrictmode")
+        {
+          ZString VoxelTypeTextParameter;
+
+          if ( Parser.FindEntryText((char *)"setting",VoxelTypeTextParameter) )
+          {
+            Ext->SchoolModeEnableEasyInventory = VoxelTypeTextParameter.GetULong() ? false : true;
+          }
+
+          RobotManager->Answer_NoParameters(Parser, Req);
+        }
+
+        if (Parser.Command=="get_special_invslotcount")
+        {
+          ZString ReturnInfo;
+
+          ReturnInfo = ZVoxelExtension_ProgRobot_Web::Storage_NumSlots;
+          RobotManager->Answer_OneParameter(Parser, Req, ReturnInfo);
+        }
+
+        if (Parser.Command=="get_special_invslotvoxeltype")
+        {
+          ULong Slot;
+          UShort VoxelType;
+          ZString SlotTextParameter, ReturnInfo;
+
+          if (Parser.FindEntryText((char *)"slot",SlotTextParameter))
+          {
+            Slot = (SlotTextParameter.GetULong());
+            if (Slot >=  ZVoxelExtension_ProgRobot_Web::Storage_NumSlots) ReturnInfo = "0";
+            else
+            {
+              VoxelType = Ext->VoxelType[Slot];
+              if (Ext->VoxelQuantity[Slot]==0) VoxelType = 0;
+              ReturnInfo = VoxelType;
+            }
+          }
+          else
+          {
+            ReturnInfo="0";
+          }
+
+          RobotManager->Answer_OneParameter(Parser, Req, ReturnInfo);
+        }
+
+        if (Parser.Command=="get_special_invslotvoxelqtty")
+        {
+          ULong Slot, VoxelQtty;
+          ZString SlotTextParameter, ReturnInfo;
+
+          if (Parser.FindEntryText((char *)"slot",SlotTextParameter))
+          {
+            Slot = (SlotTextParameter.GetULong());
+            if (Slot >=  ZVoxelExtension_ProgRobot_Web::Storage_NumSlots) ReturnInfo = "0";
+            else
+            {
+              VoxelQtty = Ext->VoxelQuantity[Slot];
+              if (Ext->VoxelType[Slot]==0) VoxelQtty = 0;
+              ReturnInfo = VoxelQtty;
+            }
+          }
+          else
+          {
+            ReturnInfo="0";
+          }
+
+          RobotManager->Answer_OneParameter(Parser, Req, ReturnInfo);
+        }
 
 
   // Todo : Modifier les fonctions de rotation pour ne pas réinitialiser l'extension
