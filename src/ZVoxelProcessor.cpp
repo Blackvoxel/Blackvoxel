@@ -92,7 +92,7 @@ void ZVoxelProcessor::MakeTasks()
 
   // Web Robots
 
-  WebRobotManager.Process();
+  RemoteRobotManager.Process();
 
   // Sector Tasks like face culling.
 
@@ -162,18 +162,18 @@ void ZVoxelProcessor::MakeSectorTasks(ZVoxelSector * Sector)
 
 void ZVoxelProcessor::StartTasks()
 {
-  if (GameEnv->Settings_Hardware->WebExtension_Enable)
+  if (GameEnv->Settings_Hardware->RemoteExtension_Enable)
   {
-    if (WebRobotManager.Start(GameEnv->Settings_Hardware->WebExtension_Port)) GameEnv->Service_WRobotServer = true;
+    if (RemoteRobotManager.Start(GameEnv->Settings_Hardware->RemoteExtension_Port)) GameEnv->Service_RemoteRobotServerStarted = true;
   }
 }
 
 void ZVoxelProcessor::EndTasks()
 {
-  if (GameEnv->Service_WRobotServer)
+  if (GameEnv->Service_RemoteRobotServerStarted)
   {
-    WebRobotManager.Stop();
-    GameEnv->Service_WRobotServer = false;
+    RemoteRobotManager.Stop();
+    GameEnv->Service_RemoteRobotServerStarted = false;
   }
 }
 

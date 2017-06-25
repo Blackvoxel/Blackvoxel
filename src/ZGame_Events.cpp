@@ -54,8 +54,8 @@
 #  include "ZGameWindow_ResumeRequest_Little.h"
 #endif
 
-#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_WEB_H
-#  include "ZGameWindow_ZProgRobot_Web.h"
+#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_REMOTE_H
+#  include "ZGameWindow_ZProgRobot_Remote.h"
 #endif
 
 
@@ -936,7 +936,7 @@ void ZGame_Events::Process_StillEvents()
       else if (GameEnv->GameWindow_UserTextureTransformer->Is_Shown()) {GameEnv->GameWindow_UserTextureTransformer->Hide();}
       else if (GameEnv->GameWindow_Sequencer->Is_Shown())         { GameEnv->GameWindow_Sequencer->Hide();}
       else if (GameEnv->GameWindow_AsmDebug->Is_Shown())          { GameEnv->GameWindow_AsmDebug->Hide(); if (GameEnv->GameWindow_AsmHardware->Is_Shown()) GameEnv->GameWindow_AsmHardware->Hide(); }
-      else if (GameEnv->GameWindow_ProgRobot_Web->Is_Shown())         { GameEnv->GameWindow_ProgRobot_Web->Hide();}
+      else if (GameEnv->GameWindow_ProgRobot_Remote->Is_Shown())         { GameEnv->GameWindow_ProgRobot_Remote->Hide();}
       else
       {
         GameEnv->GameWindow_Inventory->SetGameEnv(GameEnv);

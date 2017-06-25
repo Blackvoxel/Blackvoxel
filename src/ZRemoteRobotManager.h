@@ -17,17 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZWebRobotManager.h
+ * ZRemoteRobotManager.h
  *
  *  Created on: 19 mai 2017
  *      Author: laurent
  */
 
-#ifndef Z_ZWEBROBOTMANAGER_H
-#define Z_ZWEBROBOTMANAGER_H
+#ifndef Z_ZREMOTEROBOTMANAGER_H
+#define Z_ZREMOTEROBOTMANAGER_H
 
-//#ifndef Z_ZWEBROBOTMANAGER_H
-//#  include "ZWebRobotManager.h"
+//#ifndef Z_ZREMOTEROBOTMANAGER_H
+//#  include "ZRemoteRobotManager.h"
 //#endif
 
 #ifndef Z_ZOBJECT_LISTS_H
@@ -41,7 +41,7 @@
 class ZTCPNet_Socket;
 class ZSimpleRequestParser;
 
-class ZWebRobotManager
+class ZRemoteRobotManager
 {
   protected:
 
@@ -63,8 +63,8 @@ class ZWebRobotManager
     Request * FreeRequest;
   public:
 
-    ZWebRobotManager();
-   ~ZWebRobotManager();
+    ZRemoteRobotManager();
+   ~ZRemoteRobotManager();
 
     bool Start(int Port);
 
@@ -74,11 +74,11 @@ class ZWebRobotManager
 
     Request * PopRequest();
 
-    bool Answer_NoParameters(ZSimpleRequestParser & Parser, ZWebRobotManager::Request * Req);
-    bool Answer_OneParameter(ZSimpleRequestParser & Parser, ZWebRobotManager::Request * Req, ZString & Parameter);
+    bool Answer_NoParameters(ZSimpleRequestParser & Parser, ZRemoteRobotManager::Request * Req);
+    bool Answer_OneParameter(ZSimpleRequestParser & Parser, ZRemoteRobotManager::Request * Req, ZString & Parameter);
 
 };
 
 
 
-#endif /* Z_ZWEBROBOTMANAGER_H */
+#endif /* Z_ZREMOTEROBOTMANAGER_H */

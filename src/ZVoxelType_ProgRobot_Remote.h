@@ -23,10 +23,10 @@
  *      Author: laurent
  */
 
-#ifndef Z_ZVOXELTYPE_PROGROBOT_WEB_H
-#define Z_ZVOXELTYPE_PROGROBOT_WEB_H
+#ifndef Z_ZVOXELTYPE_PROGROBOT_REMOTE_H
+#define Z_ZVOXELTYPE_PROGROBOT_REMOTE_H
 
-// #ifndef Z_ZVOXELTYPE_PROGROBOT_WEB_H
+// #ifndef Z_ZVOXELTYPE_PROGROBOT_REMOTE_H
 // #  include "ZVoxelType_ProgRobot_Web.h"
 // #endif
 
@@ -35,13 +35,13 @@
 #endif
 
 
-class ZVoxelType_ProgRobot_Web : public ZVoxelType
+class ZVoxelType_ProgRobot_Remote : public ZVoxelType
 {
   protected:
 
 
   public:
-    ZVoxelType_ProgRobot_Web(ULong VoxelType) : ZVoxelType(VoxelType)
+    ZVoxelType_ProgRobot_Remote(ULong VoxelType) : ZVoxelType(VoxelType)
     {
       Is_VoxelExtension = true;
       Is_HasAllocatedMemoryExtension = true;
@@ -70,4 +70,4 @@ class ZVoxelType_ProgRobot_Web : public ZVoxelType
 };
 
 
-#endif /* Z_ZVOXELTYPE_PROGROBOT_WEB_H */
+#endif /* Z_ZVOXELTYPE_PROGROBOT_REMOTE_H */

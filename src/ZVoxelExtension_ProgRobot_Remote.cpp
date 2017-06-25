@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZVoxelExtension_ProgRobot_Web.cpp
+ * ZVoxelExtension_ProgRobot_Remote.cpp
  *
  *  Created on: 22 mai 2017
  *      Author: laurent
@@ -27,17 +27,17 @@
 #  include "ZGame.h"
 #endif
 
-#  include "ZVoxelExtension_ProgRobot_Web.h"
+#  include "ZVoxelExtension_ProgRobot_Remote.h"
 
 
 extern ZGame * Ge;
 
-ZVoxelExtension_ProgRobot_Web::~ZVoxelExtension_ProgRobot_Web()
+ZVoxelExtension_ProgRobot_Remote::~ZVoxelExtension_ProgRobot_Remote()
 {
 
 }
 
-bool ZVoxelExtension_ProgRobot_Web::Save(ZStream_SpecialRamStream * Stream)
+bool ZVoxelExtension_ProgRobot_Remote::Save(ZStream_SpecialRamStream * Stream)
 {
   ULong * ExtensionSize;
   ULong   StartLen;
@@ -64,7 +64,7 @@ bool ZVoxelExtension_ProgRobot_Web::Save(ZStream_SpecialRamStream * Stream)
   return(true);
 }
 
-bool ZVoxelExtension_ProgRobot_Web::Load(ZStream_SpecialRamStream * Stream)
+bool ZVoxelExtension_ProgRobot_Remote::Load(ZStream_SpecialRamStream * Stream)
 {
     bool Ok;
 

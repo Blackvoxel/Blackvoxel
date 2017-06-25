@@ -66,8 +66,8 @@
 #  include "ZEgmyScatter.h"
 #endif
 
-#ifndef Z_ZWEBROBOTMANAGER_H
-#  include "ZWebRobotManager.h"
+#ifndef Z_ZREMOTEROBOTMANAGER_H
+#  include "ZRemoteRobotManager.h"
 #endif
 
 class ZGame;
@@ -107,7 +107,7 @@ class ZVoxelProcessor : public ZObject
 
 
   public:
-    ZWebRobotManager WebRobotManager;
+    ZRemoteRobotManager RemoteRobotManager;
     ZVoxelProcessor();
     ~ZVoxelProcessor();
 

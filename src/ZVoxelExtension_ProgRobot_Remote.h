@@ -17,17 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZVoxelExtension_ProgRobot_Web.h
+ * ZVoxelExtension_ProgRobot_Remote.h
  *
  *  Created on: 22 mai 2017
  *      Author: laurent
  */
 
-#ifndef Z_ZVOXELEXTENSION_PROGROBOT_WEB_H
-#define Z_ZVOXELEXTENSION_PROGROBOT_WEB_H
+#ifndef Z_ZVOXELEXTENSION_PROGROBOT_REMOTE_H
+#define Z_ZVOXELEXTENSION_PROGROBOT_REMOTE_H
 
-//#ifndef Z_ZVOXELEXTENSION_PROGROBOT_WEB_H
-//#  include "ZVoxelExtension_ProgRobot_Web.h"
+//#ifndef Z_ZVOXELEXTENSION_PROGROBOT_REMOTE_H
+//#  include "ZVoxelExtension_ProgRobot_Remote.h"
 //#endif
 
 #ifndef Z_ZVOXELEXTENSION_H
@@ -44,7 +44,7 @@
 
 class ZActiveVoxelInterface;
 
-class ZVoxelExtension_ProgRobot_Web : public ZVoxelExtension
+class ZVoxelExtension_ProgRobot_Remote : public ZVoxelExtension
 {
   public:
     enum {Storage_NumSlots = 20, ImageTable_Size = 64};
@@ -62,7 +62,7 @@ class ZVoxelExtension_ProgRobot_Web : public ZVoxelExtension
       return(0);
     }
 
-    ZVoxelExtension_ProgRobot_Web()
+    ZVoxelExtension_ProgRobot_Remote()
     {
       ULong i;
 
@@ -75,7 +75,7 @@ class ZVoxelExtension_ProgRobot_Web : public ZVoxelExtension
       SchoolModeEnableEasyInventory = true;
     }
 
-    virtual ~ZVoxelExtension_ProgRobot_Web();
+    virtual ~ZVoxelExtension_ProgRobot_Remote();
 
     void Cleanup()
     {
@@ -171,4 +171,4 @@ class ZVoxelExtension_ProgRobot_Web : public ZVoxelExtension
 };
 
 
-#endif /* Z_ZVOXELEXTENSION_PROGROBOT_WEB_H */
+#endif /* Z_ZVOXELEXTENSION_PROGROBOT_REMOTE_H */

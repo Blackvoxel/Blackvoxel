@@ -133,7 +133,7 @@ ULong ZScreen_Options_Game::ProcessScreen(ZGame * GameEnv)
     Frame_CheckboxWebExtensions.SetGUITileset(GameEnv->GuiTileset);
     Frame_CheckboxWebExtensions.SetPosition(Pos.x , Pos.y);
     Frame_CheckboxWebExtensions.SetSize(32.0f,32.0f);
-    Frame_CheckboxWebExtensions.SetState(GameEnv->Settings_Hardware->WebExtension_Enable);
+    Frame_CheckboxWebExtensions.SetState(GameEnv->Settings_Hardware->RemoteExtension_Enable);
     GameEnv->GuiManager.AddFrame(&Frame_CheckboxWebExtensions);
     Pos.y += 32.0f + GameEnv->ScreenResolution.y * 0.20f;
     Pos.x = LeftMargin;
@@ -167,8 +167,8 @@ ULong ZScreen_Options_Game::ProcessScreen(ZGame * GameEnv)
 
       if (Frame_CheckboxWebExtensions.Is_StateChanged())
       {
-        if (Frame_CheckboxWebExtensions.GetState())  { GameEnv->Settings_Hardware->WebExtension_Enable = true;  }
-        else                                         { GameEnv->Settings_Hardware->WebExtension_Enable = false; }
+        if (Frame_CheckboxWebExtensions.GetState())  { GameEnv->Settings_Hardware->RemoteExtension_Enable = true;  }
+        else                                         { GameEnv->Settings_Hardware->RemoteExtension_Enable = false; }
       }
 
       if (Frame_MouseFlipY.Is_StateChanged())

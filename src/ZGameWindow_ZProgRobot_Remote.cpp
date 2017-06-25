@@ -17,14 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZGameWindow_ZProgRobot_Web.cpp
+ * ZGameWindow_ZProgRobot_Remote.cpp
  *
  *  Created on: 3 juin 2017
  *      Author: laurent
  */
 
-#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_WEB_H
-#  include "ZGameWindow_ZProgRobot_Web.h"
+#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_REMOTE_H
+#  include "ZGameWindow_ZProgRobot_Remote.h"
 #endif
 
 #ifndef Z_ZOS_SPECIFIC_VIEWDOC_H
@@ -40,7 +40,7 @@
 #include "SDL/SDL.h"
 
 
-void ZGameWindow_ProgRobot_Web::DisplayProgramName()
+void ZGameWindow_ProgRobot_Remote::DisplayProgramName()
 {
   ZStream_File Stream;
   ZString      FileName,FileSpec,File, Keyword, KeywordValue;
@@ -59,7 +59,7 @@ void ZGameWindow_ProgRobot_Web::DisplayProgramName()
   ProgramName.SetDisplayText(Text_ProgramName.String);
 }
 
-void ZGameWindow_ProgRobot_Web::Show()
+void ZGameWindow_ProgRobot_Remote::Show()
 {
   ZVector2f Rp, Ip, Size;
   ZActor * Actor;
@@ -242,7 +242,7 @@ void ZGameWindow_ProgRobot_Web::Show()
   Flag_Shown = true;
 }
 
-void ZGameWindow_ProgRobot_Web::Hide()
+void ZGameWindow_ProgRobot_Remote::Hide()
 {
   GameEnv->GuiManager.RemoveFrame(MainWindow);
   SDL_ShowCursor(SDL_DISABLE);
@@ -251,7 +251,7 @@ void ZGameWindow_ProgRobot_Web::Hide()
   Flag_Shown = false;
 }
 
-Bool ZGameWindow_ProgRobot_Web::MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y)
+Bool ZGameWindow_ProgRobot_Remote::MouseButtonClick  (UShort nButton, Short Absolute_x, Short Absolute_y)
 {
   Bool Res;
   Res = ZFrame::MouseButtonClick(nButton, Absolute_x, Absolute_y);

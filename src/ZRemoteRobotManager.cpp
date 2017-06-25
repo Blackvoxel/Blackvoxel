@@ -17,13 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZWebRobotManager.cpp
+ * ZRemoteRobotManager.cpp
  *
  *  Created on: 19 mai 2017
  *      Author: laurent
  */
 
-#include "ZWebRobotManager.h"
+#include "ZRemoteRobotManager.h"
 
 
 #ifndef Z_ZNETWORKING_TCP_H
@@ -37,14 +37,14 @@
 
 
 
-ZWebRobotManager::ZWebRobotManager()
+ZRemoteRobotManager::ZRemoteRobotManager()
 {
   Socket = new ZTCPNet_Socket();
   IsStarted = false;
   FreeRequest = 0;
 }
 
-ZWebRobotManager::~ZWebRobotManager()
+ZRemoteRobotManager::~ZRemoteRobotManager()
 {
   if (Socket)
   {
@@ -61,7 +61,7 @@ ZWebRobotManager::~ZWebRobotManager()
 
 }
 
-bool ZWebRobotManager::Start(int Port)
+bool ZRemoteRobotManager::Start(int Port)
 {
   bool Res;
 
@@ -86,11 +86,11 @@ bool ZWebRobotManager::Start(int Port)
   Socket->Set_ReceiveTimeOut(5,0);
   Socket->Set_SendTimeOut(5,0);
 
-  printf("Web Robot Extension server waiting on port %d\n", Port);
+  printf("Remote Robot Extension server waiting on port %d\n", Port);
   return(true);
 }
 
-void ZWebRobotManager::Process()
+void ZRemoteRobotManager::Process()
 {
   char c;
 
@@ -128,13 +128,13 @@ void ZWebRobotManager::Process()
   }
 }
 
-void ZWebRobotManager::Stop()
+void ZRemoteRobotManager::Stop()
 {
   Socket->Close();
   printf("Stopping Web Robot Extension server\n");
 }
 
-ZWebRobotManager::Request * ZWebRobotManager::PopRequest()
+ZRemoteRobotManager::Request * ZRemoteRobotManager::PopRequest()
 {
   return((Request *)RequestList.RemoveTail());
 }
@@ -150,7 +150,7 @@ bool ZWebRobotManager::ReplyOK(Request * Request)
 }
 */
 
-bool ZWebRobotManager::Answer_NoParameters(ZSimpleRequestParser & Parser, ZWebRobotManager::Request * Req)
+bool ZRemoteRobotManager::Answer_NoParameters(ZSimpleRequestParser & Parser, ZRemoteRobotManager::Request * Req)
 {
   ZString Out, Callback;
   bool Cb, Result;
@@ -193,7 +193,7 @@ bool ZWebRobotManager::Answer_NoParameters(ZSimpleRequestParser & Parser, ZWebRo
   return(Result);
 }
 
-bool ZWebRobotManager::Answer_OneParameter(ZSimpleRequestParser & Parser, ZWebRobotManager::Request * Req, ZString & Parameter)
+bool ZRemoteRobotManager::Answer_OneParameter(ZSimpleRequestParser & Parser, ZRemoteRobotManager::Request * Req, ZString & Parameter)
 {
   ZString Out, Callback;
   bool Cb, Result;

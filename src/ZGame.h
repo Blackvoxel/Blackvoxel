@@ -190,7 +190,7 @@
 
 
 class ZRender_Basic;
-class ZGameWindow_ProgRobot_Web;
+class ZGameWindow_ProgRobot_Remote;
 class ZGameWindow_ResumeRequest_Little;
 
 class ZGame
@@ -244,7 +244,7 @@ class ZGame
              GameWindow_Inventory = 0;
              GameWindow_DisplayInfos = 0;
              GameWindow_ProgRobot_Asm = 0;
-             GameWindow_ProgRobot_Web = 0;
+             GameWindow_ProgRobot_Remote = 0;
              GameWindow_AsmDebug = 0;
              GameWindow_AsmHardware = 0;
              GameWindow_AsmExtendedRegisters = 0;
@@ -276,7 +276,7 @@ class ZGame
              Stop_Programmable_Robots = false;
              Previous_GameVersion = 0;
              HardwareInfo = 0;
-             Service_WRobotServer = false;
+             Service_RemoteRobotServerStarted = false;
    }
   ~ZGame() { UniverseNum = 0; }
 
@@ -348,7 +348,7 @@ class ZGame
   ZGameWindow_Programmable           * GameWindow_Programmable;
   ZGameWindow_UserTextureTransformer * GameWindow_UserTextureTransformer;
   ZGameWindow_ProgRobot_Asm          * GameWindow_ProgRobot_Asm;
-  ZGameWindow_ProgRobot_Web          * GameWindow_ProgRobot_Web;
+  ZGameWindow_ProgRobot_Remote          * GameWindow_ProgRobot_Remote;
   ZGameWindow_ProgressBar            * GameProgressBar;
   ZGameWindow_Advertising            * GameWindow_Advertising;
   ZGameWindow_DisplayInfos           * GameWindow_DisplayInfos;
@@ -393,7 +393,7 @@ class ZGame
 
   // Services
 
-  bool Service_WRobotServer;
+  bool Service_RemoteRobotServerStarted;
 
   // Screen Informations
 

@@ -17,17 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZGameWindow_ZProgRobot_Web.h
+ * ZGameWindow_ZProgRobot_Remote.h
  *
  *  Created on: 3 juin 2017
  *      Author: laurent
  */
 
-#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_WEB_H
-#define Z_ZGAMEWINDOW_ZPROGROBOT_WEB_H
+#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_REMOTE_H
+#define Z_ZGAMEWINDOW_ZPROGROBOT_REMOTE_H
 
-//#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_WEB_H
-//#  include "ZGameWindow_ZProgRobot_Web.h"
+//#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_REMOTE_H
+//#  include "ZGameWindow_ZProgRobot_Remote.h"
 //#endif
 
 #ifndef Z_ZGUI_H
@@ -54,13 +54,13 @@
 #  include "ZVoxelTypeManager.h"
 #endif
 
-#ifndef Z_ZVOXELEXTENSION_PROGROBOT_WEB_H
-#  include "ZVoxelExtension_ProgRobot_Web.h"
+#ifndef Z_ZVOXELEXTENSION_PROGROBOT_REMOTE_H
+#  include "ZVoxelExtension_ProgRobot_Remote.h"
 #endif
 
 class ZGame;
 
-class ZGameWindow_ProgRobot_Web : public ZFrame
+class ZGameWindow_ProgRobot_Remote : public ZFrame
 {
   protected:
     ZFrame         * MainWindow;
@@ -99,13 +99,13 @@ class ZGameWindow_ProgRobot_Web : public ZFrame
     ZString Text_ProgramName;
     double  ProgramNum;
 
-    ZVoxelExtension_ProgRobot_Web * VoxelExtension;
+    ZVoxelExtension_ProgRobot_Remote * VoxelExtension;
 
     UShort i1,i2,i3;
     ULong Q1,Q2,Q3;
   public:
 
-    ZGameWindow_ProgRobot_Web()
+    ZGameWindow_ProgRobot_Remote()
   {
     MainWindow = this;
     GameEnv = 0;
@@ -114,7 +114,7 @@ class ZGameWindow_ProgRobot_Web : public ZFrame
     Q1=Q2=Q3 = 0;
     MainStorage = new ZInventoryBox[128];
     Flag_Shown = false;
-    Text_MainTitle = "WEB ROBOT";
+    Text_MainTitle = "REMOTE ROBOT";
     Text_RobotZoneTitle = "ROBOT PROGRAM";
     Text_StorageTitle = "ROBOT STORAGE";
     Text_InventoryTitle = "INVENTORY";
@@ -126,14 +126,14 @@ class ZGameWindow_ProgRobot_Web : public ZFrame
     ProgramNum = 0;
   }
 
-  ~ZGameWindow_ProgRobot_Web()
+  ~ZGameWindow_ProgRobot_Remote()
   {
     if (MainStorage) delete [] MainStorage;
   }
 
   void SetGameEnv(ZGame * GameEnv) {this->GameEnv = GameEnv;}
 
-  void SetVoxelExtension(ZVoxelExtension * Extension) { VoxelExtension = (ZVoxelExtension_ProgRobot_Web *)Extension; }
+  void SetVoxelExtension(ZVoxelExtension * Extension) { VoxelExtension = (ZVoxelExtension_ProgRobot_Remote *)Extension; }
   ZVoxelExtension * GetVoxelExtension() { return(VoxelExtension);}
   void Show();
   void Hide();
@@ -154,4 +154,4 @@ class ZGameWindow_ProgRobot_Web : public ZFrame
 
 
 
-#endif /* Z_ZGAMEWINDOW_ZPROGROBOT_WEB_H */
+#endif /* Z_ZGAMEWINDOW_ZPROGROBOT_REMOTE_H */

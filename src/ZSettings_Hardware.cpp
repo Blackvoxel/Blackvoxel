@@ -80,8 +80,8 @@ ZSettings_Hardware::ZSettings_Hardware()
     Setting_Favorite_Editor = "leafpad";
   }
 
-  WebExtension_Enable = false;
-  WebExtension_Port   = 0;
+  RemoteExtension_Enable = false;
+  RemoteExtension_Port   = 0;
 }
 
 
@@ -180,8 +180,8 @@ bool ZSettings_Hardware::Load()
         }
         if (Token=="Experimental_LearningMode") { Experimental_LearningMode = (Line.GetULong() > 0) ? true : false; }
 
-        if (Token=="WebExtension_Enable") { WebExtension_Enable = (Line.GetULong() > 0) ? true : false; }
-        if (Token=="WebExtension_Port")   { WebExtension_Port   = (UShort)Line.GetULong(); }
+        if (Token=="WebExtension_Enable") { RemoteExtension_Enable = (Line.GetULong() > 0) ? true : false; }
+        if (Token=="WebExtension_Port")   { RemoteExtension_Port   = (UShort)Line.GetULong(); }
 
         if (Token=="Setting_Favorite_Editor")
         {
@@ -240,8 +240,8 @@ bool ZSettings_Hardware::Save()
   Out << "Opt_SectCFactor               = " << Opt_SectCFactor << Out.NewLine();
   Out << "PixelAspectRatio              = " << PixelAspectRatio << Out.NewLine();
   Out << "Experimental_LearningMode     = " << (Experimental_LearningMode ? 1u:0u)    << Out.NewLine();
-  Out << "WebExtension_Enable           = " << (WebExtension_Enable ? 1u:0u)    << Out.NewLine();
-  Out << "WebExtension_Port             = " << WebExtension_Port << Out.NewLine();
+  Out << "WebExtension_Enable           = " << (RemoteExtension_Enable ? 1u:0u)    << Out.NewLine();
+  Out << "WebExtension_Port             = " << RemoteExtension_Port << Out.NewLine();
   Out << "Setting_Favorite_Editor       = " << Setting_Favorite_Editor << Out.NewLine();
   Out << "Setting_Version               = " << (ULong)Setting_Version                 << Out.NewLine();
 

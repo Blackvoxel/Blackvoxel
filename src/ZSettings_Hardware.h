@@ -94,8 +94,8 @@ class ZSettings_Hardware
 
     bool Experimental_LearningMode;
     ZString Setting_Favorite_Editor;
-    bool   WebExtension_Enable;
-    UShort WebExtension_Port;
+    bool   RemoteExtension_Enable;
+    UShort RemoteExtension_Port;
 
     // Setting Version.
 

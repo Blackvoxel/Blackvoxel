@@ -127,8 +127,8 @@
 #  include "ZVoxelType_WirelessReceiver.h"
 #endif
 
-#ifndef Z_ZVOXELTYPE_PROGROBOT_WEB_H
-#  include "ZVoxelType_ProgRobot_Web.h"
+#ifndef Z_ZVOXELTYPE_PROGROBOT_REMOTE_H
+#  include "ZVoxelType_ProgRobot_Remote.h"
 #endif
 
 void ZVoxelTypeManager::DumpInfos()
@@ -1886,7 +1886,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
       case 241: VoxelType = new ZVoxelType_SPS(i);                   break;
       case 254: VoxelType = new ZVoxelType_WirelessTransmitter(i);   break;
       case 255: VoxelType = new ZVoxelType_WirelessReceiver(i);      break;
-      case 256 ... 259 : VoxelType = new ZVoxelType_ProgRobot_Web(i);break;
+      case 256 ... 259 : VoxelType = new ZVoxelType_ProgRobot_Remote(i);break;
 
       default:  VoxelType = new ZVoxelType(i);                       break;
     }

@@ -17,18 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
- * ZVoxelType_ProgRobot_Web.cpp
+ * ZVoxelType_ProgRobot_Remote.cpp
  *
  *  Created on: 22 mai 2017
  *      Author: laurent
  */
 
-#include "ZVoxelType_ProgRobot_Web.h"
-
 #include "ZGame.h"
+#include "ZVoxelType_ProgRobot_Remote.h"
 
-#ifndef Z_ZVOXELEXTENSION_PROGROBOT_WEB_H
-#  include "ZVoxelExtension_ProgRobot_Web.h"
+#ifndef Z_ZVOXELEXTENSION_PROGROBOT_REMOTE_H
+#  include "ZVoxelExtension_ProgRobot_Remote.h"
 #endif
 
 #ifndef Z_ZACTIVEVOXELINTERFACE_H
@@ -39,21 +38,21 @@
 #  include "z/ZSimpleRequestParser.h"
 #endif
 
-#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_WEB_H
-#  include "ZGameWindow_ZProgRobot_Web.h"
+#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_REMOTE_H
+#  include "ZGameWindow_ZProgRobot_Remote.h"
 #endif
 
 
-ZVoxelExtension * ZVoxelType_ProgRobot_Web::CreateVoxelExtension(bool IsLoadingPhase)
+ZVoxelExtension * ZVoxelType_ProgRobot_Remote::CreateVoxelExtension(bool IsLoadingPhase)
 {
-  ZVoxelExtension_ProgRobot_Web * NewVoxelExtension = 0;
+  ZVoxelExtension_ProgRobot_Remote * NewVoxelExtension = 0;
 
-  NewVoxelExtension = new ZVoxelExtension_ProgRobot_Web;
+  NewVoxelExtension = new ZVoxelExtension_ProgRobot_Remote;
 
   return (NewVoxelExtension);
 }
 
-void ZVoxelType_ProgRobot_Web::DeleteVoxelExtension(ZMemSize VoxelExtension, bool IsUnloadingPhase)
+void ZVoxelType_ProgRobot_Remote::DeleteVoxelExtension(ZMemSize VoxelExtension, bool IsUnloadingPhase)
 {
   ZVoxelExtension_ProgRobot_Asm * Ext;
 
@@ -82,14 +81,14 @@ void ZVoxelType_ProgRobot_Web::DeleteVoxelExtension(ZMemSize VoxelExtension, boo
   delete Ext;
 }
 
-void  ZVoxelType_ProgRobot_Web::UserAction_Activate(ZMemSize VoxelInfo, Long x, Long y, Long z)
+void  ZVoxelType_ProgRobot_Remote::UserAction_Activate(ZMemSize VoxelInfo, Long x, Long y, Long z)
 {
-  if (GameEnv->GameWindow_ProgRobot_Web->Is_Shown()) return;
-  GameEnv->GameWindow_ProgRobot_Web->SetVoxelExtension((ZVoxelExtension *)VoxelInfo);
-  GameEnv->GameWindow_ProgRobot_Web->Show();
+  if (GameEnv->GameWindow_ProgRobot_Remote->Is_Shown()) return;
+  GameEnv->GameWindow_ProgRobot_Remote->SetVoxelExtension((ZVoxelExtension *)VoxelInfo);
+  GameEnv->GameWindow_ProgRobot_Remote->Show();
 }
 
-ULong ZVoxelType_ProgRobot_Web::Interface_PushBlock_Push( ZVoxelLocation * DestLocation, UShort VoxelType, ULong Count )
+ULong ZVoxelType_ProgRobot_Remote::Interface_PushBlock_Push( ZVoxelLocation * DestLocation, UShort VoxelType, ULong Count )
 {
   ZVoxelExtension_ProgRobot_Asm * Ext_Storage;
 
@@ -103,7 +102,7 @@ ULong ZVoxelType_ProgRobot_Web::Interface_PushBlock_Push( ZVoxelLocation * DestL
   return(0);
 }
 
-ULong ZVoxelType_ProgRobot_Web::Interface_PushBlock_Pull( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+ULong ZVoxelType_ProgRobot_Remote::Interface_PushBlock_Pull( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
   ZVoxelExtension_ProgRobot_Asm * Ext_Storage;
   ULong SlotNum;
@@ -120,7 +119,7 @@ ULong ZVoxelType_ProgRobot_Web::Interface_PushBlock_Pull( ZVoxelLocation * DestL
   return(0);
 }
 
-ULong ZVoxelType_ProgRobot_Web::Interface_PushBlock_PullTest( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
+ULong ZVoxelType_ProgRobot_Remote::Interface_PushBlock_PullTest( ZVoxelLocation * DestLocation,  UShort * VoxelType, ULong Count )
 {
   ZVoxelExtension_ProgRobot_Asm * Ext_Storage;
   ULong SlotNum;
@@ -138,14 +137,14 @@ ULong ZVoxelType_ProgRobot_Web::Interface_PushBlock_PullTest( ZVoxelLocation * D
   return(0);
 }
 
-void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
+void ZVoxelType_ProgRobot_Remote::ActiveProcess( ZActiveVoxelInterface * AvData)
 {
-  ZVoxelExtension_ProgRobot_Web * Ext;
-  ZWebRobotManager::Request * Req;
+  ZVoxelExtension_ProgRobot_Remote * Ext;
+  ZRemoteRobotManager::Request * Req;
   ZString As, Bs, Cs;
-  ZWebRobotManager * RobotManager;
+  ZRemoteRobotManager * RobotManager;
 
-  Ext = (ZVoxelExtension_ProgRobot_Web *)AvData->GetVoxelExtension_Main();
+  Ext = (ZVoxelExtension_ProgRobot_Remote *)AvData->GetVoxelExtension_Main();
   Ext->SetActiveVoxelInterface(AvData);
 
   // Set home location if isn't already set.
@@ -156,7 +155,7 @@ void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
     Ext->HomeLocation = AvData->Coords;
   }
 
-  RobotManager = &AvData->GameEnv->VoxelProcessor->WebRobotManager;
+  RobotManager = &AvData->GameEnv->VoxelProcessor->RemoteRobotManager;
 
   if ((Req = RobotManager->PopRequest()))
   {
@@ -378,7 +377,7 @@ void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
             switch(InvType)
             {
               case 6:
-              default: for (i=0;i<ZVoxelExtension_ProgRobot_Web::Storage_NumSlots;i++)
+              default: for (i=0;i<ZVoxelExtension_ProgRobot_Remote::Storage_NumSlots;i++)
                        {
                          if (Ext->VoxelType[i]==VoxelType) Quantity += Ext->VoxelQuantity[i];
                          //printf("%d:%d=%d\n", i, Ext->VoxelType[i], Ext->VoxelQuantity[i]);
@@ -488,7 +487,7 @@ void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
         {
           ZString ReturnInfo;
 
-          ReturnInfo = ZVoxelExtension_ProgRobot_Web::Storage_NumSlots;
+          ReturnInfo = ZVoxelExtension_ProgRobot_Remote::Storage_NumSlots;
           RobotManager->Answer_OneParameter(Parser, Req, ReturnInfo);
         }
 
@@ -501,7 +500,7 @@ void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
           if (Parser.FindEntryText((char *)"slot",SlotTextParameter))
           {
             Slot = (SlotTextParameter.GetULong());
-            if (Slot >=  ZVoxelExtension_ProgRobot_Web::Storage_NumSlots) ReturnInfo = "0";
+            if (Slot >=  ZVoxelExtension_ProgRobot_Remote::Storage_NumSlots) ReturnInfo = "0";
             else
             {
               VoxelType = Ext->VoxelType[Slot];
@@ -525,7 +524,7 @@ void ZVoxelType_ProgRobot_Web::ActiveProcess( ZActiveVoxelInterface * AvData)
           if (Parser.FindEntryText((char *)"slot",SlotTextParameter))
           {
             Slot = (SlotTextParameter.GetULong());
-            if (Slot >=  ZVoxelExtension_ProgRobot_Web::Storage_NumSlots) ReturnInfo = "0";
+            if (Slot >=  ZVoxelExtension_ProgRobot_Remote::Storage_NumSlots) ReturnInfo = "0";
             else
             {
               VoxelQtty = Ext->VoxelQuantity[Slot];

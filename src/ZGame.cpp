@@ -67,8 +67,8 @@
 #  include "ZLoadingScreen.h"
 #endif
 
-#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_WEB_H
-#  include "ZGameWindow_ZProgRobot_Web.h"
+#ifndef Z_ZGAMEWINDOW_ZPROGROBOT_REMOTE_H
+#  include "ZGameWindow_ZProgRobot_Remote.h"
 #endif
 
 #ifndef Z_ZGAMEWINDOW_RESUMEREQUEST_LITTLE_H
@@ -995,7 +995,7 @@ bool ZGame::Start_GameWindows()
   GameWindow_Storage     = new ZGameWindow_Storage;       GameWindow_Storage->SetGameEnv(this);
   GameWindow_Programmable= new ZGameWindow_Programmable;  GameWindow_Programmable->SetGameEnv(this);
   GameWindow_ProgRobot_Asm=new ZGameWindow_ProgRobot_Asm; GameWindow_ProgRobot_Asm->SetGameEnv(this);
-  GameWindow_ProgRobot_Web=new ZGameWindow_ProgRobot_Web; GameWindow_ProgRobot_Web->SetGameEnv(this);
+  GameWindow_ProgRobot_Remote=new ZGameWindow_ProgRobot_Remote; GameWindow_ProgRobot_Remote->SetGameEnv(this);
   GameProgressBar        = new ZGameWindow_ProgressBar;   GameProgressBar->SetGameEnv(this);
   GameWindow_Advertising = new ZGameWindow_Advertising;   GameWindow_Advertising->SetGameEnv(this);
   GameWindow_UserTextureTransformer = new ZGameWindow_UserTextureTransformer; GameWindow_UserTextureTransformer->SetGameEnv(this);
@@ -1028,7 +1028,7 @@ bool ZGame::End_GameWindows()
   if (GameProgressBar)      {delete GameProgressBar; GameProgressBar=0;}
   if (GameWindow_SPS)       {delete GameWindow_SPS; GameWindow_SPS = 0;}
   if (GameWindow_Scan)      {delete GameWindow_Scan; GameWindow_Scan = 0;}
-  if (GameWindow_ProgRobot_Web) {delete GameWindow_ProgRobot_Web; GameWindow_ProgRobot_Web = 0;}
+  if (GameWindow_ProgRobot_Remote) {delete GameWindow_ProgRobot_Remote; GameWindow_ProgRobot_Remote = 0;}
 
   Initialized_GameWindows = false;
   return(true);
