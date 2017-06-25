@@ -38,8 +38,6 @@
 #  include "z/ZNetworking_TCP.h"
 #endif
 
-
-
 class ZTCPNet_Socket;
 class ZSimpleRequestParser;
 

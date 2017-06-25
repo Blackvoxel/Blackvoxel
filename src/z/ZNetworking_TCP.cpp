@@ -38,6 +38,8 @@
   #include <netinet/in.h>
 #endif
 
+ULong ZTCPNet_Socket::NetworkInitCounter=0;
+
 
 ZTCPNet_Connection::ZTCPNet_Connection()
 {
@@ -57,13 +59,50 @@ ZTCPNet_Connection::~ZTCPNet_Connection()
 
 bool ZTCPNet_Connection::ReadChar(char &c)
 {
-  return(read(ConnectionFileDescriptor,&c,1)==1);
+#ifdef ZENV_OS_WINDOWS
+  return(1==recv(ConnectionFileDescriptor,&c,1,0 ));
+#else
+  return(1==read(ConnectionFileDescriptor,&c,1));
+#endif
 }
 
 
 bool ZTCPNet_Connection::Write(char * Line, int Len)
 {
+#ifdef ZENV_OS_WINDOWS
+	return(Len == send(ConnectionFileDescriptor, Line, Len,0));
+#else
   return(Len == write(ConnectionFileDescriptor, Line, Len));
+#endif
+}
+
+bool ZTCPNet_Connection::Shutdown(ShutdownMode Mode)
+{
+#ifdef ZENV_OS_WINDOWS
+
+  int How;
+
+  switch(Mode)
+  {
+    case SHD_ALL:     How = SD_BOTH;    break;
+    case SHD_RECEIVE: How = SD_RECEIVE; break;
+    case SHD_SEND:    How = SD_SEND;    break;
+  }
+  return( 0==shutdown(ConnectionFileDescriptor, How));
+
+#else
+
+  int How;
+
+  switch(Mode)
+  {
+    case SHD_ALL:     How = SHUT_RDWR; break;
+    case SHD_RECEIVE: How = SHUT_RD;   break;
+    case SHD_SEND:    How = SHUT_WR;   break;
+  }
+  return( 0==shutdown(ConnectionFileDescriptor, How));
+
+#endif
 }
 
 
@@ -124,6 +163,32 @@ ZTCPNet_Socket::~ZTCPNet_Socket()
 {
   if (Initialized_Socket) Close();
   if (Address) {delete Address; Address=0;}
+}
+
+bool ZTCPNet_Socket::Init()
+{
+  if (NetworkInitCounter == 0)
+  {
+#ifdef ZENV_OS_WINDOWS
+    WSADATA wsaData;
+    if(WSAStartup(0x202, &wsaData) != 0) return(false);
+#endif
+    NetworkInitCounter++;
+  }
+
+  return(true);
+}
+
+void ZTCPNet_Socket::End()
+{
+  if (NetworkInitCounter==1)
+  {
+#ifdef ZENV_OS_WINDOWS
+    WSACleanup();
+#endif
+  }
+  if (NetworkInitCounter>0) NetworkInitCounter--;
+
 }
 
 
@@ -287,7 +352,7 @@ void ZTCPNet_Socket::Test()
       while(true)
       {
         printf("Waiting connection\n");
-        usleep(1000000);
+        //usleep(1000000);
         if(Socket.Accept(&Connection))
         {
           Connection.Set_NonBlockingMode();

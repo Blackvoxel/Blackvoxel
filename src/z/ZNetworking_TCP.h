@@ -54,12 +54,14 @@ class ZTCPNet_Connection
     bool          ValidConnection;
 
   public:
+    enum ShutdownMode  {SHD_ALL,SHD_RECEIVE, SHD_SEND};
 
     ZTCPNet_Connection();
     ~ZTCPNet_Connection();
 
     bool ReadChar(char &c);
     bool Write(char * Line, int Len);
+    bool Shutdown(ShutdownMode Mode = SHD_ALL);
     void Close();
     bool Set_NonBlockingMode(bool Enabled=true);
 
@@ -68,6 +70,7 @@ class ZTCPNet_Connection
 class ZTCPNet_Socket
 {
   protected:
+    static ULong NetworkInitCounter;
 
     sockaddr_in * Address;
     int           SocketFileDescriptor;
@@ -78,6 +81,9 @@ class ZTCPNet_Socket
 
     ZTCPNet_Socket();
     ~ZTCPNet_Socket();
+
+    bool Init();
+    void End();
 
     bool Create();
     void Close();

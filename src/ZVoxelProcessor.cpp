@@ -162,12 +162,19 @@ void ZVoxelProcessor::MakeSectorTasks(ZVoxelSector * Sector)
 
 void ZVoxelProcessor::StartTasks()
 {
-  if (GameEnv->Settings_Hardware->WebExtension_Enable) WebRobotManager.Start(GameEnv->Settings_Hardware->WebExtension_Port);
+  if (GameEnv->Settings_Hardware->WebExtension_Enable)
+  {
+    if (WebRobotManager.Start(GameEnv->Settings_Hardware->WebExtension_Port)) GameEnv->Service_WRobotServer = true;
+  }
 }
 
 void ZVoxelProcessor::EndTasks()
 {
-  if (GameEnv->Settings_Hardware->WebExtension_Enable) WebRobotManager.Stop();
+  if (GameEnv->Service_WRobotServer)
+  {
+    WebRobotManager.Stop();
+    GameEnv->Service_WRobotServer = false;
+  }
 }
 
 void ZVoxelProcessor::SetPlayerPosition(double x,double y, double z)

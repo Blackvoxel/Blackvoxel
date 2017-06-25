@@ -276,6 +276,7 @@ class ZGame
              Stop_Programmable_Robots = false;
              Previous_GameVersion = 0;
              HardwareInfo = 0;
+             Service_WRobotServer = false;
    }
   ~ZGame() { UniverseNum = 0; }
 
@@ -390,6 +391,9 @@ class ZGame
   bool Initialized_WorldInfo;
   bool Initialized_GameEventSequencer;
 
+  // Services
+
+  bool Service_WRobotServer;
 
   // Screen Informations
 

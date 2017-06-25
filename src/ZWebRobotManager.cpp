@@ -180,6 +180,10 @@ bool ZWebRobotManager::Answer_NoParameters(ZSimpleRequestParser & Parser, ZWebRo
 
   Result = Req->Connection.Write(Out.String,Out.Len);
 
+  // Flush all pending connections
+
+  Req->Connection.Shutdown();
+
   // Close connection after reply
 
   Req->Connection.Close();
@@ -218,6 +222,10 @@ bool ZWebRobotManager::Answer_OneParameter(ZSimpleRequestParser & Parser, ZWebRo
   // Write result on opened connection.
 
   Result = Req->Connection.Write(Out.String,Out.Len);
+
+  // Flush all pending connections
+
+  Req->Connection.Shutdown();
 
   // Close connection after reply
 
