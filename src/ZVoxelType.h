@@ -155,6 +155,7 @@ class ZVoxelType
     bool   Is_HasHelpingMessage;
     ZString HelpingMessage;
     bool   BvProp_FastMoving; // Fast moving voxels can override the modification tracker system in some cases.
+    bool   BvProp_UseInventoryImage; // Display inventory image in inventory instead of top image.
     ZFabInfos * FabInfos;
     ULong  Documentation_PageNum;
 

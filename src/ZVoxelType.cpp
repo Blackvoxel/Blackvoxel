@@ -102,6 +102,7 @@ ZVoxelType::ZVoxelType(UShort VoxelType)
   BvProp_AtomicFireResistant = false;
   BvProp_EgmyT1Resistant = false;
   BvProp_AccelerateOnFall = false;
+  BvProp_UseInventoryImage=false;
   LiquidDensity = 0.0;
   BlastResistance = 1;
   OpenGl_TextureRef = 0;
@@ -239,6 +240,7 @@ Bool ZVoxelType::LoadVoxelInformations()
       if (Token == "BvProp_AtomicFireResistant")  { BvProp_AtomicFireResistant = (Line.GetULong()!=0) ? true:false; }
       if (Token == "BvProp_EgmyT1Resistant")      { BvProp_EgmyT1Resistant = (Line.GetULong()!=0) ? true:false; }
       if (Token == "BvProp_AccelerateOnFall")     { BvProp_AccelerateOnFall = (Line.GetULong()!=0) ? true:false; }
+      if (Token == "BvProp_UseInventoryImage")    { BvProp_UseInventoryImage = (Line.GetULong()!=0) ? true:false; }
       if (Token == "Draw_LinearInterpolation")    { Draw_LinearInterpolation = (Line.GetULong()!=0) ? true:false; }
 
 

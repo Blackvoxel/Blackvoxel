@@ -75,15 +75,31 @@ void ZVoxelViewBox::Render(Frame_Dimensions * ParentPosition)
       else               glBindTexture(GL_TEXTURE_2D,0);
       if ((*VoxelType)) glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
       else              glColor4f(0.7f, 0.7f, 0.7f, 0.9f);
-      glBegin(GL_TRIANGLES);
-        glTexCoord2f(0.25f , 0.25f ); glVertex3f( P1.x , P1.y , TopLeft.z);
-        glTexCoord2f(0.50f , 0.25f ); glVertex3f( P2.x , P2.y , TopLeft.z);
-        glTexCoord2f(0.50f , 0.50f ); glVertex3f( P3.x , P3.y , TopLeft.z);
-        glTexCoord2f(0.50f , 0.50f ); glVertex3f( P3.x , P3.y , BottomRight.z);
-        glTexCoord2f(0.25f , 0.50f ); glVertex3f( P4.x , P4.y , BottomRight.z);
-        glTexCoord2f(0.25f , 0.25f ); glVertex3f( P1.x , P1.y , BottomRight.z);
-      glEnd();
-      glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+      if (!VoxelTypeManager->VoxelTable[*VoxelType]->BvProp_UseInventoryImage)
+      {
+        glBegin(GL_TRIANGLES);
+          glTexCoord2f(0.25f , 0.25f ); glVertex3f( P1.x , P1.y , TopLeft.z);
+          glTexCoord2f(0.50f , 0.25f ); glVertex3f( P2.x , P2.y , TopLeft.z);
+          glTexCoord2f(0.50f , 0.50f ); glVertex3f( P3.x , P3.y , TopLeft.z);
+          glTexCoord2f(0.50f , 0.50f ); glVertex3f( P3.x , P3.y , BottomRight.z);
+          glTexCoord2f(0.25f , 0.50f ); glVertex3f( P4.x , P4.y , BottomRight.z);
+          glTexCoord2f(0.25f , 0.25f ); glVertex3f( P1.x , P1.y , BottomRight.z);
+        glEnd();
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+      }
+      else
+      {
+        glBegin(GL_TRIANGLES);
+          glTexCoord2f(0.75f , 0.75f ); glVertex3f( P1.x , P1.y , TopLeft.z);
+          glTexCoord2f(1.00f , 0.75f ); glVertex3f( P2.x , P2.y , TopLeft.z);
+          glTexCoord2f(1.00f , 1.00f ); glVertex3f( P3.x , P3.y , TopLeft.z);
+          glTexCoord2f(1.00f , 1.00f ); glVertex3f( P3.x , P3.y , BottomRight.z);
+          glTexCoord2f(0.75f , 1.00f ); glVertex3f( P4.x , P4.y , BottomRight.z);
+          glTexCoord2f(0.75f , 0.75f ); glVertex3f( P1.x , P1.y , BottomRight.z);
+        glEnd();
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+      }
     }
 
     // Render child frames
