@@ -155,6 +155,7 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                               // Robots and co...
                       case 1: Inv->SetSlot(SlotNum++, 108, 8192);
                               Inv->SetSlot(SlotNum++, 236, 8192);
+                              Inv->SetSlot(SlotNum++, 256, 1);
                               Inv->SetSlot(SlotNum++, 49 , 8192);
                               Inv->SetSlot(SlotNum++, 214, 8192);
                               Inv->SetSlot(SlotNum++, 216, 8192);
@@ -164,19 +165,16 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                               Inv->SetSlot(SlotNum++, 105, 8192);
                               Inv->SetSlot(SlotNum++, 106, 8192);
 
-                              Inv->SetSlot(SlotNum++,  94, 8192);
-                              Inv->SetSlot(SlotNum++, 95, 8192);
-                              Inv->SetSlot(SlotNum++, 88, 8192);
-                              Inv->SetSlot(SlotNum++, 87, 8192);
-                              Inv->SetSlot(SlotNum++, 92, 8192);
                               Inv->SetSlot(SlotNum++,198, 8192);
                               Inv->SetSlot(SlotNum++,204, 8192);
                               Inv->SetSlot(SlotNum++,209, 8192);
                               Inv->SetSlot(SlotNum++,96, 8192);
                               Inv->SetSlot(SlotNum++,239, 8192);
 //                            Inv->SetSlot(SlotNum++,0, 0);
+                              while(SlotNum<40) Inv->SetSlot(SlotNum++, 0, 0);
                               break;
                       case 2:
+
                               Inv->SetSlot(SlotNum++, 90, 8192);
                               Inv->SetSlot(SlotNum++,99 , 8192);
                               Inv->SetSlot(SlotNum++,100, 8192);
@@ -191,6 +189,11 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                               Inv->SetSlot(SlotNum++,199, 8192);
                               Inv->SetSlot(SlotNum++,240, 8192);
                               Inv->SetSlot(SlotNum++,241, 8192);
+                              Inv->SetSlot(SlotNum++,  94, 8192);
+                              Inv->SetSlot(SlotNum++, 95, 8192);
+                              Inv->SetSlot(SlotNum++, 88, 8192);
+                              Inv->SetSlot(SlotNum++, 87, 8192);
+                              Inv->SetSlot(SlotNum++, 92, 8192);
 
                               while(SlotNum<40) Inv->SetSlot(SlotNum++, 0, 0);
                               break;
