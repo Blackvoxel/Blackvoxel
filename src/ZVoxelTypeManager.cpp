@@ -455,22 +455,35 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
 
 
 
-               // 0 Four
+               // Remote Programmable Robot
                t=VoxelType->FabInfos->AddTransformation();   // T0
+                 //VoxelType->FabInfos->AddCondition(t,7,5);   // 10 Fonte
+                 VoxelType->FabInfos->AddCondition(t,2,5);   // 5 Cuivre
+                 VoxelType->FabInfos->AddCondition(t,3,4 );  // 4  Bronze
+                 VoxelType->FabInfos->AddCondition(t,8,4 );  // 4  Inox
+                 VoxelType->FabInfos->AddCondition(t,4,5);   // 5 Acier
+                 VoxelType->FabInfos->AddCondition(t,17,2);  // 5  Or
+                 VoxelType->FabInfos->AddCondition(t,5,16);  // 16 BlackRock Orange
+                 VoxelType->FabInfos->AddCondition(t,1,16);  // 16 Blackrock Green
+                 VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
+                 VoxelType->FabInfos->SetResult(t,0,256,1);  // Remote Programmable Robot
+
+               // 0 Four
+               t=VoxelType->FabInfos->AddTransformation();   // T1
                  VoxelType->FabInfos->AddCondition(t,1,48);  // 48 Blackrock Green
                  VoxelType->FabInfos->AddCondition(t,7,16);  // 16 Fonte
                  VoxelType->FabInfos->AddCondition(t,8,2);   // 2 Inox Iron Bar
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,196,1);  // 1 Four
                // 1 Four à verre
-               t=VoxelType->FabInfos->AddTransformation();   // T1
+               t=VoxelType->FabInfos->AddTransformation();   // T2
                  VoxelType->FabInfos->AddCondition(t,1,48);  // 48 Blackrock Green
                  VoxelType->FabInfos->AddCondition(t,7,16);  // 16 Fonte
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,172,1);  // 1 Four à verre
 
                // Extractor Robot XR-1
-               t=VoxelType->FabInfos->AddTransformation();   // T2
+               t=VoxelType->FabInfos->AddTransformation();   // T3
                  VoxelType->FabInfos->AddCondition(t,7,1);   // 1 Fonte
                  VoxelType->FabInfos->AddCondition(t,2,8);   // 8 Cuivre
                  VoxelType->FabInfos->AddCondition(t,4,2);   // 2 Acier
@@ -479,19 +492,20 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,153,1);  // Extraction Robot XR-1
 
                // Constructor/Destructor N°2
-               t=VoxelType->FabInfos->AddTransformation();   // T3
+               t=VoxelType->FabInfos->AddTransformation();   // T4
                  VoxelType->FabInfos->AddCondition(t,2,8);   // 8 cuivre
                  VoxelType->FabInfos->AddCondition(t,1,8);   // 8 BlackRock Green
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,76,1);   // Constructeur / Destructeur N°2
                // Constructor/Destructor N°3
-               t=VoxelType->FabInfos->AddTransformation();   // T4
+               t=VoxelType->FabInfos->AddTransformation();   // T5
                  VoxelType->FabInfos->AddCondition(t,4,8);   // 8 fer
                  VoxelType->FabInfos->AddCondition(t,5,16);  // 16 BlackRock Orange
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,77,1);   // Constructeur / Destructeur N°3
+
                // Extraction Robot XR-3
-               t=VoxelType->FabInfos->AddTransformation();   // T5
+               t=VoxelType->FabInfos->AddTransformation();   // T6
                  VoxelType->FabInfos->AddCondition(t,7,10);   // 10 Fonte
                  VoxelType->FabInfos->AddCondition(t,2,40);   // 40 Cuivre
                  VoxelType->FabInfos->AddCondition(t,3,16);   // 16 Bronze
@@ -502,7 +516,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,155,1);  // Extraction Robot XR-3
                // Extraction Robot XR-2
-               t=VoxelType->FabInfos->AddTransformation();   // T6
+               t=VoxelType->FabInfos->AddTransformation();   // T7
                  VoxelType->FabInfos->AddCondition(t,7,1);   // 1 Fonte
                  VoxelType->FabInfos->AddCondition(t,2,20);  // 20 Cuivre
                  VoxelType->FabInfos->AddCondition(t,3,10);  // 10 Bronze
@@ -512,7 +526,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,154,1);  // Extraction Robot XR-2
                  // Broyeur
-               t=VoxelType->FabInfos->AddTransformation();   // T7
+               t=VoxelType->FabInfos->AddTransformation();   // T8
                  VoxelType->FabInfos->AddCondition(t,7,8);   // 8 Fonte
                  VoxelType->FabInfos->AddCondition(t,8,8);   // 8 Inox
                  VoxelType->FabInfos->AddCondition(t,4,2);   // 2 Acier
@@ -521,14 +535,14 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,137,1);  // 1 Broyeur
                // Circuits intégrés
-               t=VoxelType->FabInfos->AddTransformation();   // T8
+               t=VoxelType->FabInfos->AddTransformation();   // T9
                  VoxelType->FabInfos->AddCondition(t,8,8);   // 8 Inox
                  VoxelType->FabInfos->AddCondition(t,2,4);   // 4 Cuivre
                  VoxelType->FabInfos->AddCondition(t,6,16);  // 16 Blackrock sky blue
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,133,1);  // 1 Machine circuits intégrés
                // Bobineuse Moteur
-               t=VoxelType->FabInfos->AddTransformation();   // T9
+               t=VoxelType->FabInfos->AddTransformation();   // T10
                  VoxelType->FabInfos->AddCondition(t,2,8);   // 8 Cuivre
                  VoxelType->FabInfos->AddCondition(t,4,4);   // 4 Acier
                  VoxelType->FabInfos->AddCondition(t,7,2);   // 2 Fonte
@@ -536,14 +550,14 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,132,1);  // 1 Bobineuse Moteur
                // Moulage de pièces
-               t=VoxelType->FabInfos->AddTransformation();   // T10
+               t=VoxelType->FabInfos->AddTransformation();   // T11
                  VoxelType->FabInfos->AddCondition(t,7,8);   // 8 Fonte
                  VoxelType->FabInfos->AddCondition(t,4,2);   // 2 Acier
                  VoxelType->FabInfos->AddCondition(t,5,16);  // 16 BlackRock Orange
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,130,1);  // 1 Mouleuse de pièces
                // Forge
-               t=VoxelType->FabInfos->AddTransformation();   // T11
+               t=VoxelType->FabInfos->AddTransformation();   // T12
                  VoxelType->FabInfos->AddCondition(t,7,16);  // 16 Fonte
                  VoxelType->FabInfos->AddCondition(t,4,8);   // 8 Acier
                  VoxelType->FabInfos->AddCondition(t,8,2);   // 2 Inox
@@ -551,7 +565,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,134,1);  // 1 Forge
                // Tôlerie
-               t=VoxelType->FabInfos->AddTransformation();   // T12
+               t=VoxelType->FabInfos->AddTransformation();   // T13
                  VoxelType->FabInfos->AddCondition(t,7,4);   // 4 Fonte
                  VoxelType->FabInfos->AddCondition(t,4,8);   // 8 Acier
                  VoxelType->FabInfos->AddCondition(t,8,2);   // 2 Inox
@@ -559,7 +573,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,131,1);  // 1 Tolerie
                // Extrudeuse
-               t=VoxelType->FabInfos->AddTransformation();   // T13
+               t=VoxelType->FabInfos->AddTransformation();   // T14
                  VoxelType->FabInfos->AddCondition(t,7,4);   // 4 Fonte
                  VoxelType->FabInfos->AddCondition(t,4,4);   // 4 Acier
                  VoxelType->FabInfos->AddCondition(t,8,2);   // 2 Inox
@@ -568,7 +582,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,135,1);  // 1 Extrudeuse
                // Tour
-               t=VoxelType->FabInfos->AddTransformation();   // T14
+               t=VoxelType->FabInfos->AddTransformation();   // T15
                  VoxelType->FabInfos->AddCondition(t,7,4);   // 4 Fonte
                  VoxelType->FabInfos->AddCondition(t,4,4);   // 4 Acier
                  VoxelType->FabInfos->AddCondition(t,8,1);   // 1 Inox
@@ -577,7 +591,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1  Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,140,1);  // 1 Tour
                // Fraiseuse
-               t=VoxelType->FabInfos->AddTransformation();   // T15
+               t=VoxelType->FabInfos->AddTransformation();   // T16
                  VoxelType->FabInfos->AddCondition(t,7,4);   // 4 Fonte
                  VoxelType->FabInfos->AddCondition(t,4,4);   // 4 Acier
                  VoxelType->FabInfos->AddCondition(t,8,1);   // 1 Inox
@@ -587,7 +601,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,139,1);  // 1 Fraiseuse
 
                // Slow Pump T0
-               t=VoxelType->FabInfos->AddTransformation();   // T16
+               t=VoxelType->FabInfos->AddTransformation();   // T17
                  VoxelType->FabInfos->AddCondition(t,7,5);   // 5 Fonte
                  VoxelType->FabInfos->AddCondition(t,4,7);   // 7 Acier
                  VoxelType->FabInfos->AddCondition(t,8,4);   // 4 Inox
@@ -599,7 +613,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,250,1);  // 1 Slow Pump.
 
                // Tréfileuse
-               t=VoxelType->FabInfos->AddTransformation();   // T17
+               t=VoxelType->FabInfos->AddTransformation();   // T18
                  VoxelType->FabInfos->AddCondition(t,7,2);   // 2 Fonte
                  VoxelType->FabInfos->AddCondition(t,4,4);   // 4 Acier
                  VoxelType->FabInfos->AddCondition(t,8,1);   // 1 Inox
@@ -609,7 +623,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,142,1);  // 1 Tréfileuse
 
                // X Machine
-               t=VoxelType->FabInfos->AddTransformation();   // T18
+               t=VoxelType->FabInfos->AddTransformation();   // T19
                  VoxelType->FabInfos->AddCondition(t,7,16);  // 16 Fonte
                  VoxelType->FabInfos->AddCondition(t,4,32);  // 32 Acier
                  VoxelType->FabInfos->AddCondition(t,8,8);   // 8 Inox
@@ -619,7 +633,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,143,1);  // 1 X Machine
 
                // Machine d'assemblage
-               t=VoxelType->FabInfos->AddTransformation();   // T19
+               t=VoxelType->FabInfos->AddTransformation();   // T20
                  VoxelType->FabInfos->AddCondition(t,7,16);  // 16 Fonte
                  VoxelType->FabInfos->AddCondition(t,4,32);  // 32 Acier
                  VoxelType->FabInfos->AddCondition(t,8,8);   // 8 Inox
@@ -628,7 +642,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,136,1);  // 1 Machine d'assemblage
 
                // Atomic compressor
-               t=VoxelType->FabInfos->AddTransformation();   // T20
+               t=VoxelType->FabInfos->AddTransformation();   // T21
                  VoxelType->FabInfos->AddCondition(t,2,4);   // 4 Cuivre
                  VoxelType->FabInfos->AddCondition(t,4,4);   // 4 Acier
                  VoxelType->FabInfos->AddCondition(t,5,8);  //  8 Blackrock Orange
@@ -636,7 +650,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,49,16);   // 1 Atomic compressor
 
                // Découpeuse laser
-               t=VoxelType->FabInfos->AddTransformation();   // T21
+               t=VoxelType->FabInfos->AddTransformation();   // T22
                  VoxelType->FabInfos->AddCondition(t,14,2);  // 2 Tole acier
                  VoxelType->FabInfos->AddCondition(t,13,1);  // 1 Profilé acier
                  VoxelType->FabInfos->AddCondition(t,10,1);  // 1 Optical Mirror
@@ -646,7 +660,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,195,1);  // 1 Découpeuse laser
 
                // Unité de dépot en phase vapeur
-               t=VoxelType->FabInfos->AddTransformation();   // T22
+               t=VoxelType->FabInfos->AddTransformation();   // T23
                  VoxelType->FabInfos->AddCondition(t,14,4);  // 4 Tole acier
                  VoxelType->FabInfos->AddCondition(t,13,4);  // 4 Profilé acier
                  VoxelType->FabInfos->AddCondition(t,2,2);   // 2 Cuivre cube
@@ -655,7 +669,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,182,1);  // 1 Unité de dépot en phase vapeur
 
                // Sequenceur
-               t=VoxelType->FabInfos->AddTransformation();   // T23
+               t=VoxelType->FabInfos->AddTransformation();   // T24
                  VoxelType->FabInfos->AddCondition(t,4,8);   // 8 Acier
                  VoxelType->FabInfos->AddCondition(t,2,8);   // 8 Cuivre
                  VoxelType->FabInfos->AddCondition(t,1,4);   // 4 BlackRock Green
@@ -665,23 +679,22 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,2,208,1);  // 1  End Symbol
 
                // Selective Mover
-               t=VoxelType->FabInfos->AddTransformation();   // T24
+               t=VoxelType->FabInfos->AddTransformation();   // T25
                  VoxelType->FabInfos->AddCondition(t,4,4);   // 4 Acier
                  VoxelType->FabInfos->AddCondition(t,2,2);   // 2 Cuivre
                  VoxelType->FabInfos->AddCondition(t,1,4);   // 4 BlackRock Green
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1 Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,204,8);  // 8 Selective Mover
                // Mover
-               t=VoxelType->FabInfos->AddTransformation();   // T25
+               t=VoxelType->FabInfos->AddTransformation();   // T26
                  VoxelType->FabInfos->AddCondition(t,4,4);   // 4 Acier
                  VoxelType->FabInfos->AddCondition(t,2,2);   // 2 Cuivre
                  VoxelType->FabInfos->AddCondition(t,1,1);   // 1 BlackRock Green
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1 Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,209,8);  // 8 Mover
 
-
                // Unité d'imprimerie.
-               t=VoxelType->FabInfos->AddTransformation();   // T26
+               t=VoxelType->FabInfos->AddTransformation();   // T27
                  VoxelType->FabInfos->AddCondition(t,17,2);  // 2 Or
                  VoxelType->FabInfos->AddCondition(t,7,2);   // 2 Fonte
                  VoxelType->FabInfos->AddCondition(t,2,2);   // 2 Cuivre cube
@@ -689,7 +702,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,210,1);  // 1 Unité d'imprimerie.
 
                // Plane Z0
-               t=VoxelType->FabInfos->AddTransformation();   // T27
+               t=VoxelType->FabInfos->AddTransformation();   // T28
                  VoxelType->FabInfos->AddCondition(t,9,4);   // 4 Materiau X
                  VoxelType->FabInfos->AddCondition(t,8,4);   // 4 Inox
                  VoxelType->FabInfos->AddCondition(t,4,4);   // 4 Acier
@@ -699,7 +712,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,239,1);  // 1 Location System.
 
                // Slow Belt Conveyor
-               t=VoxelType->FabInfos->AddTransformation();   // T28
+               t=VoxelType->FabInfos->AddTransformation();   // T29
                  VoxelType->FabInfos->AddCondition(t,4,16);  // 16 Acier
                  VoxelType->FabInfos->AddCondition(t,2,16);  // 16 Cuivre
                  VoxelType->FabInfos->AddCondition(t,6,16);  // 16 Blackrock BlueSky
@@ -707,7 +720,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,244,64); // 64 Slow belt conveyor
 
                // Rotate Tool
-               t=VoxelType->FabInfos->AddTransformation();   // T29
+               t=VoxelType->FabInfos->AddTransformation();   // T30
                VoxelType->FabInfos->AddCondition(t,1,8);     // 8 Blackrock Green
                VoxelType->FabInfos->AddCondition(t,5,8);     // 8 Blackrock Orange
                VoxelType->FabInfos->AddCondition(t,6,8);     // 8 Blackrock BlueSky
@@ -717,14 +730,13 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                VoxelType->FabInfos->SetResult(t,0,243,1);    // Rotate Tool
 
                // Melting Furnace
-               t=VoxelType->FabInfos->AddTransformation();   // T30
+               t=VoxelType->FabInfos->AddTransformation();   // T31
                VoxelType->FabInfos->AddCondition(t,1,8);    // 8 Blackrock Green
                VoxelType->FabInfos->AddCondition(t,0,1);     // 1  Blackrock Blue (Validation)
                VoxelType->FabInfos->SetResult(t,0,114,1);  // Melting Furnace
 
-
                // Slow Materializer
-               t=VoxelType->FabInfos->AddTransformation();   // T31
+               t=VoxelType->FabInfos->AddTransformation();   // T32
                  VoxelType->FabInfos->AddCondition(t,7,2);   // 2  Fonte
                  VoxelType->FabInfos->AddCondition(t,8,2);   // 2  Inox
                  VoxelType->FabInfos->AddCondition(t,3,2);   // 2  Bronze
@@ -735,7 +747,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,248,64); // 64  Slow Materializer
 
                // Slow De-Materializer
-               t=VoxelType->FabInfos->AddTransformation();   // T32
+               t=VoxelType->FabInfos->AddTransformation();   // T33
                  VoxelType->FabInfos->AddCondition(t,7,2);   // 2  Fonte
                  VoxelType->FabInfos->AddCondition(t,8,2);   // 2  Inox
                  VoxelType->FabInfos->AddCondition(t,3,2);   // 2  Bronze
@@ -746,7 +758,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->SetResult(t,0,249,64); // 64  Slow De-Materializer
 
                // Location System
-               t=VoxelType->FabInfos->AddTransformation();   // T33
+               t=VoxelType->FabInfos->AddTransformation();   // T34
                  VoxelType->FabInfos->AddCondition(t,4,4);   // 4 Acier
                  VoxelType->FabInfos->AddCondition(t,2,2);   // 2 Cuivre cube
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1 Blackrock Blue (Validation)
@@ -754,14 +766,14 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
 
 
                // Analyser
-               t=VoxelType->FabInfos->AddTransformation();   // T34
+               t=VoxelType->FabInfos->AddTransformation();   // T35
                  VoxelType->FabInfos->AddCondition(t,4,2);   // 2 Acier
                  VoxelType->FabInfos->AddCondition(t,2,2);   // 2 Cuivre
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1 Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,242,1);  // 1 Analyser.
 
                // Base machine
-               t=VoxelType->FabInfos->AddTransformation();   // T35
+               t=VoxelType->FabInfos->AddTransformation();   // T36
                  VoxelType->FabInfos->AddCondition(t,4,1);   // 1 Acier
                  VoxelType->FabInfos->AddCondition(t,2,1);   // 1 Cuivre
                  VoxelType->FabInfos->AddCondition(t,20,8);  // 8 Blackrock Yellow
