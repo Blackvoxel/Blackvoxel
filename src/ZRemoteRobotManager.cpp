@@ -131,7 +131,7 @@ void ZRemoteRobotManager::Process()
 void ZRemoteRobotManager::Stop()
 {
   Socket->Close();
-  printf("Stopping Web Robot Extension server\n");
+  printf("Stopping Remote Robot Extension server\n");
 }
 
 ZRemoteRobotManager::Request * ZRemoteRobotManager::PopRequest()
