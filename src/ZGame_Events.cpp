@@ -246,7 +246,7 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
 
                   break;
 
-    case SDLK_F12:
+    case SDLK_F4: if (!Keyboard_Matrix[SDLK_LSHIFT])
                   {
                     SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_ENABLE);
 
@@ -775,7 +775,7 @@ void ZGame_Events::Process_StillEvents()
 
     // if ( Keyboard_Matrix[SDLK_F3] && COMPILEOPTION_DEBUGFACILITY )   { SDL_WM_GrabInput(SDL_GRAB_OFF); SDL_ShowCursor(SDL_DISABLE); }
     if ( Keyboard_Matrix[SDLK_F5] )   { GameEnv->World->Save(); }
-    if ( Keyboard_Matrix[SDLK_F4] && COMPILEOPTION_DEBUGFACILITY )
+    if ( Keyboard_Matrix[SDLK_F4] && Keyboard_Matrix[SDLK_LSHIFT] && COMPILEOPTION_DEBUGFACILITY )
     {
       ZString Infos;
       Long x,y,z;
@@ -945,9 +945,9 @@ void ZGame_Events::Process_StillEvents()
       }
     }
 
-    if (Keyboard_Matrix[SDLK_F11])
+    if (Keyboard_Matrix[SDLK_F7])
     {
-      Keyboard_Matrix[SDLK_F11] = 0;
+      Keyboard_Matrix[SDLK_F7] = 0;
 
       if (GameEnv->GameWindow_DisplayInfos->Is_Shown()) { GameEnv->GameWindow_DisplayInfos->Hide(); }
       else                                              { GameEnv->GameWindow_DisplayInfos->Show(); }
