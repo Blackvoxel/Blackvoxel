@@ -47,12 +47,9 @@
 
 #ifndef COMPILEOPTION_DEMO
   #  define COMPILEOPTION_DEMO 0
-  #endif
-<<<<<<< HEAD
-#define COMPILEOPTION_VERSIONNUM 210
-=======
+#endif
+
 #define COMPILEOPTION_VERSIONNUM 220
->>>>>>> Bumped release number
 
 // Options du jeu
 
