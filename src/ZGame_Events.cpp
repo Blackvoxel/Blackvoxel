@@ -376,8 +376,16 @@ void ZGame_Events::Process_StillEvents()
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveRight] )     { Actor->Action_GoRightStraff(); }
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveForward] )   { Actor->Action_GoForward(); }
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveBackward] )  { Actor->Action_GoBackward(); }
-    if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveUp]   && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))      { Actor->Action_GoUp(); }
-    if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveDown] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))      { Actor->Action_GoDown(); }
+    if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveUp]   && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))
+    {
+      if(Keyboard_Matrix[SDLK_LCTRL]) Actor->Action_SetActorMode(3);
+      else Actor->Action_GoUp();
+    }
+    if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveDown] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))
+    {
+      if(Keyboard_Matrix[SDLK_LCTRL]) Actor->Action_SetActorMode(0);
+      else Actor->Action_GoDown();
+    }
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_Jump])           { Actor->Action_Jump();}
     if ( Keyboard_Matrix[SDLK_e])                                        { Actor->Action_GetInOutOfVehicle();}
     //if ( Keyboard_Matrix[SDLK_a] )                                     { Actor->Action_GoUp(GameEnv->Time_GameLoop  * 1.5); }
