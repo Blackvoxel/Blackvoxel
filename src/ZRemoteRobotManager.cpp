@@ -65,6 +65,10 @@ bool ZRemoteRobotManager::Start(int Port)
 {
   bool Res;
 
+  // Init socket service
+
+  Socket->Init();
+
   // Create socket
 
   Res = Socket->Create();    if (!Res) return(false);
@@ -130,7 +134,13 @@ void ZRemoteRobotManager::Process()
 
 void ZRemoteRobotManager::Stop()
 {
+  // Close Socket
+
   Socket->Close();
+
+  // Close Network service
+
+  Socket->End();
   printf("Stopping Remote Robot Extension server\n");
 }
 
