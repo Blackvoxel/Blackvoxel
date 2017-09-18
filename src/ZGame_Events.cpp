@@ -370,7 +370,8 @@ void ZGame_Events::Process_StillEvents()
   if (Actor)
   {
 
-    if ( Keyboard_Matrix[SDLK_LSHIFT] || Keyboard_Matrix[SDLK_CAPSLOCK] ){ Actor->Flag_ActivateAntiFall = true; }
+    if ( Keyboard_Matrix[SDLK_LSHIFT] || Keyboard_Matrix[SDLK_CAPSLOCK]
+         || Keyboard_Matrix[SDLK_RCTRL])                                 { Actor->Flag_ActivateAntiFall = true; }
     else                                                                 { Actor->Flag_ActivateAntiFall = false; }
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveLeft] )      { Actor->Action_GoLeftStraff(); }
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveRight] )     { Actor->Action_GoRightStraff(); }
