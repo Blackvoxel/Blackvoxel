@@ -31,86 +31,70 @@
 #  include "ZSound.h"
 #endif
 
+
 bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
 {
   ZActor_Player * Actor;
 
   Actor = (ZActor_Player *)GameEnv->PhysicEngine->GetSelectedActor();
 
-  // printf("Click : %ld\n",Button);
-
   if (Actor)
   {
     switch(Button)
     {
-      case 2: // Right mouse button
-             if (Actor->PointedVoxel.Collided)
-             {
-               ZInventory::Entry * InventorySlot;
-               UShort VoxelType;
-               ZVoxelLocation VLoc;
-               //ULong  OtherInfos;
-               ZVector3d VoxelCenter, VoxelDistance;
-               bool IsOnGround;;
+      case 2:  // Right mouse button
 
-
-               // Ensure you are not to close to the voxel position you want to build.
-               bool NotTooClose;
-               NotTooClose = true;
-               Actor->PointedVoxel.PredPointedVoxel.GetVoxelCenterCoords(&VoxelCenter);
-               VoxelDistance = VoxelCenter - Actor->Location;
-               //printf("VoxelDistance : %lf,%lf,%lf\n", VoxelDistance.x, VoxelDistance.y, VoxelDistance.z);
-               if (VoxelDistance.y < 512.0 && VoxelDistance.y > -127.0)
+               if (Actor->PointedVoxel.Collided)
                {
-                 if (    (VoxelDistance.x < 203.0 && VoxelDistance.x >-203.0)
-                      && (VoxelDistance.z < 203.0 && VoxelDistance.z >-203.0) ) { NotTooClose = false; GameEnv->GameWindow_Advertising->Advertise("TOO CLOSE", ZGameWindow_Advertising::VISIBILITY_HIGH,0, 2000, 1000); }
-               }
+                 ZInventory::Entry * InventorySlot;
+                 UShort VoxelType;
+                 ZVoxelLocation VLoc;
+                 ZVector3d VoxelCenter, VoxelDistance;
+                 bool AllowBuild;
 
+                 // Ensure you are not too close to the voxel position you want to build.
 
+                 Actor->PointedVoxel.PredPointedVoxel.GetVoxelCenterCoords(&VoxelCenter);
+                 VoxelDistance = VoxelCenter - Actor->Location;
 
-               InventorySlot = Actor->Inventory->GetActualItemSlot();
-               VoxelType = InventorySlot->VoxelType;
-               //OtherInfos = 0;
-               // printf("Location (%lf,%lf,%lf) Voxel (%lf,%lf,%lf)\n", Actor->Location.x,Actor->Location.y,Actor->Location.z, VoxelCenter.x, VoxelCenter.y, VoxelCenter.z);
-
-#if COMPILEOPTION_ALLOWJUMPANDBUILD==1
-               IsOnGround = true;
-#else
-               IsOnGround = Actor->IsOnGround;
-#endif
-
-
-                 if (VoxelType > 0 && InventorySlot->Quantity > 0 && NotTooClose && IsOnGround )
+                 if (    (VoxelDistance.y < 512.0 && VoxelDistance.y > -127.0)
+                      && (VoxelDistance.x < 203.0 && VoxelDistance.x >-203.0)
+                      && (VoxelDistance.z < 203.0 && VoxelDistance.z >-203.0) )
                  {
-                   if (1UL == Actor->Inventory->UnstoreBlocks(VoxelType,1UL))
-                   {
-                    //VoxelExtensionType = GameEnv->VoxelTypeManager.GetVoxelType(VoxelType)->ExtensionType;
-                    //if (VoxelExtensionType!=0) OtherInfos = (ULong)GameEnv->World->ExtensionFactory.CreateVoxelExtension(VoxelExtensionType);
-                     //GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, OtherInfos);
-
-                     // new
-
-                     if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) VLoc.Sector ->Flag_HighPriorityRefresh = true;
-                     GameEnv->Sound->PlaySound(7);
-                   }
+                   GameEnv->GameWindow_Advertising->Advertise("TOO CLOSE", ZGameWindow_Advertising::VISIBILITY_HIGH,0, 2000, 1000);
+                   break;
                  }
-             }
-             break;
+
+                 InventorySlot = Actor->Inventory->GetActualItemSlot();
+                 VoxelType = InventorySlot->VoxelType;
+
+                 AllowBuild = (COMPILEOPTION_ALLOWJUMPANDBUILD==1) ? true : Actor->IsOnGround;
+
+                 if ( VoxelType == 0 || InventorySlot->Quantity == 0 || AllowBuild==false ) break;
+
+                 if (1UL == Actor->Inventory->UnstoreBlocks(VoxelType,1UL))
+                 {
+                   if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) VLoc.Sector ->Flag_HighPriorityRefresh = true;
+                   GameEnv->Sound->PlaySound(7);
+                 }
+               }
+               break;
 
       case 1: // Wheel Button
-            if (Actor->PointedVoxel.Collided)
-            {
-              ZMemSize OtherInfos=0;
-              UShort VoxelType;
-              Long x,y,z;
-              x = Actor->PointedVoxel.PointedVoxel.x;
-              y = Actor->PointedVoxel.PointedVoxel.y;
-              z = Actor->PointedVoxel.PointedVoxel.z;
-              VoxelType = GameEnv->World->GetVoxelExt( x, y, z, OtherInfos );
-              GameEnv->VoxelTypeManager.GetVoxelType(VoxelType)->UserAction_Activate(OtherInfos,x,y,z);
-              // printf("Location x:%ld y:%ld z:%ld \n", x, y, z);
-            }
-            break;
+
+               if (Actor->PointedVoxel.Collided)
+               {
+                 ZMemSize OtherInfos=0;
+                 UShort VoxelType;
+                 Long x,y,z;
+                 x = Actor->PointedVoxel.PointedVoxel.x;
+                 y = Actor->PointedVoxel.PointedVoxel.y;
+                 z = Actor->PointedVoxel.PointedVoxel.z;
+                 VoxelType = GameEnv->World->GetVoxelExt( x, y, z, OtherInfos );
+                 GameEnv->VoxelTypeManager.GetVoxelType(VoxelType)->UserAction_Activate(OtherInfos,x,y,z);
+               }
+               break;
+
       case 0: // Left button
              {
                UShort Voxel;
@@ -118,57 +102,47 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
                ZVoxelLocation Loc;
                ZString Reason;
 
-               if (Actor->PointedVoxel.Collided)
+               // Does a voxel is pointed
+
+               if (!Actor->PointedVoxel.Collided) break;
+
+               // Get the voxel informations
+
+               if ( !GameEnv->World->GetVoxelLocation(&Loc, Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z )) break;
+               Voxel = Loc.Sector->Data[Loc.Offset];
+               VoxelType = GameEnv->VoxelTypeManager.GetVoxelType(Voxel);
+
+               // Does this tool can break the class type of this voxel ?
+
+               if (! ToolCompatibleTypes[VoxelType->MiningType])
                {
-                 if ( !GameEnv->World->GetVoxelLocation(&Loc, Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z )) break;
-                 Voxel = Loc.Sector->Data[Loc.Offset];
-                 VoxelType = GameEnv->VoxelTypeManager.GetVoxelType(Voxel);
-                 if (ToolCompatibleTypes[VoxelType->MiningType])
-                 {
-                   // Does the voxel accept to be destroyed.
-                   if (!VoxelType->UserAction_TryToDestroy(&Loc, &Reason))
-                   {
-                     GameEnv->GameWindow_Advertising->Clear();
-                     GameEnv->GameWindow_Advertising->Advertise(Reason.String, ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
-                     break;
-                   }
-
-                   // So do it...
-                   Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
-                   MiningInProgress = true;
-                   MinedVoxel = Actor->PointedVoxel.PointedVoxel;
-                   GameEnv->GameProgressBar->SetCompletion(0.0f);
-                   GameEnv->GameProgressBar->Show();
-                   #if COMPILEOPTION_FNX_SOUNDS_1 == 1
-                   if (SoundHandle == 0) SoundHandle = GameEnv->Sound->Start_PlaySound(5,true,true,1.0,0);
-                   #endif
-                 }
-                 else
-                 {
-                   GameEnv->GameWindow_Advertising->Advertise("TOO HARD", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
-                 }
-
+                 GameEnv->GameWindow_Advertising->Advertise("TOO HARD", ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
+                 break;
                }
-               /*
-               UShort VoxelType;
-               VoxelType = GameEnv->World->GetVoxel(Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z);
-               GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z,0);
-               Actor->Inventory->StoreBlocks(VoxelType,1);
-               printf("Mining\n");
-               */
+
+               // Does the voxel accept to be destroyed ?
+
+               if (!VoxelType->UserAction_TryToDestroy(&Loc, &Reason))
+               {
+                 GameEnv->GameWindow_Advertising->Clear();
+                 GameEnv->GameWindow_Advertising->Advertise(Reason.String, ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
+                 break;
+               }
+
+               // Everything is right, so we start the mining process...
+
+               MiningProgress.Start(VoxelType->MiningHardness, Actor->PointedVoxel.PointedVoxel);
              }
              break;
+
       case 3: // Mouse scroll down
              Actor->Inventory->Select_PreviousItem();
 
-             // printf("Selected : %ld : %s\n", Actor->Inventory->GetActualItemSlotNum(), GameEnv->VoxelTypeManager.VoxelTable[Actor->Inventory->GetActualItemSlot()->VoxelType]->VoxelTypeName.String);
              break;
       case 4: // Mouse scroll up
              Actor->Inventory->Select_NextItem();
 
-             // printf("Selected : %ld : %s\n", Actor->Inventory->GetActualItemSlotNum(), GameEnv->VoxelTypeManager.VoxelTable[Actor->Inventory->GetActualItemSlot()->VoxelType]->VoxelTypeName.String);
              break;
-
 
     }
   }
@@ -181,38 +155,25 @@ bool ZTool_Constructor::Tool_MouseButtonRelease(ULong Button)
 
   Actor = GameEnv->PhysicEngine->GetSelectedActor();
 
-  // printf("Release : %ld\n",Button);
-
   if (Actor)
   {
     switch(Button)
     {
-      case 2: // Right mouse button
-             break;
+      case 2:  // Right mouse button
+               break;
 
-      case 1: // Wheel Button
-            break;
-      case 0: // Left button
-             {
-               //UShort Voxel;
-               if (MiningInProgress)
-               {
-                 Mining_MaterialResistanceCounter = 0;
-                 MiningInProgress = false;
-                 GameEnv->GameProgressBar->SetCompletion(0.0f);
-                 GameEnv->GameProgressBar->Hide();
-                 #if COMPILEOPTION_FNX_SOUNDS_1 == 1
-                 if (SoundHandle != 0) { GameEnv->Sound->Stop_PlaySound(SoundHandle); SoundHandle = 0; }
-                 #endif
-               }
-             }
-             break;
-      case 3: // Mouse scroll down
-             break;
-      case 4: // Mouse scroll up
-             break;
+      case 1:  // Wheel Button
+               break;
 
+      case 0:  // Left button
+               if (MiningProgress.Is_InProgress()) MiningProgress.Stop();
+               break;
 
+      case 3:  // Mouse scroll down
+               break;
+
+      case 4:  // Mouse scroll up
+               break;
     }
   }
   return(true);
@@ -225,25 +186,24 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
   ZActor_Player * Actor;
   Actor = (ZActor_Player *)GameEnv->PhysicEngine->GetSelectedActor(); if (!Actor) return(true);
 
-
   // Breaking material in progress
 
-  if (MouseButtonMatrix[1] && MiningInProgress)
+  if (MouseButtonMatrix[1] && MiningProgress.Is_InProgress())
   {
     UShort Voxel;
     ZVoxelType * VoxelType;
     ZVoxelLocation VLoc;
 
-    // Get actualy pointed voxel
+    // If no pointed voxel, put system on pause and do nothing.
 
     if (!Actor->PointedVoxel.Collided)
     {
-      Mining_MaterialResistanceCounter = 1000;
+      MiningProgress.SetNoTarget();
       GameEnv->GameProgressBar->SetCompletion(0.0f);
       return(true);
     }
 
-
+    // Get Pointed Voxel
     if (!GameEnv->World->GetVoxelLocation(&VLoc, Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z)) return(true);
 
     Voxel = VLoc.Sector->Data[VLoc.Offset];
@@ -251,7 +211,8 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
 
     // Uhhh, the player has moved is tool on another voxel, so resetting mining.
 
-    if (Actor->PointedVoxel.PointedVoxel != MinedVoxel)
+
+    if (Actor->PointedVoxel.PointedVoxel != MiningProgress.GetMinedVoxel())
     {
       // Does this tool can break this material ?
       if (ToolCompatibleTypes[VoxelType->MiningType])
@@ -261,36 +222,26 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
         {
           GameEnv->GameWindow_Advertising->Clear();
           GameEnv->GameWindow_Advertising->Advertise(Reason.String, ZGameWindow_Advertising::VISIBILITY_MEDIUM, 1, 1000, 200);
+
+          MiningProgress.Stop();
           return(true);
         }
-        // So, do it...
-        Mining_MaterialResistanceCounter = VoxelType->MiningHardness;
-        MiningInProgress = true;
-        MinedVoxel = Actor->PointedVoxel.PointedVoxel;
+        // Ok, this voxel can be destroyed, so set it to be the new target in the continuous mining process.
+        MiningProgress.SetNewtarget(VoxelType->MiningHardness, Actor->PointedVoxel.PointedVoxel);
 
       }
     }
 
-    // Material resistance is slowly going down
+    // Do mining of the voxel.
 
-    Mining_MaterialResistanceCounter -= this->ToolForce[VoxelType->MiningType] * FrameTime;
-
-    // printf("Resistance :%lf\n",Mining_MaterialResistanceCounter);
-    GameEnv->GameProgressBar->SetCompletion( (100.0 / VoxelType->MiningHardness) * (VoxelType->MiningHardness - Mining_MaterialResistanceCounter)   );
-    // Ok, it's breaking
-
-    if (Mining_MaterialResistanceCounter < 0.0)
+    if (MiningProgress.DoMine(this->ToolForce[VoxelType->MiningType] * FrameTime))
     {
-      Mining_MaterialResistanceCounter =10000.0;
+      // The voxel is broken, so store it.
       if(Actor->Inventory->StoreBlocks(Voxel,1))
       {
+        // If voxel is stored ok, destroy it in the world.
         if ( GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PointedVoxel.x, Actor->PointedVoxel.PointedVoxel.y, Actor->PointedVoxel.PointedVoxel.z,0,ZVoxelSector::CHANGE_CRITICAL,true,&VLoc) ) VLoc.Sector->Flag_HighPriorityRefresh = true;
       }
-      #if COMPILEOPTION_FNX_SOUNDS_1 == 1
-      GameEnv->Sound->PlaySound(6);
-      if (SoundHandle != 0) { GameEnv->Sound->Stop_PlaySound(SoundHandle); SoundHandle = 0; }
-      #endif
-      // Sector->Flag_HighPriorityRefresh
     }
   }
   return(true);
@@ -300,12 +251,23 @@ bool ZTool_Constructor::Tool_StillEvents(double FrameTime, bool * MouseButtonMat
 
 void ZTool_Constructor::Start_Tool()
 {
-  MiningInProgress = false;
+  // If mining is in progress, stop it.
+
+  if (MiningProgress.Is_InProgress()) MiningProgress.Stop();
+
+  // Show the voxel destruction progress bar.
+
   if (!GameEnv->VoxelTypeBar->Is_Shown()) GameEnv->VoxelTypeBar->Show();
 }
 
 void ZTool_Constructor::End_Tool()
 {
+  // If mining is in progress, stop it.
+
+  if (MiningProgress.Is_InProgress()) MiningProgress.Stop();
+
+  // Hide the voxel destruction progress bar.
+
   if (GameEnv->VoxelTypeBar->Is_Shown()) GameEnv->VoxelTypeBar->Hide();
 }
 
@@ -316,8 +278,6 @@ void ZTool_Constructor::Display()
   ULong ActualSlotNum, i;
 
   Long Slot;
-
-
 
   Actor = GameEnv->PhysicEngine->GetSelectedActor();
   VoxelTypeBar = GameEnv->VoxelTypeBar;
@@ -348,9 +308,10 @@ void ZTool_Constructor::Display()
 
     }
 
-
-
     OldToolNum = ActualSlotNum;
   }
 
 }
+
+
+

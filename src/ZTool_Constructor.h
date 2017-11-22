@@ -34,29 +34,41 @@
 #  include "ZTools.h"
 #endif
 
+#ifndef Z_ZDESTRUCTIONPROGRESS_H
+#  include "ZDestructionProgress.h"
+#endif
+
+class ZGame;
+
 class ZTool_Constructor : public ZTool
 {
   protected:
-    ULong OldToolNum;
-    bool MiningInProgress;
-    ZVoxelCoords MinedVoxel;
-    double Mining_MaterialResistanceCounter;
-    double ToolForce[ZTOOL_TOOLTYPESNUMBER];
-    bool   ToolCompatibleTypes[ZTOOL_TOOLTYPESNUMBER];
-    void * SoundHandle;
+
+
+    ZDestructionProgress MiningProgress;
+
+
+    ULong  OldToolNum;
+    double ToolForce[ZTOOL_TOOLTYPESCOUNT];
+    bool   ToolCompatibleTypes[ZTOOL_TOOLTYPESCOUNT];
+
+
+
+
+
+
   public:
     ZTool_Constructor()
     {
       ULong i;
       OldToolNum = (ULong)-1;
-      MiningInProgress = false;
-      for (i=0;i<ZTOOL_TOOLTYPESNUMBER;i++) ToolForce[i]=0.0;
-      for (i=0;i<ZTOOL_TOOLTYPESNUMBER;i++) ToolCompatibleTypes[i]=false;
+      for (i=0;i<ZTOOL_TOOLTYPESCOUNT;i++) ToolForce[i]=0.0;
+      for (i=0;i<ZTOOL_TOOLTYPESCOUNT;i++) ToolCompatibleTypes[i]=false;
       ToolForce[1] = 0.8;
       ToolCompatibleTypes[1] = true;
-      Mining_MaterialResistanceCounter = 0;
-      SoundHandle = 0;
     }
+
+    void SetGameEnv(ZGame * GameEnv) { this->GameEnv = GameEnv; MiningProgress.SetGameEnv(GameEnv);  }
     virtual bool Tool_MouseButtonClick(ULong Button);
     virtual bool Tool_MouseButtonRelease(ULong Button);
 

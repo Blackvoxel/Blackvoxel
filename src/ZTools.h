@@ -34,7 +34,7 @@
 #  include "z/ZTypes.h"
 #endif
 
-#define ZTOOL_TOOLTYPESNUMBER 256
+#define ZTOOL_TOOLTYPESCOUNT 256
 
 class ZGame;
 
@@ -44,33 +44,14 @@ class ZTool
     ZGame * GameEnv;
   public:
 
-    void SetGameEnv(ZGame * GameEnv) { this->GameEnv = GameEnv; }
+    virtual void SetGameEnv(ZGame * GameEnv) { this->GameEnv = GameEnv; }
 
-    ZTool()
-    {
-      GameEnv = 0;
-    }
+    ZTool()                   { GameEnv = 0; }
+    virtual ~ZTool()          { GameEnv = 0; }
 
-    virtual ~ZTool()
-    {
-      GameEnv = 0;
-    }
-
-    virtual void Start_Tool()
-    {
-
-    }
-
-    virtual void End_Tool()
-    {
-
-    }
-
-    virtual void Display()
-    {
-
-    }
-
+    virtual void Start_Tool() { }
+    virtual void End_Tool()   { }
+    virtual void Display()    { }
 
     virtual bool Tool_MouseButtonClick(ULong Button) {return(false);}
     virtual bool Tool_MouseButtonRelease(ULong Button) {return(false);}
