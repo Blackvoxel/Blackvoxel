@@ -84,6 +84,7 @@ void ZGameWindow_VoxelTypeBar::Show()
     MainInventory[Indice].SetVoxelType(&Entry->VoxelType);
     MainInventory[Indice].SetQuantity(&Entry->Quantity);
     MainInventory[Indice].SetColor(255.0f,255.0f,255.0f);
+    MainInventory[Indice].SetDragCapability(false);
     MainWindow.AddFrame(&MainInventory[Indice]);
 
   }

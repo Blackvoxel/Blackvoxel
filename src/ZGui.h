@@ -227,6 +227,7 @@ class ZFrame : public ZObject
     virtual void GetSize    (float &Width, float &Height) {Width = Dimensions.Width; Height = Dimensions.Height; }
     virtual void SetDepth   (float Depth)               {Dimensions.Depth = Depth ;}
     virtual void SetColor   (float r,float v, float b)  {DrawColor.r = r; DrawColor.v = v; DrawColor.b = b; }
+    virtual void SetDragCapability(bool Enabled)        {Flag_Cap_Dragable = Enabled;}
 
     virtual void Show (Bool ShowState) {Flag_Show_Master = ShowState;}
     virtual void Show_Frame(Bool ShowState = true)  { Flag_Show_Frame = ShowState; }
