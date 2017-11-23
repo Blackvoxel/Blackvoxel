@@ -679,19 +679,41 @@ bool ZGame::Init_Sound(ZLog * InitLog)
 {
   ZString Msg;
   InitLog->Log(1, ZLog::INFO, "Starting : Sound Init");
+
+  // New Sound Object
+
   if (!(Sound = new ZSound)) return(false);
+
+  // Load the sound sample files.
 
   Sound->LoadSoundFiles();
   Msg.Clear() << "Loaded " << Sound->GetSampleCount() << " Sound samples."; InitLog->Log(3, ZLog::INFO, Msg);
   if (Sound->GetSampleCount() < 8) { ZString Err; Err << "Missing Sound Sample Files (count : " << Sound->GetSampleCount()<< ")"; InitLog->Log(4, ZLog::FAIL, Err); return(false); }
 
+  // Get the volume from settings.
+
   double Vol = Settings_Hardware->Setting_SoundVolume/100.0;
 
+  // Adjust sample volume. This is precomputed to reduce overhead.
+
+  for (ULong i=0; i < Sound->GetSampleCount() ; i++)
+  {
+    switch (i)
+    {
+      case 2:    Sound->SampleModify_Volume(2,0.5 * Vol);  break;
+      case 3:    Sound->SampleModify_Volume(3,0.5 * Vol);  break;
+      case 4:    Sound->SampleModify_Volume(4,0.5 * Vol);  break;
+      case 5:    Sound->SampleModify_Volume(5,0.03* Vol);  break; // Vrilleuse d'oreilles (0.1)
+      case 6:    Sound->SampleModify_Volume(6,0.3 * Vol);  break; // Bloc Break (0.3)
+      case 7:    Sound->SampleModify_Volume(7,0.3 * Vol);  break; // Bloc Place (0.3)
+      default:   if (Vol<1.0) Sound->SampleModify_Volume(1,1.0 * Vol);  break;
+    }
+  }
+
+  // Activate sound depending on settings.
+
   Sound->Activate(Settings_Hardware->Setting_SoundEnabled);
-  Sound->SampleModify_Volume(4,0.5 * Vol);
-  Sound->SampleModify_Volume(5,0.03* Vol ); // Vrilleuse d'oreilles (0.1)
-  Sound->SampleModify_Volume(6,0.3 * Vol); // Bloc Break (0.3)
-  Sound->SampleModify_Volume(7,0.3 * Vol); // Bloc Place (0.3)
+
 
   Initialized_Sound = true;
   InitLog->Log(2, ZLog::INFO, "Ended Ok : Sound Init");
