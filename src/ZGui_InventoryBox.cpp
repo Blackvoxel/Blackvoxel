@@ -171,6 +171,8 @@ void ZInventoryBox::DropItem(ZFrame * Item, UShort nButton)
     In_VoxelType = IbItem->GetVoxelType();
     In_Quantity = IbItem->GetQuantity();
 
+    if (In_VoxelType == VoxelType) return;
+
     if (*In_VoxelType != *VoxelType && *Quantity > 0)
     {
         if (nButton == 1)
