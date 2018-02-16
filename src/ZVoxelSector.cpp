@@ -283,8 +283,8 @@ Bool ZVoxelSector::GetSectorBaseDirectory(ZString & OutDirectory)
   if (COMPILEOPTION_USEHOMEDIRSTORAGE)
   {
     OutDirectory = ZStream_File::Get_Directory_UserData();
-    OutDirectory.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
   }
+  OutDirectory.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
   OutDirectory.AddToPath("Universes");
 
   return(true);

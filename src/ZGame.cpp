@@ -91,9 +91,9 @@ bool ZGame::Init_UserDataStorage(ZLog * InitLog)
   if (COMPILEOPTION_USEHOMEDIRSTORAGE)
   {
     Path_UserData = ZStream_File::Get_Directory_UserData();
-    Path_UserData.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
-    if ( !ZStream_File::Directory_CreateIfNotExists(Path_UserData.String)) { ErrorMsg << "ERROR *** : Can't create application user directory [" << Path_UserData << "]."; InitLog->Log(3, ZLog::FAIL, ErrorMsg); puts(ErrorMsg.String); return(false); }
   }
+  Path_UserData.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
+  if ( !ZStream_File::Directory_CreateIfNotExists(Path_UserData.String)) { ErrorMsg << "ERROR *** : Can't create application user directory [" << Path_UserData << "]."; InitLog->Log(3, ZLog::FAIL, ErrorMsg); puts(ErrorMsg.String); return(false); }
 
   // Directory for game files
 
@@ -858,8 +858,8 @@ bool ZGame::Start_PhysicEngine()
   if (COMPILEOPTION_USEHOMEDIRSTORAGE)
   {
     FileName = ZStream_File::Get_Directory_UserData();
-    FileName.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
   }
+  FileName.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
   UNum = UniverseNum;
   FileName.AddToPath("Universes").AddToPath(UNum).AddToPath("PlayerInfo.dat");
   FileStream.SetFileName(FileName.String);
@@ -868,10 +868,11 @@ bool ZGame::Start_PhysicEngine()
     Stream.SetStream(&FileStream);
     Stream.OpenRead();
 
-    ActorPlayer->Load(&Stream);
+    if (ActorPlayer->Load(&Stream)) printf("Player Loaded Ok\n");
+    else                            printf("Player Loading error\n");
     Stream.Close();
     FileStream.Close();
-  }
+  } printf("Player created\n");
 
 
   // Inventory Loading
@@ -896,8 +897,8 @@ bool ZGame::End_PhysicEngine()
   if (COMPILEOPTION_USEHOMEDIRSTORAGE)
   {
     FileName = ZStream_File::Get_Directory_UserData();
-    FileName.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
   }
+  FileName.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
   UNum = UniverseNum;
 #if COMPILEOPTION_ALLOWSAVEPLAYERSTATE == 1
   FileName.AddToPath("Universes").AddToPath(UNum).AddToPath("PlayerInfo.dat");

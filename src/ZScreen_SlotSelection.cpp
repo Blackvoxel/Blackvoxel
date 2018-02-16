@@ -112,8 +112,8 @@ ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
         if (COMPILEOPTION_USEHOMEDIRSTORAGE)
         {
           Directory = ZStream_File::Get_Directory_UserData();
-          Directory.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
         }
+        Directory.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
         Directory.AddToPath("Universes");
 
         // Loop for settings of choice boxes for universe selection.

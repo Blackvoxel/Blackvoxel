@@ -133,7 +133,8 @@ Bool ZVoxelType::LoadTexture()
   else
   {
     FileName << "voxeltexture_" << (ULong)(VoxelType - 32767) << ".bmp";
-    if (COMPILEOPTION_USEHOMEDIRSTORAGE) { FileSpec = ZStream_File::Get_Directory_UserData(); FileSpec.AddToPath(COMPILEOPTION_SAVEFOLDERNAME); }
+    if (COMPILEOPTION_USEHOMEDIRSTORAGE) { FileSpec = ZStream_File::Get_Directory_UserData();  }
+    FileSpec.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
     FileSpec.AddToPath("UserTextures");
     FileSpec.AddToPath(FileName);
   }
@@ -178,7 +179,8 @@ Bool ZVoxelType::LoadVoxelInformations()
   else
   {
     FileName << "voxelinfo_" << (ULong)(VoxelType - 32767) << ".txt";
-    if (COMPILEOPTION_USEHOMEDIRSTORAGE) { FileSpec = ZStream_File::Get_Directory_UserData(); FileSpec.AddToPath(COMPILEOPTION_SAVEFOLDERNAME); }
+    if (COMPILEOPTION_USEHOMEDIRSTORAGE) { FileSpec = ZStream_File::Get_Directory_UserData();  }
+    FileSpec.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
     FileSpec.AddToPath("UserTextures").AddToPath("voxelinfo").AddToPath(FileName);
   }
 

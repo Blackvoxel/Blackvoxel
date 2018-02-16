@@ -92,8 +92,8 @@ bool ZSettings_Hardware::Load()
   if (COMPILEOPTION_USEHOMEDIRSTORAGE)
   {
     FileName = ZStream_File::Get_Directory_UserData();
-    FileName.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
   }
+  FileName.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
   FileName.AddToPath("Settings_Hardware.dat");
 
   if (File.LoadFromFile(FileName.String))
@@ -210,8 +210,8 @@ bool ZSettings_Hardware::Save()
   if (COMPILEOPTION_USEHOMEDIRSTORAGE)
   {
     FileName = ZStream_File::Get_Directory_UserData();
-    FileName.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
   }
+  FileName.AddToPath(COMPILEOPTION_SAVEFOLDERNAME);
   FileName.AddToPath("Settings_Hardware.dat");
 
   Out << "Setting_Resolution_h          = " << Setting_Resolution_h                   << Out.NewLine();
