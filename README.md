@@ -17,16 +17,16 @@ And finally, after a year of boring travel you reached the orbit and started the
 Unfortunately, you hit an asteroid that was not on the map and your ship was heavily damaged.
 The ship wasn't controllable anymore and finally you crashed on your planet.
 
-By chance, you still alive, but most of your equipment and materials were destroyed.
+By chance, you're still alive, but most of your equipment and materials were destroyed.
 
-As soon as you looked around you, your realized that the planet wasn't what the dealer promised to you.
+As soon as you looked around you, your realized that the planet wasn't what the dealer promised you.
 
 What a strange and desolated world with a black sky and strange luminous blocks !!!
 
-All what you see is uncommon and you know nothing about it...
+Everything you see is uncommon and you know nothing about it...
 
 As you look on your personal digital assistant, you noticed you received an important email that arrived using powerful long distance intergalactic emitters: the agency said that they may have made a mistake because someone confused planet data files.
-They said that in the eventuality you remain alive, the sales contract did not mention the details of the surface of the planet, and unfortunately, they can't made any exchange and refund.
+They said that in the eventuality you remain alive, the sales contract did not mention the details of the surface of the planet, and unfortunately, they can't make any exchange and refund.
 
 But before you can do something, you have no choice: you have no intergalactic ship to escape and no suitable communication equipment to query some help.
 
