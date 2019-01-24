@@ -43,6 +43,7 @@ class ZSectorLoader
     virtual bool Is_EjectFileNotFull() = 0;
     virtual void Eject_Sector( ZVoxelSector * Sector) = 0;
     virtual ZVoxelSector * GetRequested() = 0;
+    virtual void SetWorldType(UShort WorldType) = 0;
 
 };
 

@@ -1675,20 +1675,18 @@ void ZWorldGenesis::GenerateZone_Flat(ZVoxelSector * VoxelSector, Long Sector_x,
 
 }
 
+void ZWorldGenesis::GenerateZone_Filled(ZVoxelSector * VoxelSector, UShort VoxelType)
+{
+  UShort * Data;
+  Long Count;
 
+  Data = VoxelSector->Data;
 
-
-
-
-
-
-
-
-
-
-
-
-
+  for (Count = 0; Count< (ZVOXELBLOCSIZE_X*ZVOXELBLOCSIZE_Y*ZVOXELBLOCSIZE_Z) ; Count++)
+  {
+    Data[Count] = VoxelType;
+  }
+}
 
 void ZWorldGenesis::GenerateZone_Flat2(ZVoxelSector * VoxelSector, Long HeightOffset, Long Sector_x, Long Sector_y, Long Sector_z)
 {

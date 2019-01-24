@@ -392,6 +392,17 @@ bool ZGame::Init_TextureManager(ZLog * InitLog)
   if (!Ol){Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/universe_choice_back.bmp");   Result = TextureManager.LoadBMPTexture(Path.String,18,!Pi  ,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }}
   if (!Ol){Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/settings_background.bmp");    Result = TextureManager.LoadBMPTexture(Path.String,19,true ,true,32 );      if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }}
 
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/gametype_back.bmp");          Result = TextureManager.LoadBMPTexture(Path.String,20,true ,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/BV_factory_eau_09_001.bmp");  Result = TextureManager.LoadBMPTexture(Path.String,21,!Pi ,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }
+#ifdef COMPILEOPTION_ONLYSCHOOLMODE
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/BV_grands_arbre2_06_001.bmp");Result = TextureManager.LoadBMPTexture(Path.String,22,!Pi  ,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }
+#else
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/BV_grands_arbre_06_001.bmp");Result = TextureManager.LoadBMPTexture(Path.String,22,!Pi  ,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }
+#endif
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/BV_schoolmode1_04_001.bmp");  Result = TextureManager.LoadBMPTexture(Path.String,23,!Pi  ,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }
+           Path = COMPILEOPTION_DATAFILESPATH; Path.AddToPath("gui/BV_schoolmode2_11_001.bmp");  Result = TextureManager.LoadBMPTexture(Path.String,24,!Pi  ,true,32 );     if(!Result) { Err.Clear() << ErrMsg << Path; InitLog->Log(20,ZLog::FAIL, Err); return(false); }
+
+
 
   Initialized_TextureManager = true;
   InitLog->Log(2, ZLog::INFO, "Ended Ok : Texture Manager Init");
@@ -493,11 +504,16 @@ bool ZGame::Init_TileSetsAndFonts(ZLog * InitLog)
   Fx = ((double)HardwareResolution.x)/1920.0;
   Fy = ((double)HardwareResolution.y)/1080.0;
 
-  TileSetStyles->CreateStyle(5,Font_1, Fx * 1.0, Fy * 1.0 ,0.0,0.0);
-  TileSetStyles->CreateStyle(6,Font_1, Fx * 2.0, Fy * 2.0 ,0.0,0.0);
-  TileSetStyles->CreateStyle(7,Font_1, Fx * 3.0, Fy * 3.0 ,0.0,0.0);
-  TileSetStyles->CreateStyle(8,Font_1, Fx * 4.0, Fy * 4.0 ,0.0,0.0);
-  TileSetStyles->CreateStyle(9,Font_1, Fx * 5.0, Fy * 5.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle( 5,Font_1, Fx * 1.0, Fy * 1.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle( 6,Font_1, Fx * 2.0, Fy * 2.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle( 7,Font_1, Fx * 3.0, Fy * 3.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle( 8,Font_1, Fx * 4.0, Fy * 4.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle( 9,Font_1, Fx * 5.0, Fy * 5.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle(10,Font_1, Fx * 6.0, Fy * 6.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle(11,Font_1, Fx * 7.0, Fy * 7.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle(12,Font_1, Fx * 8.0, Fy * 8.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle(13,Font_1, Fx * 9.0, Fy * 9.0 ,0.0,0.0);
+  TileSetStyles->CreateStyle(14,Font_1, Fx *10.0, Fy *10.0 ,0.0,0.0);
 
   Initialized_TileSetsAndFonts = true;
   InitLog->Log(2, ZLog::INFO, "Ended Ok : Tilesets and Fonts Init");
@@ -933,6 +949,7 @@ bool ZGame::Start_SectorLoader()
   if (!SectorLoader) return(false);
   SectorLoader->SetVoxelTypeManager(&VoxelTypeManager);
   SectorLoader->SetUniverseNum(UniverseNum);
+  SectorLoader->SetWorldType(GameInfo.GameType);
   if (!SectorLoader->Init()) return(false);
   World->SetSectorLoader(SectorLoader);
   Initialized_SectorLoader = true;
@@ -1086,7 +1103,7 @@ bool ZGame::End_ToolManager()
   return(true);
 }
 
-bool ZGame::Start_PersistGameEnv()
+bool ZGame::LoadGameInfo()
 {
   // Init the path to actual universe
 
@@ -1106,28 +1123,15 @@ bool ZGame::Start_PersistGameEnv()
 
     // Loadind the worldinfo
 
-    ZStream_File Stream;
+    return(GameInfo.Load(Path_ActualUniverse.Path("WorldInfo.dat").String));
 
-    Stream.SetFileName(Path_ActualUniverse.Path("WorldInfo.dat").String);
-
-    if (!Stream.OpenRead()) return(true); // Yes, return true if no file. That's not an error case.
-
-    ULong MagicCookie, Compatibility_Class;
-    Stream>>MagicCookie;
-    if (MagicCookie!=0xB14C08E1) { Stream.Close(); return(false); }
-    Stream>>Previous_GameVersion;
-    Stream>>Compatibility_Class;
-    if (Compatibility_Class >= 2)
-    {
-      Stream>>Machine_Serial; // Next serial number for machines, robot, etc.
-    }
-    Stream.Close();
-
-  return(true);
 }
 
-bool ZGame::End_PersistGameEnv()
+bool ZGame::SaveGameInfo()
 {
+  GameInfo.Save(Path_ActualUniverse.Path("WorldInfo.dat").String);
+
+  /*
   ZStream_File Stream;
   ZString FileSpec;
 
@@ -1140,8 +1144,22 @@ bool ZGame::End_PersistGameEnv()
   Stream<<(ULong)2;                        // Compatibility class;
   Stream<<Machine_Serial; // Next serial number for machines, robot, etc.
   Stream.Close();
+  */
 
   return(true);
+}
+
+void ZGame::InitGameSession()
+{
+  GameInfo.GameType = 1;
+  GameInfo.RobotNextSerial = 1;
+  GameInfo.Previous_GameVersion = 0;
+
+  Stop_Programmable_Robots = false;
+  Service_RemoteRobotServerStarted = false;
+  Enable_MVI = true;
+  Enable_LoadNewSector = true;
+  Enable_NewSectorRendering = true;
 }
 
 bool ZGame::OutputHelperFiles()

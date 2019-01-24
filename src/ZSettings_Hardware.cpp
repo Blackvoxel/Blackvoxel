@@ -69,7 +69,7 @@ ZSettings_Hardware::ZSettings_Hardware()
   RenderingDistance_Vertical = 3;
   Opt_SectCFactor = 1.0;
   PixelAspectRatio = 1.0;
-  Experimental_LearningMode = false;
+  // Experimental_LearningMode = false;
   Setting_Version = 1;
 
   // Special default settings for Raspberry Pi
@@ -178,7 +178,7 @@ bool ZSettings_Hardware::Load()
           if (PixelAspectRatio < 0.5) PixelAspectRatio = 0.5;
           if (PixelAspectRatio > 3.0) PixelAspectRatio = 3.0;
         }
-        if (Token=="Experimental_LearningMode") { Experimental_LearningMode = (Line.GetULong() > 0) ? true : false; }
+        //if (Token=="Experimental_LearningMode") { Experimental_LearningMode = (Line.GetULong() > 0) ? true : false; }
 
         if (Token=="WebExtension_Enable") { RemoteExtension_Enable = (Line.GetULong() > 0) ? true : false; }
         if (Token=="WebExtension_Port")   { RemoteExtension_Port   = (UShort)Line.GetULong(); }
@@ -239,7 +239,7 @@ bool ZSettings_Hardware::Save()
   Out << "Set_RenderDistance_Vert       = " << (ULong)Set_RenderDistance_Vert   << Out.NewLine();
   Out << "Opt_SectCFactor               = " << Opt_SectCFactor << Out.NewLine();
   Out << "PixelAspectRatio              = " << PixelAspectRatio << Out.NewLine();
-  Out << "Experimental_LearningMode     = " << (Experimental_LearningMode ? 1u:0u)    << Out.NewLine();
+  //Out << "Experimental_LearningMode     = " << (Experimental_LearningMode ? 1u:0u)    << Out.NewLine();
   Out << "WebExtension_Enable           = " << (RemoteExtension_Enable ? 1u:0u)    << Out.NewLine();
   Out << "WebExtension_Port             = " << RemoteExtension_Port << Out.NewLine();
   Out << "Setting_Favorite_Editor       = " << Setting_Favorite_Editor << Out.NewLine();

@@ -142,7 +142,8 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
     case SDLK_j:
     case SDLK_k:
                   {
-                    if (!GameEnv->Settings_Hardware->Experimental_LearningMode) break;
+                    // if (!GameEnv->Settings_Hardware->Experimental_LearningMode) break;
+                    if (GameEnv->GameInfo.GameType!=1) break;
                     ULong SlotNum = 20;
                     ZInventory * Inv = Actor->Inventory;
                     if (KeySym==SDLK_j) Actor->LearningModePage ++;
@@ -377,12 +378,14 @@ void ZGame_Events::Process_StillEvents()
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveRight] )     { Actor->Action_GoRightStraff(); }
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveForward] )   { Actor->Action_GoForward(); }
     if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveBackward] )  { Actor->Action_GoBackward(); }
-    if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveUp]   && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))
+    // if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveUp]   && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))
+    if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveUp]   && (COMPILEOPTION_DEBUGFACILITY || GameEnv->GameInfo.GameType == 1))
     {
       if(Keyboard_Matrix[SDLK_LCTRL]) Actor->Action_SetActorMode(3);
       else Actor->Action_GoUp();
     }
-    if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveDown] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))
+    //if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveDown] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))
+    if ( Keyboard_Matrix[Settings_Hardware->Setting_Key_MoveDown] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->GameInfo.GameType == 1))
     {
       if(Keyboard_Matrix[SDLK_LCTRL]) Actor->Action_SetActorMode(0);
       else Actor->Action_GoDown();
@@ -392,10 +395,12 @@ void ZGame_Events::Process_StillEvents()
     //if ( Keyboard_Matrix[SDLK_a] )                                     { Actor->Action_GoUp(GameEnv->Time_GameLoop  * 1.5); }
     if ( Keyboard_Matrix[SDLK_h] && COMPILEOPTION_DEBUGFACILITY )        { Actor->Action_GoFastForward(500.0); }
     if ( Keyboard_Matrix[SDLK_DELETE] && !COMPILEOPTION_DEBUGFACILITY ) { Actor->LifePoints = 0.0; }
-    if ( Keyboard_Matrix[SDLK_KP0] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))       { Actor->Action_SetActorMode(0);}
+    // if ( Keyboard_Matrix[SDLK_KP0] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))       { Actor->Action_SetActorMode(0);}
+    if ( Keyboard_Matrix[SDLK_KP0] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->GameInfo.GameType == 1))       { Actor->Action_SetActorMode(0);}
     /* if ( Keyboard_Matrix[SDLK_KP1] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(1);} */
     if ( Keyboard_Matrix[SDLK_KP2] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(2);}
-    if ( Keyboard_Matrix[SDLK_KP3] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))       { Actor->Action_SetActorMode(3);}
+    //if ( Keyboard_Matrix[SDLK_KP3] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->Settings_Hardware->Experimental_LearningMode))       { Actor->Action_SetActorMode(3);}
+    if ( Keyboard_Matrix[SDLK_KP3] && (COMPILEOPTION_DEBUGFACILITY || GameEnv->GameInfo.GameType == 1))       { Actor->Action_SetActorMode(3);}
     if ( Keyboard_Matrix[SDLK_KP4] && COMPILEOPTION_DEBUGFACILITY)       { Actor->Action_SetActorMode(4);}
     if ( Keyboard_Matrix[SDLK_KP5] && COMPILEOPTION_DEBUGFACILITY)
     {

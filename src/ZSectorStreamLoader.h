@@ -140,6 +140,7 @@ class ZFileSectorLoader : public ZSectorLoader
     virtual ZVoxelSector * GetRequested();
     void                   SetVoxelTypeManager(ZVoxelTypeManager * VoxelTypeManager) { this->VoxelTypeManager = VoxelTypeManager; }
     void                   SetUniverseNum(ULong UniverseNum) { this->UniverseNum = UniverseNum; }
+    void                   SetWorldType(UShort WorldType) {SectorCreator.SetWorldType(WorldType);}
 
     bool MakeTasks();
 

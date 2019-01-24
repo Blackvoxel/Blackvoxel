@@ -30,6 +30,10 @@
 #  include "z/ZStream_File.h"
 #endif
 
+#ifndef Z_ZOS_SPECIFIC_VIEWDOC_H
+#  include "ZOs_Specific_ViewDoc.h"
+#endif
+
 ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
 {
       ZVector2f Size;
@@ -121,7 +125,7 @@ ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
         for (i=0;i<16;i++)
         {
           // Test if the gameslot is used and how it must be named.
-
+/*
           FileName = Directory;
           FileName.AddToPath(i+1+SlotOffset).AddToPath("PlayerInfo.dat");
           if (ZStream_File::File_IsExists(FileName.String))
@@ -137,6 +141,16 @@ ULong ZScreen_SlotSelection::ProcessScreen(ZGame * GameEnv)
           {
             SlotUsed[i] = false; StatusString[i] = "FREE";
           }
+*/
+
+          ULong GameType = ZGameInfo::GetGameType(i+1+SlotOffset);
+          //printf("%d:GameType %d\n",i, GameType);
+          if   (GameType==(ULong)-1) {StatusString[i] = "FREE"; SlotUsed[i] = false;}
+          else if (GameType==0 ) {StatusString[i] = "ADVEN."; SlotUsed[i] = true;}
+          else if (GameType==1 ) {StatusString[i] = "SCHOOL"; SlotUsed[i] = true;}
+          else                   {StatusString[i] = "??????"; SlotUsed[i] = true;}
+
+          if (SlotUsed[i]) ZGameInfo::GetWorldCustomDescription(i+1+SlotOffset, StatusString[i]);
 
           // Set parameters of the universe slot box.
 

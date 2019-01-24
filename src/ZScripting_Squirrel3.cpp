@@ -746,7 +746,7 @@ SQInteger function_GetRobotID(HSQUIRRELVM v)
   ZStoreSq3 * S;
 
   S = (ZStoreSq3 *)sq_getforeignptr(v);
-  if (S->Extension->RobotSerialNumber == 0) S->Extension->RobotSerialNumber = S->GameEnv->Machine_Serial++; // Assign new serial if robot has none.
+  if (S->Extension->RobotSerialNumber == 0) S->Extension->RobotSerialNumber = S->GameEnv->GameInfo.RobotNextSerial++; // Assign new serial if robot has none.
   sq_pushinteger(v,(SQInteger)S->Extension->RobotSerialNumber);
   return(1);
 }

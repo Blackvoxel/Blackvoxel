@@ -39,7 +39,7 @@ ZVoxelExtension * ZVoxelType_Programmable::CreateVoxelExtension(bool IsLoadingPh
 
   if (!IsLoadingPhase)
   {
-    NewVoxelExtension->SetSerial(GameEnv->Machine_Serial++);
+    NewVoxelExtension->SetSerial(GameEnv->GameInfo.RobotNextSerial++);
     NewVoxelExtension->CompileAndRunScript(ZVoxelExtension_Programmable::CONTEXT_NEWVOXEL);
   }
 

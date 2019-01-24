@@ -68,6 +68,18 @@ bool ZViewDoc::ViewDocPage(ULong Number, bool Online)
   return(true);
 }
 
+bool ZViewDoc::OpenURL(char * URL)
+{
+    ZString Line;
+
+    Line << "xdg-open " << URL;
+
+    SystemWithReturn(Line.String);
+
+    return(true);
+}
+
+
 #endif
 
 #ifdef ZENV_OS_WINDOWS
@@ -90,6 +102,18 @@ bool ZViewDoc::ViewDocPage(ULong Number, bool Online)
   ShellExecute( 0,              // HWND hwnd,
                 0,              // LPCTSTR lpOperation,
                 URL.String,     // LPCTSTR lpFile,
+                0,              // LPCTSTR lpParameters,
+                0,              // LPCTSTR lpDirectory,
+                SW_SHOWNORMAL); // INT nShowCmd
+
+  return(true);
+}
+
+bool ZViewDoc::OpenURL(char * URL)
+{
+  ShellExecute( 0,              // HWND hwnd,
+                0,              // LPCTSTR lpOperation,
+                URL,            // LPCTSTR lpFile,
                 0,              // LPCTSTR lpParameters,
                 0,              // LPCTSTR lpDirectory,
                 SW_SHOWNORMAL); // INT nShowCmd
@@ -135,6 +159,17 @@ bool ZViewDoc::ViewDocPage(ULong Number, bool Online)
   SystemWithReturn(URL.String);
 
   return(true);
+}
+
+static bool ZViewDoc::OpenURL(char * URL)
+{
+    ZString Line;
+
+    Line << "xdg-open " << URL;
+
+    SystemWithReturn(Line.String);
+
+    return(true);
 }
 
 #endif

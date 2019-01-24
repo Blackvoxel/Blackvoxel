@@ -142,7 +142,7 @@ bool ZVoxelExtension_Programmable::Load(ZStream_SpecialRamStream * Stream)
   if (ExtensionVersion<4) Ok&=Stream->Get(Compiled);
   if (ExtensionVersion>3) Ok&=Stream->Get(IsAllowedToRun);
   if (ExtensionVersion>2) Ok&=Stream->Get(RobotSerialNumber);
-  else                    RobotSerialNumber = Ge->Machine_Serial++;
+  else                    RobotSerialNumber = Ge->GameInfo.RobotNextSerial++;
   if (ExtensionVersion>3) Ok&=Stream->Get(Overclock);
   else                    Overclock = 0;
 

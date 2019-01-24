@@ -82,6 +82,8 @@ class ZWorldGenesis
            BlackWoods_Level = -14};
     UShort         ConvCN[256];
 
+    UShort WorldType;
+
     ZLightSpeedRandom RandomGen;
     ZFastRandom       AltRandomGen;
 
@@ -202,7 +204,6 @@ class ZWorldGenesis
       Long x,y,z, HeightOffset;
       UShort ZoneType, RngNum;
 
-
       x = VoxelSector->Pos_x;
       y = VoxelSector->Pos_y;
       z = VoxelSector->Pos_z;
@@ -223,6 +224,12 @@ class ZWorldGenesis
         HeightOffset = ZoneYOffset[ RngNum ];
         VoxelSector->ZoneVersion = 1; // Set the default version num to 1.
         VoxelSector->GeneratorVersion = 1; // Generator version. Updated at each world change.
+
+        // School mode
+
+        if (WorldType == 1 && ZoneType!=0 ) {GenerateZone_Filled(VoxelSector, 261); return; }
+
+        // Dust field
 
         if (y > 64) { GenerateZone_DustField( VoxelSector, x, y, z); return; }
 
@@ -285,6 +292,7 @@ class ZWorldGenesis
 
     }
 
+    void GenerateZone_Filled(ZVoxelSector * VoxelSector, UShort VoxelType);
     void GenerateZone_WaterMountain(ZVoxelSector * VoxelSector, Long HeightOffset, Long Sector_x, Long Sector_y, Long Sector_z);
     void GenerateZone_WaterLands(ZVoxelSector * VoxelSector, Long HeightOffset, Long Sector_x, Long Sector_y, Long Sector_z);
 
@@ -382,6 +390,8 @@ class ZWorldGenesis
     // Zonemap Work
     void ZoneMap_ChangeSize(const char ** Table, Long TableWidth, Long TableHeight, const char * TableDecl, Long NewTableWidth, Long NewTableHeight, UByte EmptyZonesValue, const char * OutputFile);
     void ZoneMap_Shift(const char ** Table, Long TableWidth, Long TableHeight, const char * TableDecl, Long Ring, Long Shift, const char * OutputFile, UByte IncThreshold=255, UByte IncAdd=0);
+
+    void SetWorldType(UShort WorldType) {this->WorldType = WorldType;}
   };
 
 #endif /* Z_ZWORLDGENESIS_H */

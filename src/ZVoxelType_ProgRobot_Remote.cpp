@@ -302,7 +302,8 @@ void ZVoxelType_ProgRobot_Remote::ActiveProcess( ZActiveVoxelInterface * AvData)
                   AvData->SetNeighborVoxel(PlaceDirection, Ext->BuildVoxelType, ZActiveVoxelInterface::CHANGE_CRITICAL );
                 }
               }
-              else if (GameEnv->Settings_Hardware->Experimental_LearningMode)
+              // else if (GameEnv->Settings_Hardware->Experimental_LearningMode)
+              else if (GameEnv->GameInfo.GameType == 1)
               {
                 AvData->SetNeighborVoxel(PlaceDirection, Ext->BuildVoxelType, ZActiveVoxelInterface::CHANGE_CRITICAL );
               }

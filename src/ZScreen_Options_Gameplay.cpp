@@ -101,7 +101,7 @@ ULong ZScreen_Options_Game::ProcessScreen(ZGame * GameEnv)
     GameEnv->GuiManager.AddFrame(&Frame_MouseFlipY);
     Pos.y += 32.0f + GameEnv->ScreenResolution.y * 0.05f;
     Pos.x = LeftMargin;
-
+/*
   ZFrame_FontFrame Frame_TitleLearningMode;
     Frame_TitleLearningMode.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_TitleLearningMode.SetDisplayText("SCHOOL MODE ");
@@ -119,7 +119,7 @@ ULong ZScreen_Options_Game::ProcessScreen(ZGame * GameEnv)
     GameEnv->GuiManager.AddFrame(&Frame_CheckboxLearningMode);
     Pos.y += 32.0f + GameEnv->ScreenResolution.y * 0.05f;
     Pos.x = LeftMargin;
-
+*/
   ZFrame_FontFrame Frame_WebExtensions;
     Frame_WebExtensions.SetStyle(GameEnv->TileSetStyles->GetStyle(2));
     Frame_WebExtensions.SetDisplayText("WEB EXTNSIONS ");
@@ -158,13 +158,13 @@ ULong ZScreen_Options_Game::ProcessScreen(ZGame * GameEnv)
       {
         GameEnv->Settings_Hardware->Setting_MouseFactor = Frame_MouseFactor.GetValue();
       }
-
+/*
       if (Frame_CheckboxLearningMode.Is_StateChanged())
       {
         if (Frame_CheckboxLearningMode.GetState())  { GameEnv->Settings_Hardware->Experimental_LearningMode = true;  }
         else                                        { GameEnv->Settings_Hardware->Experimental_LearningMode = false; }
       }
-
+*/
       if (Frame_CheckboxWebExtensions.Is_StateChanged())
       {
         if (Frame_CheckboxWebExtensions.GetState())  { GameEnv->Settings_Hardware->RemoteExtension_Enable = true;  }

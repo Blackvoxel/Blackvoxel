@@ -25,7 +25,7 @@
 #else
 #  include <GL/glew.h>
 // #  include <GL/gl.h>
-#  include <GL/glext.h>
+//#  include <GL/glext.h>
 // #  include <GL/glut.h>
 #endif
     #include "SDL/SDL.h"
@@ -118,6 +118,14 @@
 
 #ifndef Z_ZSCREEN_OPTIONS_KEYMAP_H
 #  include "ZScreen_Options_Keymap.h"
+#endif
+
+#ifndef Z_ZSCREEN_GAMEMODESELECTION_H
+#  include "ZScreen_GameModeSelection.h"
+#endif
+
+#ifndef Z_ZSCREEN_UNSUPPORTEDGAMEMODE_H
+#  include "ZScreen_UnsupportedGameMode.h"
 #endif
 
 #ifndef Z_ZSCREEN_MESSAGE_H
@@ -269,6 +277,25 @@ int main(int argc, char *argv[])
 
           GameEnv.UniverseNum = Screen_SlotSelection.ProcessScreen(&GameEnv);
 
+        // ****************************** Load Game Env and game options *********************
+
+          GameEnv.InitGameSession();
+          if (!GameEnv.LoadGameInfo())
+          {
+            // Display Game Type selection
+            GameEnv.GameInfo.GameType = 1;
+            ZScreen_ModeSelection Screen_ModeSelection;
+            GameEnv.GameInfo.GameType = Screen_ModeSelection.ProcessScreen(&GameEnv);
+          }
+
+          #ifdef COMPILEOPTION_ONLYSCHOOLMODE
+          if (GameEnv.GameInfo.GameType !=1)
+          {
+            ZScreen_UnsupportedGameMode Screen_UnsupportedGameMode; Screen_UnsupportedGameMode.ProcessScreen(&GameEnv);
+            continue;
+          }
+          #endif
+
           // ********************************** Loading Screen ******************************
 
           ZScreen_Loading Screen_Loading;
@@ -411,6 +438,7 @@ int main(int argc, char *argv[])
 
           GameEnv.Basic_Renderer->Cleanup();
           GameEnv.End_Game();
+          GameEnv.SaveGameInfo();
         }
 
         // Relooping to the title screen

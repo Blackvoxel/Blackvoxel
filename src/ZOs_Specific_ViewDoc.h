@@ -44,6 +44,7 @@ class ZViewDoc
   public:
 
   static bool ViewDocPage(ULong Number, bool Online);
+  static bool OpenURL(char * URL);
 
 };
 
