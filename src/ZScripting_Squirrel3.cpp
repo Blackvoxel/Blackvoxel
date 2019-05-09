@@ -774,12 +774,12 @@ SQInteger function_MovePlayer(HSQUIRRELVM v)
 
   // Clipping.
 
-  if (x>10.0f)  x =  5000.0f;
-  if (x<-10.0f) x = -5000.0f;
-  if (y>10.0f)  y =  5000.0f;
-  if (y<-10.0f) y = -5000.0f;
-  if (z>10.0f)  z =  5000.0f;
-  if (z<-10.0f) z = -5000.0f;
+  if (x>5000.0f)  x =  5000.0f;
+  if (x<-5000.0f) x = -5000.0f;
+  if (y>5000.0f)  y =  5000.0f;
+  if (y<-5000.0f) y = -5000.0f;
+  if (z>5000.0f)  z =  5000.0f;
+  if (z<-5000.0f) z = -5000.0f;
 
   // Move the player.
 
