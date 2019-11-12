@@ -50,7 +50,7 @@ bool ZVoxelType_IndicatorLight::Interface_GetInfo(ZVoxelLocation * VLoc, ULong I
 
 bool  ZVoxelType_IndicatorLight::Interface_GetInfoDoc(ULong InfoNum, ULong DocType, ZVar * Out)
 {
-  if (InfoNum == 0) Out->Set_Int(1); return(true);
+  if (InfoNum == 0) {Out->Set_Int(1); return(true);}
   switch(InfoNum)
   {
     case 1: switch(DocType) // Name
