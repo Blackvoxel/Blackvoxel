@@ -1210,13 +1210,19 @@ void ZVoxelSector::Draw_safe_Sphere(double x, double y, double z, double Radius,
   sy = floor(y-Radius); ey = ceil(y+Radius);
   sz = floor(z-Radius); ez = ceil(z+Radius);
 
-  if (sx<0) sx=0; if (sx>=Size_x) sx=Size_x-1;
-  if (sy<0) sy=0; if (sy>=Size_y) sy=Size_y-1;
-  if (sz<0) sz=0; if (sz>=Size_z) sz=Size_z-1;
+  if (sx<0) sx=0;
+  if (sx>=Size_x) sx=Size_x-1;
+  if (sy<0) sy=0;
+  if (sy>=Size_y) sy=Size_y-1;
+  if (sz<0) sz=0;
+  if (sz>=Size_z) sz=Size_z-1;
 
-  if (ex<0) ex=0; if (ex>=Size_x) ex=Size_x-1;
-  if (ey<0) ey=0; if (ey>=Size_y) ey=Size_y-1;
-  if (ez<0) ez=0; if (ez>=Size_z) ez=Size_z-1;
+  if (ex<0) ex=0;
+  if (ex>=Size_x) ex=Size_x-1;
+  if (ey<0) ey=0;
+  if (ey>=Size_y) ey=Size_y-1;
+  if (ez<0) ez=0;
+  if (ez>=Size_z) ez=Size_z-1;
 
   for (nz=sz;nz<=ez;nz++)
     for (nx=sx;nx<=ex;nx++)
