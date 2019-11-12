@@ -87,16 +87,24 @@ class ZVoxelTypeManager : public ZObject
     {
       ULong i;
 
-      for (i=0;i<65536;i++)
+      // Delete the Voxeltype table and it's entries
+      if (VoxelTable)
       {
-        if (VoxelTable[i])
+        for (i=0;i<65536;i++)
         {
-          if (!VoxelTable[i]->VoxelType == i) {delete VoxelTable[i]; VoxelTable[i]=0;}
+          if (VoxelTable[i])
+          {
+            if (VoxelTable[i]->VoxelType == i) {delete VoxelTable[i]; VoxelTable[i]=0;}
+          }
         }
-        if (ActiveTable) { delete ActiveTable; ActiveTable = 0; }
+        delete [] VoxelTable;
+        VoxelTable = 0;
       }
-      delete [] VoxelTable;
-      VoxelTable = 0;
+
+      // Delete the active Table
+
+      if (ActiveTable) { delete ActiveTable; ActiveTable = 0; }
+
     }
 
 
