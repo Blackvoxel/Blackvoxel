@@ -287,7 +287,7 @@ class ZParser
           NumLines--;
           if (!NumLines) break;
         }
-        if (Text[i]) Result<< (char) Text[i]; Len-=1;
+        if (Text[i]) Result<< (char) Text[i];
       }
       
       return(Result);
