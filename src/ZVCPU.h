@@ -1626,7 +1626,7 @@ class BlackCPU : public ZVCPU_Chip_Interface
 
           case OPCODE_BCND:             Op1 = FetchOperand_8(ProgramCounter++); // Condition codes
                                         Op2 = (int)(short)FetchOperand_16(ProgramCounter); ProgramCounter+=2; // Jump
-                                        if ( (((~(Status.WholeRegister ^ (Op1 & 0xf))) & (Op1 >> 4)) == (Op1 >> 4))) ProgramCounter += Op2;
+                                        if ( (((~(Status.WholeRegister ^ ((ULong)Op1 & 0xf))) & ((ULong)Op1 >> 4)) == ((ULong)Op1 >> 4))) ProgramCounter += Op2;
                                         ElapsedCycles += 8;
                                         break;
 
@@ -1635,11 +1635,11 @@ class BlackCPU : public ZVCPU_Chip_Interface
                                         if (
                                               (
                                                 (
-                                                   (~( (Status.WholeRegister&0xf) ^ (Op1 & 0xf) ))
+                                                   (~( (Status.WholeRegister&0xf) ^ ((ULong)Op1 & 0xf) ))
                                                    & (Op1 >> 4)
                                                 )
                                                 !=
-                                                (Op1 >> 4)
+                                                ((ULong)Op1 >> 4)
                                               )
                                            ) ProgramCounter += Op2;
                                         ElapsedCycles += 8;
