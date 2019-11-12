@@ -116,7 +116,7 @@ bool ZSettings_Hardware::Load()
         if (Token=="Setting_ViewPort_Size_x")   Setting_ViewPort_Size_x   = Line.GetULong();
         if (Token=="Setting_ViewPort_Size_y")   Setting_ViewPort_Size_y   = Line.GetULong();
         if (Token=="Setting_Sound_Enabled")     Setting_SoundEnabled      = (Line.GetULong() > 0) ? true : false;
-        if (Token=="Setting_Sound_Volume")      Setting_SoundVolume       = Line.GetDouble(); if (Setting_SoundVolume < 0.0 || Setting_SoundVolume > 100.0) Setting_SoundVolume = 100.0;
+        if (Token=="Setting_Sound_Volume")      {Setting_SoundVolume       = Line.GetDouble(); if (Setting_SoundVolume < 0.0 || Setting_SoundVolume > 100.0) Setting_SoundVolume = 100.0;}
         if (Token=="Setting_Mouse_Factor")      Setting_MouseFactor       = Line.GetDouble();
         if (Token=="Setting_MouseFlipY")        Setting_MouseFlipY       = (Line.GetULong() > 0) ? true : false;
 
