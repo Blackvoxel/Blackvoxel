@@ -32,7 +32,6 @@ void ZGameWindow_RTFM::Show()
 {
   ZVector2f Rp, Ip, Size;
   ZActor * Actor;
-  ULong x,y;
 
   Actor = GameEnv->PhysicEngine->GetSelectedActor(); if (!Actor) return;
 

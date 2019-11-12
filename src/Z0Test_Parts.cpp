@@ -124,9 +124,9 @@
 bool ZTest_Parts::RunTestCode()
 {
 
+  /*
   ZStream_File Stream;
   ZString Text;
-  bool Result;
 
   ParsedRequest Pr;
 
@@ -136,7 +136,7 @@ bool ZTest_Parts::RunTestCode()
   Pr.ParseRequest(Text);
   Pr.Dump();
 
-
+*/
 
 
   //Bmp.SetPixel()
