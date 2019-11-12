@@ -46,7 +46,8 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
 
                if (Actor->PointedVoxel.Collided)
                {
-                 ZInventory::Entry * InventorySlot;
+                 ZInventory * Inventory;
+                 ULong  SlotNum;
                  UShort VoxelType;
                  ZVoxelLocation VLoc;
                  ZVector3d VoxelCenter, VoxelDistance;
@@ -65,14 +66,16 @@ bool ZTool_Constructor::Tool_MouseButtonClick(ULong Button)
                    break;
                  }
 
-                 InventorySlot = Actor->Inventory->GetActualItemSlot();
-                 VoxelType = InventorySlot->VoxelType;
+                 Inventory = Actor->Inventory;
+                 SlotNum = Inventory->GetActualItemSlotNum();
+                 VoxelType = Inventory->GetVoxelType(SlotNum);
 
                  AllowBuild = (COMPILEOPTION_ALLOWJUMPANDBUILD==1) ? true : Actor->IsOnGround;
 
-                 if ( VoxelType == 0 || InventorySlot->Quantity == 0 || AllowBuild==false ) break;
+                 if ( VoxelType == 0 || Inventory->GetQuantity(SlotNum) == 0 || AllowBuild==false ) break;
 
-                 if (1UL == Actor->Inventory->UnstoreBlocks(VoxelType,1UL))
+                 //if (1UL == Actor->Inventory->UnstoreBlocks(VoxelType,1UL))
+                 if (1UL == Actor->Inventory->UnstoreBlocks_FromSlot(SlotNum,1UL))
                  {
                    if (GameEnv->World->SetVoxel_WithCullingUpdate(Actor->PointedVoxel.PredPointedVoxel.x, Actor->PointedVoxel.PredPointedVoxel.y, Actor->PointedVoxel.PredPointedVoxel.z, VoxelType, ZVoxelSector::CHANGE_CRITICAL, true, &VLoc)) VLoc.Sector ->Flag_HighPriorityRefresh = true;
                    GameEnv->Sound->PlaySound(7);
