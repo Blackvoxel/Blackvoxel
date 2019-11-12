@@ -47,6 +47,9 @@ class ZInventory
      public:
        UShort VoxelType;
        ULong  Quantity;
+
+       ULong UnstoreBlock(ULong BlockQuantity);
+       ULong StoreBlock(UShort VoxelType_ToStore, ULong BlockQuantity);
    };
 
   protected:
@@ -66,254 +69,52 @@ class ZInventory
            Powers_StartSlot    = 50,
            Powers_EndSlot       = 59};
 
-    ZInventory()
-    {
-      ULong i;
+    ZInventory();                  // Create inventory with default size (for player)
+    ZInventory(ULong SlotCount);   // Create inventory with special size (for machines)
+    ~ZInventory();
 
-      SlotCount = Inventory_SlotCount;
+    // Inventory working
 
-      ActualItem = Inventory_StartSlot;
-      ActualTool = Tools_StartSlot;
+    void   Clear();
+    void   SetSlot(ULong SlotNum, UShort VoxelType, ULong Quantity);
+    bool   StoreBlocks(UShort VoxelType, ULong VoxelQuantity);
+    ULong  UnstoreBlocks(UShort VoxelType, ULong VoxelQuantity);
+    ULong  UnstoreBlocks_FromSlot(ULong SlotNum, ULong VoxelQuantity);
+    ULong  GetQuantity(ULong SlotNum) { return(SlotTable[SlotNum].Quantity); }
+    UShort GetVoxelType(ULong SlotNum){ return(SlotTable[SlotNum].VoxelType); }
+    // Find slots
 
-      SlotTable = new Entry[SlotCount];
+    bool   FindSlot(UShort VoxelType, ULong &Slot); // Find slot storing some VoxelType
+    bool   FindFreeSlot(ULong &Slot);               // Find a "free" slot with nothing in it
 
-      for (i=0;i<SlotCount;i++) { SlotTable[i].VoxelType = 0; SlotTable[i].Quantity = 0; }
-    }
-
-    void Clear()
-    {
-      ULong i;
-
-      for ( i=Inventory_StartSlot ; i<=Inventory_EndSlot ; i++ ) { SlotTable[i].VoxelType = 0; SlotTable[i].Quantity = 0; }
-      for ( i=Tools_StartSlot ; i<=Tools_EndSlot ; i++ )         { SlotTable[i].VoxelType = 0; SlotTable[i].Quantity = 0; }
-      for ( i=Powers_StartSlot ; i<=Powers_EndSlot ; i++ )       { SlotTable[i].VoxelType = 0; SlotTable[i].Quantity = 0; }
-    }
-
-    void SetSlot(ULong SlotNum, UShort Type, ULong Quantity)
-    {
-      if (SlotNum >= this->SlotCount) return;
-
-      SlotTable[SlotNum].VoxelType = Type;
-      SlotTable[SlotNum].Quantity  = Quantity;
-    }
+    // Get References on slot entries.
 
     Entry * GetSlotRef(ULong SlotNum) { return(&SlotTable[SlotNum]); }
-
     Entry * GetActualItemSlot()       { return(&SlotTable[ActualItem]); }
     Entry * GetActualToolSlot()       { return(&SlotTable[ActualTool]); }
 
-    ZInventory(ULong SlotCount)
-    {
-      ULong i;
+    // "Current" used slot functions.
+    ULong GetActualItemSlotNum()    { return( ActualItem ); }
+    void  SetActualItemSlotNum( ULong SlotNum ) { ActualItem = SlotNum; }
+    void  Select_NextItem()          {ActualItem ++; if (ActualItem >Inventory_EndSlot) ActualItem = Inventory_StartSlot;}
+    void  Select_PreviousItem()      {if (ActualItem == Inventory_StartSlot) ActualItem = Inventory_EndSlot; else ActualItem--;}
+    ULong GetNextUsedItemSlotNum( ULong SlotNum );
+    ULong GetPreviousUsedItemSlotNum( ULong SlotNum );
 
-      ActualItem = 0;
-      ActualTool = 0;
+    // "Current" used tool.
+    ULong GetActualToolSlotNum() { return( ActualTool ); }
+    void  NextTool();
+    void  PrevTool();
 
-      this->SlotCount = SlotCount;
-      SlotTable = new Entry[SlotCount];
-      for (i=0;i<SlotCount;i++) { SlotTable[i].VoxelType = 0; SlotTable[i].Quantity = 0; }
-    }
-
-    ~ZInventory()
-    {
-      if (SlotTable) delete [] SlotTable;
-      SlotCount = 0;
-    }
+    // Save inventory
 
     bool Save(ZStream_SpecialRamStream * Stream);
     bool Load(ZStream_SpecialRamStream * Stream);
 
     // Some family of voxel will be regrouped to a single type when stored.
 
-    UShort GetGroupLeader(UShort VoxelType)
-    {
-      UShort NewVoxelType;
+    UShort GetGroupLeader(UShort VoxelType);
 
-      switch(VoxelType)
-      {
-        default: NewVoxelType = VoxelType; break;
-        case 103:
-        case 104:
-        case 105:
-        case 106: NewVoxelType = 103; break;
-        case 244:
-        case 245:
-        case 246:
-        case 247: NewVoxelType = 244; break;
-        case 256:
-        case 257:
-        case 258:
-        case 259: NewVoxelType = 256; break;
-      }
-      return(NewVoxelType);
-    }
-
-    bool FindSlot(UShort VoxelType, ULong &Slot)
-    {
-      ULong i;
-
-      for(i=0;i<SlotCount;i++)
-      {
-        if (SlotTable[i].VoxelType == VoxelType && SlotTable[i].Quantity>0) { Slot = i; return(true); }
-      }
-      return(false);
-    }
-
-    bool FindFreeSlot(ULong &Slot)
-    {
-      ULong i;
-
-      for(i=0;i<SlotCount;i++)
-      {
-        if (SlotTable[i].Quantity == 0) {Slot = i; return(true);}
-      }
-
-      return(false);
-    }
-
-    bool StoreBlocks(UShort VoxelType, ULong VoxelQuantity)
-    {
-      ULong Slot;
-
-      VoxelType = GetGroupLeader(VoxelType);
-
-      if (FindSlot(VoxelType,Slot))
-      {
-        SlotTable[Slot].Quantity += VoxelQuantity;
-        return(true);
-      }
-      else if (FindFreeSlot(Slot))
-      {
-        SlotTable[Slot].VoxelType = VoxelType;
-        SlotTable[Slot].Quantity  = VoxelQuantity;
-        return(true);
-      }
-
-      return(false);
-    }
-
-    ULong UnstoreBlocks(UShort VoxelType, ULong VoxelQuantity)
-    {
-      ULong i, UnstoredCount, Quantity;
-      Entry * Slot;
-
-      UnstoredCount = 0;
-      for (i= Inventory_StartSlot; i<=Inventory_EndSlot; i++)
-      {
-        Slot = &SlotTable[i];
-        if ( Slot->VoxelType == VoxelType)
-        {
-          Quantity = (Slot->Quantity >= VoxelQuantity) ? VoxelQuantity : Slot->Quantity;
-          UnstoredCount += Quantity;
-          Slot->Quantity -= Quantity;
-          if (Slot->Quantity == 0) Slot->VoxelType = 0;
-        }
-        if (UnstoredCount == VoxelQuantity) return( UnstoredCount);
-      }
-      return(UnstoredCount);
-    }
-
-    void Select_NextItem()     {ActualItem ++; if (ActualItem >Inventory_EndSlot) ActualItem = Inventory_StartSlot;}
-    void Select_PreviousItem() {if (ActualItem == Inventory_StartSlot) ActualItem = Inventory_EndSlot; else ActualItem--;}
-    ULong GetActualItemSlotNum() { return( ActualItem ); }
-    void  SetActualItemSlotNum( ULong SlotNum ) { ActualItem = SlotNum; }
-    ULong GetActualToolSlotNum() { return( ActualTool ); }
-
-    ULong GetNextUsedItemSlotNum( ULong SlotNum )
-    {
-      ULong i;
-
-      if (SlotNum == (ULong)-1) return((ULong)-1);
-
-      i = SlotNum;
-      while ( i != SlotNum )
-      {
-        i++;
-        if (i > Inventory_EndSlot) i = Inventory_StartSlot;
-        if (SlotTable[i].VoxelType > 0 && SlotTable[i].Quantity > 0) return(i);
-      }
-      return(-1);
-    }
-
-    ULong GetPreviousUsedItemSlotNum( ULong SlotNum )
-    {
-      Long i;
-
-      if (SlotNum == (ULong)-1) return((ULong)-1);
-      i = (Long)SlotNum ;
-      while (--i != (Long)SlotNum)
-      {
-        if (i < Inventory_StartSlot) i = Inventory_EndSlot;
-        if (SlotTable[i].VoxelType > 0 && SlotTable[i].Quantity > 0) return((ULong)i);
-      }
-      return(-1);
-    }
-
-    void NextTool()
-    {
-      ULong i, Index;
-      Entry Buffer[Tools_EndSlot - Tools_StartSlot + 1];
-
-      // Search for next tool availlable.
-
-      for (i=Tools_StartSlot+1;i<= Tools_EndSlot;i++)
-      {
-        if (SlotTable[i].VoxelType > 0 && SlotTable[i].Quantity > 0) {break;}
-      }
-      if (i>Tools_EndSlot) return;
-
-      Index = i;
-
-      // Copy in new order
-
-      for (i=0;i <= (Tools_EndSlot - Tools_StartSlot); i++)
-      {
-        Buffer[i] = SlotTable[Index];
-        Index++;
-        if (Index > Tools_EndSlot) Index = Tools_StartSlot;
-      }
-
-      // Copy back into inventory.
-
-      for (i=0;i <= (Tools_EndSlot - Tools_StartSlot); i++)
-      {
-        SlotTable[Tools_StartSlot + i ] = Buffer[i];
-      }
-
-    }
-
-    void PrevTool()
-    {
-      Long i, Index;
-      Entry Buffer[Tools_EndSlot - Tools_StartSlot + 1];
-
-      // Search for next tool availlable.
-
-      for (i=Tools_EndSlot;i>=Tools_StartSlot ;i--)
-      {
-        if (SlotTable[i].VoxelType > 0 && SlotTable[i].Quantity > 0) {break;}
-      }
-      if (i<Tools_StartSlot) return;
-
-      Index = i;
-
-      // Copy in new order
-
-      for (i=0;i <= (Tools_EndSlot - Tools_StartSlot); i++)
-      {
-        Buffer[i] = SlotTable[Index];
-        Index++;
-        if (Index > Tools_EndSlot) Index = Tools_StartSlot;
-      }
-
-      // Copy back into inventory.
-
-      for (i=0;i <= (Tools_EndSlot - Tools_StartSlot); i++)
-      {
-        SlotTable[Tools_StartSlot + i ] = Buffer[i];
-      }
-
-    }
 
 };
 
