@@ -879,7 +879,7 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
   }
   if (PlaneToohighAlt)
   {
-    if (Location.y > (500.0 * 256.0) )Camera.ColoredVision.Activate= true; Camera.ColoredVision.Red = 0.8; Camera.ColoredVision.Green = 0.0; Camera.ColoredVision.Blue = 0.0; Camera.ColoredVision.Opacity = 0.3;
+    if (Location.y > (500.0 * 256.0) ) {Camera.ColoredVision.Activate= true; Camera.ColoredVision.Red = 0.8; Camera.ColoredVision.Green = 0.0; Camera.ColoredVision.Blue = 0.0; Camera.ColoredVision.Opacity = 0.3;}
     ViewDirection.pitch = 270.0;
     ViewDirection.roll = 0.0;
     PlaneFreeFallCounter += CycleTime;
