@@ -53,7 +53,7 @@
   #  define COMPILEOPTION_SPECIAL 0
 #endif
 
-#define COMPILEOPTION_VERSIONNUM 241
+#define COMPILEOPTION_VERSIONNUM 242
 
 // Options du jeu
 
