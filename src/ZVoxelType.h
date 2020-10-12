@@ -147,6 +147,7 @@ class ZVoxelType
     double Grip_Vertical;
     bool   Is_Liquid;
     bool   Is_Gaz;
+    double Weight;
 
 // Autres flags
 

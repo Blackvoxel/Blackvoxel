@@ -69,6 +69,7 @@ ZVoxelType::ZVoxelType(UShort VoxelType)
   FrictionCoef = 0.001;
   Grip_Horizontal = 0.9;
   Grip_Vertical = 0.0;
+  Weight = 1.0;
   Is_SpaceGripType = false;
   Is_KeepControlOnJumping = true;
   HarmingLifePointsPerSecond = 0.0;
