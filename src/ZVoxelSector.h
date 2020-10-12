@@ -210,6 +210,20 @@ public:
       OtherInfos[Offset]=0;
     }
 
+    inline void SetCube_Transfert(Long x,Long y, Long z, ZVoxelLocation * SrcLoc)
+    {
+            Long Offset;
+
+      Offset =     (y & ZVOXELBLOCMASK_Y)
+                + ((x & ZVOXELBLOCMASK_X) <<  ZVOXELBLOCSHIFT_Y )
+                + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X));
+
+      Data[Offset]       = SrcLoc->Sector->Data[SrcLoc->Offset];
+      OtherInfos[Offset] = SrcLoc->Sector->OtherInfos[SrcLoc->Offset];
+      SrcLoc->Sector->Data[SrcLoc->Offset] = 0;
+      SrcLoc->Sector->OtherInfos[SrcLoc->Offset]=0;
+    }
+
     inline void SetCube_WithExtension(Long x, Long y, Long z, UShort CubeValue, ZMemSize Extension)
     {
       Long Offset;
