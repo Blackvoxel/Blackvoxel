@@ -109,6 +109,12 @@ ZVoxelSector::ZVoxelSector( const ZVoxelSector &Sector)
   Size_y   = Sector.Size_y;
   Size_z   = Sector.Size_z;
 
+  ZoneVersion = Sector.ZoneVersion;
+  ZoneType    = Sector.ZoneType;
+  GeneratorVersion = Sector.GeneratorVersion;
+  RingNum = Sector.RingNum;
+  DisplayData = 0;
+
   Flag_Void_Regular             = Sector.Flag_Void_Regular;
   Flag_Void_Transparent         = Sector.Flag_Void_Transparent;
   Flag_Render_Dirty             = Sector.Flag_Render_Dirty;
@@ -142,6 +148,9 @@ ZVoxelSector::ZVoxelSector(Long Size_x, Long Size_y, Long Size_z)
 
   DataSize = Size_x * Size_y * Size_z;
   DisplayData = 0;
+
+  ModifTracker.Init(DataSize);
+
   if (DataSize>0)
   {
     Data        = new UShort[DataSize];
@@ -156,6 +165,7 @@ ZVoxelSector::ZVoxelSector(Long Size_x, Long Size_y, Long Size_z)
     OtherInfos  = 0;
     TempInfos   = 0;
   }
+
 
   Next = 0;
   Pred = 0;
@@ -184,6 +194,8 @@ void ZVoxelSector::ChangeSize(Long Size_x, Long Size_y, Long Size_z)
 
   DataSize = Size_x * Size_y * Size_z;
   DisplayData = 0;
+
+  ModifTracker.Init(DataSize);
 
   Data        = new UShort[DataSize];
   FaceCulling = new UByte [DataSize];
