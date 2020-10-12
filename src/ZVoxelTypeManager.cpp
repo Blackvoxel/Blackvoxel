@@ -131,6 +131,86 @@
 #  include "ZVoxelType_ProgRobot_Remote.h"
 #endif
 
+ZVoxelTypeManager::ZVoxelTypeManager()
+{
+  ULong i;
+
+  GameEnv = 0;
+  LoadedTexturesCount = 0;
+  ActiveTable = new ZFastBit_Array_64k;
+  ActiveTable->Clear();
+  VoxelTable = new ZVoxelType * [65536];
+  for (i=0;i<65536;i++)
+  {
+    VoxelTable[i]=0;
+  }
+
+}
+
+ZVoxelTypeManager::~ZVoxelTypeManager()
+{
+  ULong i;
+
+  // Delete the Voxeltype table and it's entries
+  if (VoxelTable)
+  {
+    for (i=0;i<65536;i++)
+    {
+      if (VoxelTable[i])
+      {
+        if (VoxelTable[i]->VoxelType == i) {delete VoxelTable[i]; VoxelTable[i]=0;}
+      }
+    }
+    delete [] VoxelTable;
+    VoxelTable = 0;
+  }
+
+  // Delete the active Table
+
+  if (ActiveTable) { delete ActiveTable; ActiveTable = 0; }
+
+}
+
+
+void ZVoxelTypeManager::AddVoxelType(UShort TypeNum, ZVoxelType * VoxelType)
+{
+  if (VoxelTable[TypeNum])
+  {
+    if (VoxelTable[TypeNum]->VoxelType == TypeNum) delete VoxelTable[TypeNum];
+  }
+  VoxelTable[TypeNum] = VoxelType;
+  if (VoxelType) VoxelType->VoxelType = TypeNum;
+  ActiveTable->Set(TypeNum,VoxelType->Is_Active);
+}
+
+
+void ZVoxelTypeManager::FillZeroSlots(UShort VoxelTypeUsedToFill)
+{
+  ULong i;
+
+  // Mark this voxeltype as a null voxeltype
+
+  VoxelTable[VoxelTypeUsedToFill]->Is_NoType = true;
+
+  // Fill the empty slots to point to this voxeltype;
+
+  for (i=0;i<65536;i++)
+  {
+    if (VoxelTable[i]==0) VoxelTable[i] = VoxelTable[VoxelTypeUsedToFill];
+  }
+}
+
+
+void ZVoxelTypeManager::DeleteVoxelExtension(UShort VoxelType, ULong VoxelExtension)
+{
+  ZVoxelType * VoxelTypeEntry;
+
+  VoxelTypeEntry = VoxelTable[VoxelType]; if (!VoxelTypeEntry) return;
+  if (VoxelTypeEntry->ExtensionType == 0) return;
+  VoxelTypeEntry->DeleteVoxelExtension(VoxelExtension);
+}
+
+
 void ZVoxelTypeManager::DumpInfos()
 {
   ULong i;
@@ -1940,3 +2020,5 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
 
   return(true);
 }
+
+
