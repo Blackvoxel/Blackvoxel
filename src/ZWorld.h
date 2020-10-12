@@ -289,6 +289,7 @@ class ZVoxelWorld : public ZObject
       return(NewSector);
     }
 
+
     void BlitZoneCopy( ZVoxelSector * SourceSector, ZVector3L * Position, bool FillVoids = false )
     {
       Long xs,ys,zs,xd,yd,zd, LineX,LineZ;
@@ -352,6 +353,12 @@ class ZVoxelWorld : public ZObject
 
        return(GetVoxelLocation(OutLocation, &NewLocation));
      }
+
+
+
+
+
+
 };
 
 
