@@ -38,6 +38,8 @@
 #  include "z/ZStream_SpecialRamStream.h"
 #endif
 
+class ZVoxelTypeManager;
+
 class ZInventory
 {
   public:
@@ -114,6 +116,10 @@ class ZInventory
     // Some family of voxel will be regrouped to a single type when stored.
 
     UShort GetGroupLeader(UShort VoxelType);
+
+    // Computations
+
+    double GetWeight(ZVoxelTypeManager *  VoxelTypeManager);
 
 
 };

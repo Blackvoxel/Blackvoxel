@@ -26,6 +26,10 @@
 #include "ZInventory.h"
 #include <stdio.h>
 
+#ifndef Z_ZVOXELTYPEMANAGER_H
+#  include "ZVoxelTypeManager.h"
+#endif
+
 
 ZInventory::ZInventory()
 {
@@ -301,6 +305,26 @@ UShort ZInventory::GetGroupLeader(UShort VoxelType)
   }
   return(NewVoxelType);
 }
+
+double ZInventory::GetWeight(ZVoxelTypeManager *  VoxelTypeManager)
+{
+  ULong i;
+  double TotalWeight;
+
+
+  TotalWeight = 0;
+  for (i=0;i<SlotCount;i++)
+  {
+    if (SlotTable[i].Quantity)
+    {
+      TotalWeight +=   VoxelTypeManager->GetVoxelType(SlotTable[i].VoxelType)->Weight
+                     * SlotTable[i].Quantity;
+    }
+  }
+
+  return(TotalWeight);
+}
+
 
 bool ZInventory::Save(ZStream_SpecialRamStream * Stream)
 {
