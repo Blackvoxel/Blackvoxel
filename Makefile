@@ -1,17 +1,54 @@
-#define paths
 
-ifndef blackvoxeldatadir
-  blackvoxeldatadir=""
+# How to build instructions
+#
+# (1) Runnable version without need to install (assets are searched in current directory)
+#
+# make clean
+# make
+# ./blackvoxel
+#
+# (2) Installable version with standard paths
+#
+# make clean
+# make installable
+# make install doinstall=true
+#
+# (3) Installable version with customized installation paths
+#
+# make clean
+# make BV_DATA_LOCATION_DIR=/usr/local/share/blackvoxel
+# make install doinstall=true BV_DATA_INSTALL_DIR=/usr/local/share/blackvoxel BV_BINARY_INSTALL_DIR=/usr/local/games
+
+
+ifndef BV_DATA_LOCATION_DIR
+  BV_DATA_LOCATION_DIR=""
 endif
-ifndef bindir
-  bindir=""
+
+ifndef PREFIX
+PREFIX=/usr/local
+endif
+
+ifndef DATAROOTDIR
+DATAROOTDIR=$(DESTDIR)$(PREFIX)/share
+endif
+
+ifndef BV_BINARY_INSTALL_DIR
+BV_BINARY_INSTALL_DIR=$(DESTDIR)$(PREFIX)/games
+else 
+override BV_BINARY_INSTALL_DIR:=$(DESTDIR)$(BV_BINARY_INSTALL_DIR)
+endif
+
+ifndef BV_DATA_INSTALL_DIR
+BV_DATA_INSTALL_DIR=$(DATAROOTDIR)/blackvoxel
+else
+override BV_DATA_INSTALL_DIR:="$(DESTDIR)$(BV_DATA_INSTALL_DIR)"
 endif
 
 # Base options
 CC=g++
 LD=g++
 PROGNAME=blackvoxel
-CFLAGS=-I "src/sc_Squirrel3/include"  -DCOMPILEOPTION_DEMO=0 -DDEVELOPPEMENT_ON=0 -DCOMPILEOPTION_SPECIAL=0 -DCOMPILEOPTION_DATAFILESPATH="\"$(blackvoxeldatadir)\""
+CFLAGS=-I "src/sc_Squirrel3/include"  -DCOMPILEOPTION_DEMO=0 -DDEVELOPPEMENT_ON=0 -DCOMPILEOPTION_SPECIAL=0 -DCOMPILEOPTION_DATAFILESPATH="\"$(BV_DATA_LOCATION_DIR)\""
 SRC= $(wildcard src/*.cpp) $(wildcard src/z/*.cpp)
 OBJ= $(SRC:src/%.cpp=obj/%.o)
 
@@ -54,7 +91,8 @@ all: $(PROGNAME)
 $(PROGNAME): $(OBJ) squirrel
 	$(LD) -o $(PROGNAME) $(OBJ) $(LDFLAGS)
 
-
+installable: BV_DATA_LOCATION_DIR=$(BV_DATA_INSTALL_DIR)
+installable: all
 
 squirrel: 
 	cd src/sc_Squirrel3 ; make sq$(CPU_BITS)
@@ -68,25 +106,47 @@ mrproper: clean
 	rm -rf $(PROGNAME)
 
 install:
-ifndef specialinstall
-	echo "WARNING : with default settings Blackvoxel doesn't need to";
-	echo "be installed. The executable can be run directly."
-	echo "If you want to install it anyway, see documentation"
-	echo "for compilation flags."
+ifndef doinstall
+	@echo ""
+	@echo ""
+	@echo "************************************** INFO *****************************************"
+	@echo ""
+	@echo "With the default build target, Blackvoxel doesn't need to be installed. "
+	@echo "The executable is set to search for it's assets in the current directory."
+	@echo "So, simply run it with ./blackvoxel"
+	@echo ""
+	@echo "If you want to build blackvoxel for some regular installation, use the following commands"
+	@echo ""
+	@echo "make clean"
+	@echo "make installable"
+	@echo "make install doinstall=true"
+	@echo ""
+	@echo "(Default installation directory are : $(BV_BINARY_INSTALL_DIR) (executable) and $(BV_DATA_INSTALL_DIR)(Assets)"
+	@echo ""
+	@echo "Installation directory for binary and assets can be customized even more following this example:"
+	@echo ""
+	@echo "make clean"
+	@echo "make BV_DATA_LOCATION_DIR=/usr/local/share/blackvoxel"
+	@echo "make install doinstall=true BV_DATA_INSTALL_DIR=/usr/local/share/blackvoxel BV_BINARY_INSTALL_DIR=/usr/local/games"
+	@echo ""
+	@echo ""
+	
+
 else
-	mkdir -p $(DESTDIR)$(bindir)
-	cp blackvoxel $(DESTDIR)$(bindir)
-	chmod u=rwx,g=rx,o=rx $(DESTDIR)$(bindir)blackvoxel
-	mkdir -p $(DESTDIR)$(blackvoxeldatadir)
-	cp -r gui        $(DESTDIR)$(blackvoxeldatadir)
-	cp -r Misc       $(DESTDIR)$(blackvoxeldatadir)
-	cp -r Sound      $(DESTDIR)$(blackvoxeldatadir)
-	cp -r VoxelTypes $(DESTDIR)$(blackvoxeldatadir)
-	cp randomnum.dat $(DESTDIR)$(blackvoxeldatadir)
-	cp Copyright.txt $(DESTDIR)$(blackvoxeldatadir)
-	cp Licence.txt   $(DESTDIR)$(blackvoxeldatadir)
-	cp Licence_3rdParty_libs.txt $(DESTDIR)$(blackvoxeldatadir)
-	chmod -R u=rwX,g=rX,o=rX $(DESTDIR)$(blackvoxeldatadir)
+	mkdir -p $(BV_BINARY_INSTALL_DIR)
+	cp blackvoxel $(BV_BINARY_INSTALL_DIR)
+	chmod u=rwx,g=rx,o=rx $(BV_BINARY_INSTALL_DIR)/blackvoxel
+	mkdir -p $(BV_DATA_INSTALL_DIR)
+	cp -r gui        $(BV_DATA_INSTALL_DIR)
+	cp -r Misc       $(BV_DATA_INSTALL_DIR)
+	cp -r Sound      $(BV_DATA_INSTALL_DIR)
+	cp -r VoxelTypes $(BV_DATA_INSTALL_DIR)
+	cp randomnum.dat $(BV_DATA_INSTALL_DIR)
+	cp Copyright.txt $(BV_DATA_INSTALL_DIR)
+	cp 2>/dev/null   LICENSE       $(BV_DATA_INSTALL_DIR) | true
+	cp 2>/dev/null   Licence.txt   $(BV_DATA_INSTALL_DIR) | true
+	cp 2>/dev/null   Licence_3rdParty_libs.txt $(BV_DATA_INSTALL_DIR) | true
+	chmod -R u=rwX,g=rX,o=rX $(BV_DATA_INSTALL_DIR)
   ifdef icondir
 	mkdir -p $(DESTDIR)$(icondir)
 	cp Icons/blackvoxel-16x16.xpm $(DESTDIR)$(icondir)
