@@ -133,6 +133,7 @@ class ZVoxelType_UniverseBorder : public ZVoxelType
       Is_HasHelpingMessage = false;
       BvProp_FastMoving = false;
       FabInfos = 0;
+      FabInfos2= 0;
       Documentation_PageNum = false;
     }
 
