@@ -58,6 +58,9 @@
 #  include "ZGameWindow_ZProgRobot_Remote.h"
 #endif
 
+#ifndef Z_ZVOXELSPRITE_H
+#  include "ZVoxelSprite.h"
+#endif
 
 Bool ZGame_Events::KeyDown( UShort KeySym )
 {
@@ -273,7 +276,15 @@ Bool ZGame_Events::KeyDown( UShort KeySym )
                   }
                   break;
 
-
+    case SDLK_KP8:if (COMPILEOPTION_DEBUGFACILITY)
+                  {
+                    ZVoxelSprite Vs(15,8,15);
+                    ZVector3L Position(64,0,0), Position2(88,0,0);
+                    Vs.SetHandle(7,0,7);
+                    Vs.ExtractFromWorld(GameEnv->World,&Position,0);
+                    Vs.PutIntoWorld(GameEnv->World,&Position2,3);
+                  }
+                  break;
 
   }
   return(true);
