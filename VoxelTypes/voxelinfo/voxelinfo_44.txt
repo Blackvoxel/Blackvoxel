@@ -1,4 +1,4 @@
-VoxelTypeName=X-Material
+VoxelTypeName=X Material
 Draw_TransparentRendering=0
 Draw_FullVoxelOpacity=1
 MiningHardness = 2000
