@@ -50,6 +50,10 @@
 #  include "ZFabMachineInfos.h"
 #endif
 
+#ifndef Z_ZFABMACHINEINFOS2_H
+#  include "ZFabMachineInfos2.h"
+#endif
+
 
 
 class ZGame;
@@ -85,7 +89,7 @@ class ZVoxelTypeManager : public ZObject
 
     // Utilities
 
-    void DeleteVoxelExtension(UShort VoxelType, ULong VoxelExtension);
+    void DeleteVoxelExtension(UShort VoxelType, ZMemSize VoxelExtension);
 
     // Information dumps
 
