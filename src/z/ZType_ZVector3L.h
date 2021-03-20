@@ -195,6 +195,17 @@ class ZVector3L
     return(sqrt(dist));
   }
 
+  inline ZVector3L & Swap( ZVector3L & Var2)
+  {
+    ZVector3L Temp;
+
+    Temp = Var2;
+    Var2 = *this;
+    *this = Temp;
+
+    return(*this);
+  }
+
 };
 
 
