@@ -347,7 +347,7 @@ void ZVoxelType_ProgRobot_Remote::ActiveProcess( ZActiveVoxelInterface * AvData)
         if (Parser.Command=="get_look")
         {
 
-          UShort Direction;
+          UShort Direction=0;
           ZString DirTextParameter, ReturnInfo;
 
           if (Parser.FindEntryText((char *)"dir",DirTextParameter))
