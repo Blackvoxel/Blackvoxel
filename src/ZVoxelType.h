@@ -58,6 +58,7 @@
 class ZGame;
 class ZStream_SpecialRamStream;
 class ZFabInfos;
+class ZFabInfos2;
 class ZVoxelTypeManager;
 class ZActiveVoxelInterface;
 class ZToolsPointer;
@@ -157,7 +158,8 @@ class ZVoxelType
     ZString HelpingMessage;
     bool   BvProp_FastMoving; // Fast moving voxels can override the modification tracker system in some cases.
     bool   BvProp_UseInventoryImage; // Display inventory image in inventory instead of top image.
-    ZFabInfos * FabInfos;
+    ZFabInfos  * FabInfos;
+    ZFabInfos2 * FabInfos2;
     ULong  Documentation_PageNum;
 
     ZVoxelType();
@@ -190,6 +192,7 @@ class ZVoxelType
     virtual bool  Interface_SetPointingLocation(ZVoxelLocation * VLoc, ZToolsPointer * ToolsPointer, ULong Slot, ZVector3L * Location, ZString * OutMessage );
     virtual void  GetBlockInformations(ZVoxelLocation * DestLocation, ZString & Infos) { return; }
     virtual void  GetScanInformations(ZVoxelCoords * VoxelCoords, UShort VoxelType, ZMemSize VoxelInfo, ZString & Infos)  { return; }
+    virtual double GetWeightIncludingContent(ZMemSize VoxelInfo) { return(Weight); }
 
     // When an active voxel should be processed. Note some voxels use "direct" faster way.
 
