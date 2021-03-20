@@ -70,6 +70,10 @@
 #  include "ACompileSettings.h"
 #endif
 
+#ifndef Z_ZVOXEL_H
+#  include "ZVoxel.h"
+#endif
+
 
 
 
@@ -166,13 +170,16 @@ class ZVoxelWorld : public ZObject
     inline bool   GetVoxelLocation(ZVoxelLocation * OutLocation, Long x, Long y, Long z);
     inline bool   GetVoxelLocation(ZVoxelLocation * OutLocation, const ZVector3L * Coords);
 
-
     inline UShort GetVoxel(Long x, Long y, Long z);        // Get the voxel at the specified location. Fail with the "voxel not defined" voxeltype 65535 if the sector not in memory.
     inline UShort GetVoxel(ZVector3L * Coords);            // Idem but take coords in another form.
     inline UShort GetVoxel_Secure(Long x, Long y, Long z); // Secure version doesn't fail if sector not loaded. The sector is loaded or created if needed.
+    inline UShort GetVoxel_Secure(ZVector3L * Coords);
     inline UShort GetVoxelExt(Long x, Long y, Long z, ZMemSize & OtherInfos);
     inline UShort GetVoxelPlayerCoord(double x, double y, double z);
     inline UShort GetVoxelPlayerCoord_Secure(double x, double y, double z);
+    // New Functions
+    inline bool ExtractToVoxel(ZVector3L * Coords, ZVoxel * OutVoxel, UByte ImportanceFactor);
+    inline bool PlaceFromVoxel(ZVector3L * Coords, ZVoxel * VoxelToPlace, UByte ImportanceFactor);
 
     inline void Convert_Coords_PlayerToVoxel(double Px,double Py, double Pz, Long & Vx, Long & Vy, Long & Vz);
     inline void Convert_Coords_PlayerToVoxel( const ZVector3d * PlayerCoords, ZVector3L * VoxelCoords);
@@ -289,6 +296,162 @@ class ZVoxelWorld : public ZObject
       return(NewSector);
     }
 
+    bool WorldToSprite(ZVoxelSector * SourceSector, ZVector3L * Coordinates, UShort Direction)
+    {
+      ZVector3L Offset_Step;
+      ZVector3L Start, End, Step;
+      ZVector3L ComputedCoords;
+      ZVoxelLocation Loc;
+
+      Long LineLenY = SourceSector->Size_y;
+      Long LineLenZ = LineLenY * SourceSector->Size_x;
+      Long x,y,z;
+      Long OffsetX,OffsetZ,Offset;
+      ZVector3L ComputedLocation;
+
+
+      Offset_Step.x = LineLenY; Offset_Step.y = 1; Offset_Step.z = LineLenZ;
+
+      SourceSector->ModifTracker.BumpActualCycleNum();
+
+      for (z=0,OffsetZ=0     ; z < SourceSector->Size_z ; z++,OffsetZ+=Offset_Step.z)
+        for (x=0,OffsetX=0   ; x < SourceSector->Size_x ; x++,OffsetX+=Offset_Step.x)
+          for (y=0,Offset = OffsetZ+OffsetX;y < SourceSector->Size_y; y++,Offset+=Offset_Step.y)
+          {
+
+            switch (Direction)
+            {
+              case 0: ComputedLocation.x = Coordinates->x - SourceSector->Handle_x + x;
+                      ComputedLocation.y = Coordinates->y - SourceSector->Handle_y + y;
+                      ComputedLocation.z = Coordinates->z - SourceSector->Handle_z + z;
+                      break;
+              case 1: ComputedLocation.x = Coordinates->x - SourceSector->Handle_x + z;
+                      ComputedLocation.y = Coordinates->y - SourceSector->Handle_y + y;
+                      ComputedLocation.z = Coordinates->z + SourceSector->Handle_z - x;
+                      break;
+              case 2: ComputedLocation.x = Coordinates->x + SourceSector->Handle_x - x;
+                      ComputedLocation.y = Coordinates->y - SourceSector->Handle_y + y;
+                      ComputedLocation.z = Coordinates->z + SourceSector->Handle_z - z;
+                      break;
+              case 3: ComputedLocation.x = Coordinates->x + SourceSector->Handle_x - z;
+                      ComputedLocation.y = Coordinates->y - SourceSector->Handle_y + y;
+                      ComputedLocation.z = Coordinates->z - SourceSector->Handle_z + x;
+                      break;
+            }
+            #if COMPILEOPTION_BOUNDCHECKINGSLOW==1
+            if (Offset >= (Long)SourceSector->DataSize) MANUAL_BREAKPOINT;
+            #endif
+
+            if (!GetVoxelLocation(&Loc, &ComputedLocation)) return(false);
+
+
+            if (Loc.Sector->Data[Loc.Offset]) SourceSector->ModifTracker.Set(Loc.Offset);
+            else                              SourceSector->ModifTracker.Clear();
+            SourceSector->Data[Offset] = Loc.Sector->Data[Loc.Offset];
+            SourceSector->OtherInfos[Offset] = Loc.Sector->OtherInfos[Loc.Offset];
+            Loc.Sector->Data[Loc.Offset] = 0;
+            Loc.Sector->OtherInfos[Loc.Offset] = 0;
+            Loc.Sector->Flag_Render_Dirty = true;
+
+            this->SetVoxel_WithCullingUpdate(ComputedLocation.x, ComputedLocation.y, ComputedLocation.z, 0, ZVoxelSector::CHANGE_IMPORTANT,1,0 );
+
+          }
+
+      return(true); // Operation is successfull
+    }
+
+    bool SpriteToWorld(ZVoxelSector * SourceSector, ZVector3L * Coordinates, UShort Direction, bool UseMask=false)
+    {
+      ZVector3L Offset_Step;
+      ZVector3L Start, End, Step;
+      ZVector3L ComputedCoords;
+      ZVoxelLocation Loc;
+
+      Long LineLenY = SourceSector->Size_y;
+      Long LineLenZ = LineLenY * SourceSector->Size_x;
+      Long x,y,z;
+      Long OffsetX,OffsetZ,Offset;
+      ZVector3L ComputedLocation;
+
+
+      Offset_Step.x = LineLenY; Offset_Step.y = 1; Offset_Step.z = LineLenZ;
+
+      for (z=0,OffsetZ=0     ; z < SourceSector->Size_z ; z++,OffsetZ+=Offset_Step.z)
+        for (x=0,OffsetX=0   ; x < SourceSector->Size_x ; x++,OffsetX+=Offset_Step.x)
+          for (y=0,Offset = OffsetZ+OffsetX;y < SourceSector->Size_y; y++,Offset+=Offset_Step.y)
+          {
+
+            switch (Direction)
+            {
+              case 0: ComputedLocation.x = Coordinates->x - SourceSector->Handle_x + x;
+                      ComputedLocation.y = Coordinates->y - SourceSector->Handle_y + y;
+                      ComputedLocation.z = Coordinates->z - SourceSector->Handle_z + z;
+                      break;
+              case 1: ComputedLocation.x = Coordinates->x - SourceSector->Handle_x + z;
+                      ComputedLocation.y = Coordinates->y - SourceSector->Handle_y + y;
+                      ComputedLocation.z = Coordinates->z + SourceSector->Handle_z - x;
+                      break;
+              case 2: ComputedLocation.x = Coordinates->x + SourceSector->Handle_x - x;
+                      ComputedLocation.y = Coordinates->y - SourceSector->Handle_y + y;
+                      ComputedLocation.z = Coordinates->z + SourceSector->Handle_z - z;
+                      break;
+              case 3: ComputedLocation.x = Coordinates->x + SourceSector->Handle_x - z;
+                      ComputedLocation.y = Coordinates->y - SourceSector->Handle_y + y;
+                      ComputedLocation.z = Coordinates->z - SourceSector->Handle_z + x;
+                      break;
+            }
+            #if COMPILEOPTION_BOUNDCHECKINGSLOW==1
+            if (Offset >= (Long)SourceSector->DataSize) MANUAL_BREAKPOINT;
+            #endif
+
+            if (!SetVoxel_WithCullingUpdate(ComputedLocation.x, ComputedLocation.y, ComputedLocation.z, SourceSector->Data[Offset], ZVoxelSector::CHANGE_IMPORTANT,0,&Loc ))
+            {
+              return(false);
+            }
+            Loc.Sector->OtherInfos[Loc.Offset] = SourceSector->OtherInfos[Offset];
+            SourceSector->Data[Offset] = 0;
+            SourceSector->OtherInfos[Offset] = 0;
+
+          }
+
+      return(true); // Operation is successfull
+    }
+
+
+    void SpriteMaskMakeFromShape( ZVoxelSector * Sect)
+    {
+      Long x,y,z;
+      ULong Offset;
+
+      Sect->ModifTracker.BumpActualCycleNum();
+      Sect->ModifTracker.Clear();
+      bool Detected= false;
+
+      for (z=0 ; z < Sect->Size_z ; z++ )
+        for (x=0 ; x < Sect->Size_x ; x++ )
+        {
+          // First pass, from low to high
+          for (y=0; y < Sect->Size_y ; y++ )
+          {
+            Offset = Sect->GetOffset(x,y,z);
+            if ((!Detected))
+            {
+              if (Sect->GetCube(Offset)) Detected = true;
+            }
+            Sect->ModifTracker.SetEx(Offset,Detected);
+          }
+          if (!Detected) continue; // If nothing in this column, go ahead.
+          Detected = false;
+          // Second pass, from high to low.
+          for (y=Sect->Size_y-1; y>=0; y--)
+          {
+            Offset = Sect->GetOffset(x,y,z);
+            if (Sect->GetCube(Offset)) break;
+            Sect->ModifTracker.SetEx(Offset,false);
+          }
+
+        }
+    }
 
     void BlitZoneCopy( ZVoxelSector * SourceSector, ZVector3L * Position, bool FillVoids = false )
     {
@@ -476,6 +639,68 @@ inline UShort ZVoxelWorld::GetVoxel(ZVector3L * Coords)
   return(Sector->Data[Offset]);
 }
 
+
+// Extract the voxel from the world. It means remove it and store it in the ZVoxel structure provided.
+
+inline bool ZVoxelWorld::ExtractToVoxel(ZVector3L * Coords, ZVoxel * OutVoxel, UByte ImportanceFactor)
+{
+  ZVoxelSector * Sector;
+  Long Offset;
+
+  Sector = FindSector( Coords->x>>ZVOXELBLOCSHIFT_X , Coords->y>>ZVOXELBLOCSHIFT_Y , Coords->z>>ZVOXELBLOCSHIFT_Z );
+
+  if (!Sector) return(false);
+
+  Offset =  (Coords->y & ZVOXELBLOCMASK_Y)
+         + ((Coords->x & ZVOXELBLOCMASK_X) <<  ZVOXELBLOCSHIFT_Y )
+         + ((Coords->z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X));
+
+  OutVoxel->VoxelType = Sector->Data[Offset];
+  OutVoxel->OtherInfos= Sector->OtherInfos[Offset];
+  OutVoxel->Temperature = Sector->TempInfos[Offset];
+
+  Sector->Data[Offset]       = 0;
+  Sector->OtherInfos[Offset] = 0;
+  Sector->TempInfos[Offset]  = 0;
+
+  return(SetVoxel_WithCullingUpdate(Coords->x, Coords->y, Coords->z, 0, ImportanceFactor, false, 0));
+
+}
+
+inline bool ZVoxelWorld::PlaceFromVoxel(ZVector3L * Coords, ZVoxel * VoxelToPlace, UByte ImportanceFactor)
+{
+  ZVoxelSector * Sector;
+  Long Offset;
+  UShort OldVoxelType;
+
+  Sector = FindSector( Coords->x>>ZVOXELBLOCSHIFT_X , Coords->y>>ZVOXELBLOCSHIFT_Y , Coords->z>>ZVOXELBLOCSHIFT_Z );
+
+  if (!Sector) return(false);
+
+  Offset =  (Coords->y & ZVOXELBLOCMASK_Y)
+         + ((Coords->x & ZVOXELBLOCMASK_X) <<  ZVOXELBLOCSHIFT_Y )
+         + ((Coords->z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X));
+
+
+  // Remove old voxel
+  OldVoxelType = Sector->Data[Offset];
+  Sector->Data[Offset] = 0;
+  if (VoxelTypeManager->VoxelTable[OldVoxelType]->Is_HasAllocatedMemoryExtension)
+  {
+    VoxelTypeManager->VoxelTable[OldVoxelType]->DeleteVoxelExtension(Sector->OtherInfos[Offset]);
+  }
+
+  Sector->OtherInfos[Offset] = VoxelToPlace->OtherInfos;
+  Sector->TempInfos[Offset]  = VoxelToPlace->Temperature;
+  if (!SetVoxel_WithCullingUpdate(Coords->x, Coords->y, Coords->z, VoxelToPlace->VoxelType, ImportanceFactor, false, 0)) return(false);
+
+  VoxelToPlace->VoxelType = 0;
+  VoxelToPlace->OtherInfos = 0;
+  VoxelToPlace->Temperature = 0;
+
+  return(true);
+}
+
 inline UShort ZVoxelWorld::GetVoxel_Secure(Long x, Long y, Long z)
 {
   ZVoxelSector * Sector;
@@ -486,6 +711,20 @@ inline UShort ZVoxelWorld::GetVoxel_Secure(Long x, Long y, Long z)
   Offset =  (y & ZVOXELBLOCMASK_Y)
          + ((x & ZVOXELBLOCMASK_X) <<  ZVOXELBLOCSHIFT_Y )
          + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X));
+
+  return(Sector->Data[Offset]);
+}
+
+inline UShort ZVoxelWorld::GetVoxel_Secure(ZVector3L * Coords)
+{
+  ZVoxelSector * Sector;
+  Long Offset;
+
+  Sector = FindSector_Secure( Coords->x >>ZVOXELBLOCSHIFT_X , Coords->y >> ZVOXELBLOCSHIFT_Y , Coords->z >>ZVOXELBLOCSHIFT_Z );
+
+  Offset =  (Coords->y & ZVOXELBLOCMASK_Y)
+         + ((Coords->x & ZVOXELBLOCMASK_X) <<  ZVOXELBLOCSHIFT_Y )
+         + ((Coords->z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X));
 
   return(Sector->Data[Offset]);
 }
