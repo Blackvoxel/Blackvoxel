@@ -51,6 +51,10 @@
 #  include "ZVoxelType_FabMachine.h"
 #endif
 
+#ifndef Z_ZVOXELTYPE_FABMACHINE2_H
+#  include "ZVoxelType_FabMachine2.h"
+#endif
+
 #ifndef Z_ZVOXELTYPE_PROGRAMMABLE_H
 #  include "ZVoxelType_Programmable.h"
 #endif
@@ -131,6 +135,19 @@
 #  include "ZVoxelType_ProgRobot_Remote.h"
 #endif
 
+#ifndef Z_ZVOXELTYPE_CARH0_H
+#  include "ZVoxelType_CarH.h"
+#endif
+
+#ifndef Z_ZVOXELTYPE_TRAINT_H
+#  include "ZVoxelType_TrainT.h"
+#endif
+
+#ifndef Z_ZVOXELTYPE_LIFTL_H
+#  include "ZVoxelType_LiftL.h"
+#endif
+
+
 ZVoxelTypeManager::ZVoxelTypeManager()
 {
   ULong i;
@@ -201,13 +218,9 @@ void ZVoxelTypeManager::FillZeroSlots(UShort VoxelTypeUsedToFill)
 }
 
 
-void ZVoxelTypeManager::DeleteVoxelExtension(UShort VoxelType, ULong VoxelExtension)
+void ZVoxelTypeManager::DeleteVoxelExtension(UShort VoxelType, ZMemSize VoxelExtension)
 {
-  ZVoxelType * VoxelTypeEntry;
-
-  VoxelTypeEntry = VoxelTable[VoxelType]; if (!VoxelTypeEntry) return;
-  if (VoxelTypeEntry->ExtensionType == 0) return;
-  VoxelTypeEntry->DeleteVoxelExtension(VoxelExtension);
+  if (VoxelTable[VoxelType]->Is_HasAllocatedMemoryExtension) VoxelTable[VoxelType]->DeleteVoxelExtension(VoxelExtension, false);
 }
 
 
@@ -232,6 +245,7 @@ void ZVoxelTypeManager::OutFabInfos()
 {
   ULong VoxelType, TransNum, EntryNum, ResultNum, ResultNum2;
   ZFabInfos * FabInfos;
+  ZFabInfos2 * FabInfos2;
   ULong Field_InfoNum;
   ULong Field_ElementNum;
   ULong Field_FabResultNum;
@@ -249,7 +263,79 @@ void ZVoxelTypeManager::OutFabInfos()
 
   for (VoxelType=0;VoxelType<65536;VoxelType++)
   {
-    if ( (FabInfos = VoxelTable[VoxelType]->FabInfos) )
+
+    // FabInfos Version 2
+
+    if ( (FabInfos2 = VoxelTable[VoxelType]->FabInfos2))
+    {
+
+      for (ZFabInfos2::ZTransformation * Transformation = FabInfos2->GetFirstTransformation() ; Transformation!=0 ; Transformation = Transformation->Next)
+      {
+        for (ResultNum= 0; ResultNum < Transformation->ResultCount; ResultNum++)
+        {
+          if (Transformation->Result_VoxelType[ResultNum])
+          {
+            //
+            Out << "INSERT INTO `bv_fabinfos` (`Num`, `VoxelType`, `VoxelTypeName`, `VoxelTypePageNode`, `FabVoxelType`, `FabVoxelTypeName`, `FabVoxelTypePageNode`) VALUES ";
+            Out << "('"<< Field_InfoNum;
+            Out <<"', '" << Transformation->Result_VoxelType[ResultNum];
+            Out <<"', '" << VoxelTable[Transformation->Result_VoxelType[ResultNum]]->VoxelTypeName;
+            Out <<"', '" << VoxelTable[Transformation->Result_VoxelType[ResultNum]]->Documentation_PageNum;
+            Out <<"', '" << VoxelType;
+            Out <<"', '" << VoxelTable[VoxelType]->VoxelTypeName;
+            Out <<"', '" << VoxelTable[VoxelType]->Documentation_PageNum;
+            Out <<"');\n";
+            // printf("Result: %d : %d (%s)\n", Transformation->Result_VoxelType[ResultNum], Transformation->Result_Quantity[ResultNum],VoxelTable[Transformation->Result_VoxelType[ResultNum]]->VoxelTypeName.String);
+
+            for (ResultNum2=0; ResultNum2 < Transformation->ResultCount ; ResultNum2++ )
+            {
+              if (Transformation->Result_VoxelType[ResultNum2])
+              {
+                Out << "INSERT INTO `blackvoxel`.`bv_fabresults` (`Num`, `InfoNum`, `VoxelType`, `ResultQuantity`, `VoxelTypeName`, `VoxelTypePageNode`) VALUES ";
+                Out << "('" << Field_FabResultNum;
+                Out << "', '" << Field_InfoNum;
+                Out << "', '" << Transformation->Result_VoxelType[ResultNum2];
+                Out << "', '" << Transformation->Result_Quantity[ResultNum2];
+                Out << "', '" << VoxelTable[ Transformation->Result_VoxelType[ResultNum2] ]->VoxelTypeName;
+                Out << "', '" << VoxelTable[ Transformation->Result_VoxelType[ResultNum2] ]->Documentation_PageNum;
+                Out << "');\n";
+
+                Field_FabResultNum ++;
+              }
+            }
+
+
+
+            for (EntryNum=0; EntryNum < Transformation->FabListEntryCount; EntryNum++)
+            {
+              ZFabInfos2::ZFabEntry * Entry;
+              Entry = &Transformation->FabList[EntryNum];
+              ULong Voxel = Entry->VoxelType;
+              ULong Quantity = Entry->Quantity;
+
+              Out << "INSERT INTO `blackvoxel`.`bv_fabelements` (`Num`, `InfoNum`, `Order`, `VoxelType`, `VoxelQuantity`, `VoxelTypeName`, `VoxelTypePageNode`) VALUES ";
+              Out << "('" << Field_ElementNum;
+              Out << "', '" << Field_InfoNum;
+              Out << "', '" << EntryNum + 1;
+              Out << "', '" << Voxel;
+              Out << "', '" << Quantity;
+              Out << "', '" << VoxelTable[Voxel]->VoxelTypeName;
+              Out << "', '" << VoxelTable[Voxel]->Documentation_PageNum;
+              Out << "');\n";
+
+              // printf(" > %d : %d (%s)\n", Voxel, Quantity, VoxelTable[Voxel]->VoxelTypeName.String );
+              Field_ElementNum ++;
+            }
+            Field_InfoNum++;
+          }
+
+        }
+      }
+    }
+
+    // FabInfos Version 1
+
+    if ( (FabInfos = VoxelTable[VoxelType]->FabInfos) && false )
     {
       //printf("Voxel %d has fabinfos\n", VoxelType);
 
@@ -488,6 +574,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
 {
   ULong i,t;
   ZVoxelType * VoxelType;
+  ZFabInfos2::ZTransformation * tr;
 
   i=0;
   AddVoxelType(i++, new ZVoxelType_Void(0));
@@ -529,6 +616,7 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                VoxelType->FabInfos->AddMaterial(72);   // Slot 19 : Black Wood
                VoxelType->FabInfos->AddMaterial(6);    // Slot 20 : BlackRock Yellow
                VoxelType->FabInfos->AddMaterial(54);   // Slot 21 : Rocky Blue
+               VoxelType->FabInfos->AddMaterial(278);  // Slot 22 : Y Material
 
                VoxelType->FabInfos->SetPurgeCondition(0,2); // if this slot go above limit, go to purge state mode.
                VoxelType->FabInfos->SetValidationCondition(0,1); // If condition reached, validate input and allow transformation
@@ -865,6 +953,13 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  VoxelType->FabInfos->AddCondition(t,0,1);   // 1 Blackrock Blue (Validation)
                  VoxelType->FabInfos->SetResult(t,0,107,1);  // 1 Base Machine
 
+               t=VoxelType->FabInfos->AddTransformation();   // T38
+                 VoxelType->FabInfos->AddCondition(t,8,256);   // 256 Acier Inox
+                 VoxelType->FabInfos->AddCondition(t,3,256);   // 256 Bronze
+                 VoxelType->FabInfos->AddCondition(t,20,256);  // 256 Blackrock Yellow
+                 VoxelType->FabInfos->AddCondition(t,22,512);  // 512 Y Material
+                 VoxelType->FabInfos->AddCondition(t,0,1);     // 1 Blackrock Blue (Validation)
+                 VoxelType->FabInfos->SetResult(t,0,282,1);    // 1 Base Machine
                break;
 
 
@@ -1981,6 +2076,182 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
       case 254: VoxelType = new ZVoxelType_WirelessTransmitter(i);   break;
       case 255: VoxelType = new ZVoxelType_WirelessReceiver(i);      break;
       case 256 ... 259 : VoxelType = new ZVoxelType_ProgRobot_Remote(i);break;
+
+      case 263:
+      case 264:
+      case 265:
+      case 266:
+      case 267: VoxelType = new ZVoxelType_CarH(i);                  break;
+
+      case 269:
+      case 270:
+      case 271: VoxelType = new ZVoxelType_TrainT(i);                break;
+
+      case 274:
+      case 275:
+      case 276: VoxelType = new ZVoxelType_LiftL(i);                 break;
+
+
+      case 282: VoxelType = new ZVoxelType_FabMachine2(i);
+                VoxelType->FabInfos2 = new ZFabInfos2;
+                VoxelType->FabInfos2->SetValidator(1);
+
+                // Test
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(2,8);
+                 tr->AddCondition(1,1);
+                 tr->AddResult(3,2);
+
+                // Lifts L0 (Validated)
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(118,128); // 128 Stainless Steel Bar
+                 tr->AddCondition(117,128); // 128 Iron Bar
+                 tr->AddCondition(128,128); // 128 Bronze Bar
+                 tr->AddCondition(119,128); // 128 Copper Bar
+                 tr->AddCondition(1,1);     // 1   Blackrock Blue (Validator)
+                 tr->AddResult(274,1); // Lift L0
+                // Lift L1
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(138,5);  //  5  M12 Electric Motor
+                 tr->AddCondition(169,40); // 40  Steel Sheet
+                 tr->AddCondition(160,5);  //  5  Stainless Steel Sheet
+                 tr->AddCondition(170,20); // 20  Steel Profile
+                 tr->AddCondition(144,10); // 10  Axle
+                 tr->AddCondition(145,2);  //  2  Copper Wire
+                 tr->AddCondition(149,5);  //  5  Conveyor roller
+                 tr->AddCondition(1,1);    //  1  Blackrock Blue (Validator)
+                 tr->AddResult(275,1); // Lift L1
+                // Lift L2
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(138,200);   //  200  M12 Electric Motor
+                 tr->AddCondition(169,1000);  // 1000  Steel Sheet
+                 tr->AddCondition(160,1000);  // 1000  Stainless Steel Sheet
+                 tr->AddCondition(170,2000);  // 2000  Steel Profile
+                 tr->AddCondition(144,1000);  // 1000  Axle
+                 tr->AddCondition(145,1500);  // 1500  Copper Wire
+                 tr->AddCondition(149,1000);  // 1000  Conveyor roller
+                 tr->AddCondition(279,2500);  // 2500  Z Material
+                 tr->AddCondition(1,1);      // 1    Blackrock Blue (Validator)
+                 tr->AddResult(276,1); // Lift L2
+
+                 // Lift Rail
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(117,10);  // 10  Iron Bar
+                 tr->AddCondition(119,10);  // 10  Copper Bar
+                 tr->AddCondition(278,1);   // 1   Y Material
+                 tr->AddCondition(1,1);     // 1   Blackrock Blue (Validator)
+                 tr->AddResult(277,1);      // Lift Rail
+
+                 // Car H0
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(117,16);  // 16  Iron Bar
+                 tr->AddCondition(119,16);  // 32  Copper Bar
+                 tr->AddCondition(278,16);  // 32  Y Material
+                 tr->AddCondition(1,1);     // 1   Blackrock Blue (Validator)
+                 tr->AddResult(263,1); // Car H0
+                // Car H1
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(117,350);  // 350  Iron Bar
+                 tr->AddCondition(119,512);  // 512  Copper Bar
+                 tr->AddCondition(128,256);  // 256  Bronze Bar
+                 tr->AddCondition(118,256);  // 256  Stainless Steel Bar
+                 tr->AddCondition(278,128);  // 128  Y Material
+                 tr->AddCondition(1,1);      // 1    Blackrock Blue (Validator)
+                 tr->AddResult(264,1); // Car H1
+                // Car H2
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(138,10);  // 10  M12 Electric Motor
+                 tr->AddCondition(169,30);  // 30  Steel Sheet
+                 tr->AddCondition(160,20);  // 20  Stainless Steel Sheet
+                 tr->AddCondition(170,50);  // 50  Steel Profile
+                 tr->AddCondition(144,40);  // 40  Axle
+                 tr->AddCondition(145,40);  // 40  Copper Wire
+                 tr->AddCondition(1,1);      // 1    Blackrock Blue (Validator)
+                 tr->AddResult(265,1); // Car H2
+                // Car H3
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(138,50);   //   50  M12 Electric Motor
+                 tr->AddCondition(169,1000); // 1000  Steel Sheet
+                 tr->AddCondition(160,50);   //   50  Stainless Steel Sheet
+                 tr->AddCondition(170,120);  //  120  Steel Profile
+                 tr->AddCondition(144,400);  //  400  Axle
+                 tr->AddCondition(145,100);  //  100  Copper Wire
+                 tr->AddCondition(278,500);   // 500  Y Material
+                 tr->AddCondition(1,1);      //    1  Blackrock Blue (Validator)
+                 tr->AddResult(266,1); // Car H3
+                // Car H4
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(138,500);  // 500  M12 Electric Motor
+                 tr->AddCondition(169,1000); // 1000  Steel Sheet
+                 tr->AddCondition(160,500);  // 500  Stainless Steel Sheet
+                 tr->AddCondition(170,1200); // 1200  Steel Profile
+                 tr->AddCondition(144,4000); // 4000  Axle
+                 tr->AddCondition(145,1000); // 1000  Copper Wire
+                 tr->AddCondition(279,5000); // 5000   Z Material
+                 tr->AddCondition(1,1);      // 1    Blackrock Blue (Validator)
+                 tr->AddResult(267,1); // Car H4
+                // Car Jump Block
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(117,5);   // 5  Iron Bar
+                 tr->AddCondition(119,5);   // 2  Copper Bar
+                 tr->AddCondition(1,1);     // 1  Blackrock Blue (Validator)
+                 tr->AddResult(268,20);     // Jump Block
+
+                // Train T0
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(117,512);  // 512  Iron Bar
+                 tr->AddCondition(119,512);  // 512  Copper Bar
+                 tr->AddCondition(118,512); //  512  Stainless Steel Bar
+                 tr->AddCondition(278,350);  // 350  Y Material
+                 tr->AddCondition(1,1);     // 1   Blackrock Blue (Validator)
+                 tr->AddResult(269,1); // Train T0
+
+                // Train T1
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(138,30);  // 500  M12 Electric Motor
+                 tr->AddCondition(169,100); // 1000  Steel Sheet
+                 tr->AddCondition(160,100);  // 500  Stainless Steel Sheet
+                 tr->AddCondition(170,200); // 1200  Steel Profile
+                 tr->AddCondition(144,400); // 4000  Axle
+                 tr->AddCondition(145,400); // 1000  Copper Wire
+                 tr->AddCondition(278,1000);  // 1200   Y Material
+                 tr->AddCondition(1,1);      // 1    Blackrock Blue (Validator)
+                 tr->AddResult(270,1); // Train T1
+
+                // Train T2
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(138,100);   //  100  M12 Electric Motor
+                 tr->AddCondition(169,800);   //  800  Steel Sheet
+                 tr->AddCondition(160,1000);  // 1000  Stainless Steel Sheet
+                 tr->AddCondition(170,1050);  // 1050  Steel Profile
+                 tr->AddCondition(144,1000);  // 1000  Axle
+                 tr->AddCondition(145,1000);  // 1000  Copper Wire
+                 tr->AddCondition(279,5000);  // 5000  Z Material
+                 tr->AddCondition(1,1);       // 1    Blackrock Blue (Validator)
+                 tr->AddResult(271,1); // Train T2
+
+                // Train Rail
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(117,10);  // 10  Iron Bar
+                 tr->AddCondition(119,10);  // 10  Copper Bar
+                 tr->AddCondition(1,1);     // 1   Blackrock Blue (Validator)
+                 tr->AddResult(272,50);      // Train Rail
+                // Train Engine
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(117,1000);  // 10  Iron Bar
+                 tr->AddCondition(119,1000);  // 10  Copper Bar
+                 tr->AddCondition(1,1);     // 1   Blackrock Blue (Validator)
+                 tr->AddResult(273,1);      // Train Engine
+
+                // Heater Plate
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(117,500);  // 500  Iron Bar
+                 tr->AddCondition(119,200);  // 200 Copper Bar
+                 tr->AddCondition(1,1);     // 1   Blackrock Blue (Validator)
+                 tr->AddResult(283,1);      // Heater plate
+
+                VoxelType->FabInfos2->UpdateAll();
+                break;
 
       default:  VoxelType = new ZVoxelType(i);                       break;
     }
