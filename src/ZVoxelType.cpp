@@ -109,6 +109,7 @@ ZVoxelType::ZVoxelType(UShort VoxelType)
   OpenGl_TextureRef = 0;
   GameEnv = 0;
   FabInfos = 0;
+  FabInfos2= 0;
   Documentation_PageNum = 0;
 }
 
@@ -116,6 +117,7 @@ ZVoxelType::~ZVoxelType()
 {
   if (MainTexture) delete MainTexture;
   if (FabInfos) delete FabInfos;
+  if (FabInfos2) delete FabInfos2;
 }
 
 
