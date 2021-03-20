@@ -70,6 +70,7 @@ class ZGameWindow_Storage : public ZFrame
     ZFrame_FontFrame MainTitle;
     ZFrame_FontFrame StorageTitle;
     ZFrame_FontFrame InventoryTitle;
+    ZTileFrame       Arrow_Transfert;
 
     ZInventoryBox * MainStorage;
 

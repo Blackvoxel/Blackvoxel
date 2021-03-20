@@ -80,6 +80,16 @@ void ZGameWindow_Storage::Show()
   MainWindow->AddFrame(&MainTitle);
   Rp.y += Size.y + 20.0f;
 
+  // Transfert button
+
+  Size.x = 32.0f; Size.y = 32.0f;
+  Arrow_Transfert.SetPosition( 670.0f  , Rp.y-20.0);
+  Arrow_Transfert.SetTileSet(GameEnv->GuiTileset);
+  Arrow_Transfert.SetTile(12);
+  Arrow_Transfert.SetSize(Size.x, Size.y);
+
+  MainWindow->AddFrame(&Arrow_Transfert);
+
   // Tools Title
 
   StorageTitle.SetStyle(GameEnv->TileSetStyles->GetStyle(ZGame::FONTSIZE_1));
@@ -122,7 +132,6 @@ void ZGameWindow_Storage::Show()
   InventoryTitle.SetColor(255.0f,255.0f,255.0f);
   MainWindow->AddFrame(&InventoryTitle);
   Rp.y += Size.y + 5.0f;
-
 
   // Inventory
 
@@ -171,6 +180,27 @@ Bool ZGameWindow_Storage::MouseButtonClick(UShort nButton, Short Absolute_x, Sho
   if (CloseBox.Is_MouseClick(true))
   {
     Hide();
+  }
+
+  if (Arrow_Transfert.Is_MouseClick(true))
+  {
+    ULong i;
+    ZActor * Actor = GameEnv->PhysicEngine->GetSelectedActor();
+    if (Actor)
+    {
+      for (i=0;i<ZVoxelExtension_Storage::Storage_NumSlots;i++)
+      {
+        if (VoxelExtension_Storage->VoxelType[i]!=0 && VoxelExtension_Storage->VoxelQuantity[i]>0)
+        {
+          if (Actor->Inventory->StoreBlocks(VoxelExtension_Storage->VoxelType[i],VoxelExtension_Storage->VoxelQuantity[i]))
+          {
+            VoxelExtension_Storage->VoxelType[i] = 0;
+            VoxelExtension_Storage->VoxelQuantity[i] = 0;
+          }
+        }
+      }
+    }
+
   }
 
   return (Res);
