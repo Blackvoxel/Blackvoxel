@@ -31,6 +31,10 @@
 #include <GL/glew.h>
 #include "ZRender_Basic.h"
 
+#ifndef Z_ZVOXEL_H
+#  include "ZVoxel.h"
+#endif
+
 #ifndef Z_ZSTREAMS_FILE_H
 #  include "z/ZStream_File.h"
 #endif
@@ -543,6 +547,8 @@ bool ZGame::Init_OpenGLGameSettings(ZLog * InitLog)
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glAlphaFunc(GL_GREATER, 0.05);
 
+  //SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
+
   Initialized_OpenGLGameSettings = true;
   InitLog->Log(2, ZLog::INFO, "Ended Ok : OpenGL Game Settings");
   return(true);
@@ -608,6 +614,10 @@ bool ZGame::Init_VoxelTypeManager(ZLog * InitLog)
   if ( 0 != VoxelTypeManager.GetVoxelType(50) )  VoxelTypeManager.FillZeroSlots(50);
   else                                           return(false);
   Initialized_VoxelTypeManager = true;
+
+  ZVoxel::SetVoxelTypeManager(&VoxelTypeManager);
+
+
   InitLog->Log(2, ZLog::INFO, "Ended Ok : VoxelTypeManager Init");
   return(true);
 }
@@ -704,7 +714,7 @@ bool ZGame::Init_Sound(ZLog * InitLog)
 
   Sound->LoadSoundFiles();
   Msg.Clear() << "Loaded " << Sound->GetSampleCount() << " Sound samples."; InitLog->Log(3, ZLog::INFO, Msg);
-  if (Sound->GetSampleCount() < 8) { ZString Err; Err << "Missing Sound Sample Files (count : " << Sound->GetSampleCount()<< ")"; InitLog->Log(4, ZLog::FAIL, Err); return(false); }
+  if (Sound->GetSampleCount() < 10) { ZString Err; Err << "Missing Sound Sample Files (count : " << Sound->GetSampleCount()<< ")"; InitLog->Log(4, ZLog::FAIL, Err); return(false); }
 
   // Get the volume from settings.
 
@@ -722,6 +732,9 @@ bool ZGame::Init_Sound(ZLog * InitLog)
       case 5:    Sound->SampleModify_Volume(5,0.03* Vol);  break; // Vrilleuse d'oreilles (0.1)
       case 6:    Sound->SampleModify_Volume(6,0.3 * Vol);  break; // Bloc Break (0.3)
       case 7:    Sound->SampleModify_Volume(7,0.3 * Vol);  break; // Bloc Place (0.3)
+      case 8:    Sound->SampleModify_Volume(8,0.2 * Vol);  break; // Bloc Place (0.3)
+      case 9:    Sound->SampleModify_Volume(9,0.1 * Vol);  break; // Bloc Place (0.3)
+      case 10:   Sound->SampleModify_Volume(10,0.1 * Vol);  break; // Bloc Place (0.3)
       default:   if (Vol<1.0) Sound->SampleModify_Volume(1,1.0 * Vol);  break;
     }
   }
