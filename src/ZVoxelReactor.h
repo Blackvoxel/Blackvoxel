@@ -59,6 +59,10 @@
 #  include "ZVoxelExtension_FabMachine.h"
 #endif
 
+#ifndef Z_ZVOXELEXTENSION_FABMACHINE2_H
+#  include "ZVoxelExtension_FabMachine2.h"
+#endif
+
 #ifndef Z_ZFABMACHINEINFOS_H
 #  include "ZFabMachineInfos.h"
 #endif

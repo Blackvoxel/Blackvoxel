@@ -226,6 +226,11 @@ ZVoxelReactor::ZVoxelReactor()
 
   // Green acid reaction
   ReactionTable[86] = new ZVoxelReaction(89,0);
+  ReactionTable[86]->SetReaction(202,280,0);
+  ReactionTable[280]= new ZVoxelReaction(10,0);
+  ReactionTable[280]->SetReaction(202,280,202);
+  ReactionTable[280]->SetReaction(280,280,280);
+  ReactionTable[280]->SetReaction(281,279,0);
   // ReactionTable[86]->SetReaction(1,10,10);
 
   //ReactionTable[86]->Set(1,10);
@@ -2986,6 +2991,325 @@ void ZVoxelReactor::ProcessSectors( double LastLoopTime )
                             }
                             break;
                           }
+
+                  case 280:
+                            // Universal Chemical Liquid
+                            IsActiveVoxels = true;
+                            {
+                              ZVoxelSector * St[32];
+                              UShort * Vp[32];
+                              ZVoxelReaction::ZReaction * Reaction;
+                              ULong SecondaryOffset[32];
+                              ULong i,j, FallCount,SnoopCount, GrindCount;
+                              bool  FallEn[4],SnoopEn[4],GrindEn[6];
+                              register Long cx,cy,cz;
+                              ZVoxelLocation Location;
+
+                              // Test if we can fall downward
+                                i=0;
+                                cx = x+1 ; cy = y ; cz = z+1; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                if (VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_GreenAcid)
+                                {
+                                  World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y-1, RSz + z, VoxelType, ZVoxelSector::CHANGE_UNIMPORTANT);
+                                  World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y, RSz + z, 0, ZVoxelSector::CHANGE_UNIMPORTANT);
+                                  St[i]->ModifTracker.Set(SecondaryOffset[i]);
+                                  break;
+                                }
+
+                                // Fetch Voxels for all 10 Voxels arounds
+                                for (i=0;i<10;i++) { cx = x+bft6[i].x ; cy = y+bft6[i].y ; cz = z+bft6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ]; }
+
+
+                                for(i=0,j=6,FallCount=SnoopCount=GrindCount=0 ; i<4 ; i++,j++)
+                                {
+                                  if (( GrindEn[i] = VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CombinableWith_GreenAcid ))            GrindCount++;
+                                  if (( SnoopEn[i] = VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CanBeReplacedBy_GreenAcid ))           SnoopCount++;
+                                  if (( FallEn[i]=SnoopEn[i] && VoxelTypeManager->VoxelTable[*Vp[j]]->Is_CanBeReplacedBy_GreenAcid)) FallCount++;
+                                }
+                                for(i=4;i<6;i++)
+                                {
+                                  if (( GrindEn[i] = VoxelTypeManager->VoxelTable[*Vp[i]]->Is_CombinableWith_GreenAcid )) GrindCount++;
+                                }
+
+                                // If the voxel under acid is grindable, blast it
+
+                                if (GrindEn[5])
+                                {
+                                  Reaction = ReactionTable[VoxelType]->GetReaction(*Vp[5]);
+                                  World->SetVoxel_WithCullingUpdate(RSx + x + bft6[5].x - 1, RSy + y + bft6[5].y - 1 , RSz + z + bft6[5].z - 1 , Reaction->ActorTrans , ZVoxelSector::CHANGE_UNIMPORTANT);
+                                  World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y, RSz + z, Reaction->DrivedTrans, ZVoxelSector::CHANGE_UNIMPORTANT, true, &Location);
+                                  // Location.Sector->OtherInfos[Location.Offset] = 1000;
+
+                                  St[i]->ModifTracker.Set(SecondaryOffset[i]);
+                                  break;
+                                }
+
+                                // Fall To the side of a voxel.
+
+                                if ((FallCount))
+                                {
+                                  j = (Random.GetNumber() % FallCount) +1;
+                                  for (i=0;i<4;i++)
+                                  {
+                                    if (FallEn[i]) j--;
+                                    if (!j)
+                                    {
+                                      World->SetVoxel_WithCullingUpdate(RSx + x + bft6[i].x - 1, RSy + y, RSz + z + bft6[i].z - 1 , VoxelType, ZVoxelSector::CHANGE_UNIMPORTANT);
+                                      World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y, RSz + z, 0, ZVoxelSector::CHANGE_UNIMPORTANT);
+                                      St[i]->ModifTracker.Set(SecondaryOffset[i]);
+                                      break;
+                                    }
+                                  }
+                                  break;
+                                }
+
+                                // Test if it can break any voxel
+
+                                if ((GrindCount))
+                                {
+                                  j = (Random.GetNumber() % GrindCount) +1;
+                                  for(i=0;i<6;i++)
+                                  {
+                                    if (GrindEn[i]) j--;
+                                    if (!j)
+                                    {
+                                      Reaction = ReactionTable[VoxelType]->GetReaction(*Vp[i]);
+                                      World->SetVoxel_WithCullingUpdate(RSx + x + bft6[i].x - 1, RSy + y + bft6[i].y - 1, RSz + z + bft6[i].z - 1 , Reaction->ActorTrans , ZVoxelSector::CHANGE_UNIMPORTANT, true, &Location);
+                                      //{ Location.Sector->OtherInfos[Location.Offset] = 1000; }
+                                      World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y, RSz + z, Reaction->DrivedTrans , ZVoxelSector::CHANGE_UNIMPORTANT);
+                                      St[i]->ModifTracker.Set(SecondaryOffset[i]);
+                                      break;
+                                    }
+                                  }
+                                  break;
+                                }
+
+                                // If we can flow down or break anything, try to go in random horizontal direction
+
+                                if ((SnoopCount))
+                                {
+                                  j = (Random.GetNumber() % SnoopCount) +1;
+                                  for (i=0;i<4;i++)
+                                  {
+                                    if (SnoopEn[i]) j--;
+                                    if (!j)
+                                    {
+                                      World->SetVoxel_WithCullingUpdate(RSx + x + bft6[i].x - 1, RSy + y, RSz + z + bft6[i].z - 1 , VoxelType, ZVoxelSector::CHANGE_UNIMPORTANT);
+                                      World->SetVoxel_WithCullingUpdate(RSx + x, RSy + y, RSz + z, 0, ZVoxelSector::CHANGE_UNIMPORTANT);
+                                      St[i]->ModifTracker.Set(SecondaryOffset[i]);
+                                      break;
+                                    }
+                                  }
+                                  break;
+                                }
+
+                                break;
+                              }
+
+                  case 282:
+
+                          IsActiveVoxels = true;
+                          {
+                            ZVoxelSector * St[8];
+                            UShort * Vp[8];
+                            ULong SecondaryOffset[8];
+                            ULong i, j, Opposite;
+                            UShort VoxelType2;
+                            ZVoxelExtension_FabMachine2 * Ext;
+                            ZFabInfos2 * Fab;
+                            bool TransformationFound;
+                            ZFabInfos2::ZTransformation * Transformation = 0;
+                            ZFabInfos2::ZFabEntry       * FabEntry;
+                            bool Validated;
+
+
+                            // Report this bloc to EgmyManager in order to make it a possible target for attack.
+
+                            ZVector3L Vc;
+                            Vc.x = x + RSx; Vc.y = y + RSy; Vc.z = z + RSz;
+                            EgmyWaveManager.ReportObjective(&Vc, VoxelType);
+                            //
+
+                            register Long cx,cy,cz;
+                            Ext = (ZVoxelExtension_FabMachine2 *)Sector->OtherInfos[MainOffset];
+                            Fab = VoxelTypeManager->VoxelTable[VoxelType]->FabInfos2;
+                            for (bool Reloop = true; Reloop;)
+                            {
+                              Reloop = false;
+                              switch (Ext->MachineState )
+                              {
+                                case 0: // Test for input voxels. If compatible voxels found, store them. If all conditions are meet, proceed to next state.
+                                        for(i=0;i<6;i++)
+                                        {
+                                          if (i==2) continue;
+                                          // Fetch voxel around.
+                                          cx = x+bp6[i].x ; cy = y+bp6[i].y ; cz = z+bp6[i].z ; SecondaryOffset[i] = If_x[cx]+If_y[cy]+If_z[cz];St[i] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[i] = &St[i]->Data[ SecondaryOffset[i] ];
+                                          VoxelType2 = *Vp[i];
+
+                                          // Improvement : New tests to ensure the material is accepted with the new fast match table.
+                                          if (VoxelType2==0) continue;
+                                          if (!Fab->IsMaterialAccepted(VoxelType2)) continue;
+
+                                          // Test if the voxel we see here was moved in this cycle. If so, report any action to the next cycle.
+                                          if (St[i]->ModifTracker.Get(SecondaryOffset[i])) continue;
+
+
+                                          // At this stage, we can store the voxel in the table.
+
+                                          Ext->StoreBlocks(VoxelType2,1);
+
+                                          // Last direction is recorded to know the output direction
+                                          Ext->LastInDirection = i;
+                                          // Erase the inputing voxel. At this point, it's already stored.
+                                          World->SetVoxel_WithCullingUpdate(RSx + x + bp6[i].x-1, RSy + y + bp6[i].y - 1, RSz + z + bp6[i].z-1 , 0, ZVoxelSector::CHANGE_CRITICAL);
+
+                                          // If we doesn't have a validator voxel, stop here.
+
+                                          if (VoxelType2 != Fab->GetValidator()) break;
+
+                                          // Check if there is one matching fabrication instructions. This new machine needs an exact match.
+
+                                          // §§§ To continue
+
+                                          Transformation = Fab->GetFirstTransformation();
+                                          while (Transformation)
+                                          {
+                                            Validated=false;
+
+                                            // First way validation : Check all materials from manufacturing instructions are in the machine.
+                                            for (i=0;i<Transformation->GetEntryCount();i++)
+                                            {
+                                              ULong Slot;
+                                              Validated = true;
+                                              FabEntry= Transformation->GetEntry(i);
+                                              if (!Ext->FindSlot(FabEntry->VoxelType,Slot)) {Validated = false; break;}
+                                              if (Ext->VoxelQuantity[Slot]!=FabEntry->Quantity) {Validated = false; break;}
+                                            }
+
+                                            // Second way validation : Check that all materials in the machine are in the manufacturing instructions with nothing else.
+
+                                            if (Validated)
+                                            {
+                                              for (i=0;i<Ext->GetSlotCount();i++)
+                                              {
+                                                if (Ext->VoxelType!=0 && Ext->VoxelQuantity!=0)
+                                                {
+                                                  if (!Transformation->MatchEntry(Ext->VoxelType[i], Ext->VoxelQuantity[i])) {Validated = false; break;}
+                                                }
+                                              }
+                                            }
+                                            if (Validated) break;
+                                            Transformation = Transformation->GetNext();
+                                          }
+
+                                          if (Validated)
+                                          {
+                                            Ext->ClearStorage();
+                                            // Machine state change, voxels to output are noted.
+                                            for (j=0;j<ZVoxelExtension_FabMachine2::Output_NumSlots;j++)
+                                            {
+                                              ULong Quantity;
+                                              UShort VType;
+                                              Transformation->GetResult(j,VType,Quantity);
+                                              Ext->VoxelToOutput[j]=VType;
+                                              Ext->VoxelToOutputQuantities[j] = (UShort)Quantity;
+                                            }
+                                            Ext->MachineState = 1; // Go to result output mode.
+                                          }
+                                          else
+                                          {
+                                            Ext->MachineState = 2; // Go to purge mode.
+                                          }
+                                          Reloop = true;
+                                          break;
+
+                                        }
+                                        break;
+                                case 1: // Result Output Mode
+                                        Opposite = BlocOpposite[Ext->LastInDirection];
+                                        cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz]; St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ];
+                                        if (VoxelTypeManager->VoxelTable[*Vp[Opposite]]->Is_PlayerCanPassThrough)
+                                        {
+                                          for( j=0, TransformationFound=false ; j < ZVoxelExtension_FabMachine::Output_NumSlots ; j++ )
+                                          {
+                                            if (Ext->VoxelToOutputQuantities[j])
+                                            {
+                                              World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x-1, RSy + y + bp6[Opposite].y - 1, RSz + z + bp6[Opposite].z-1 , Ext->VoxelToOutput[j], ZVoxelSector::CHANGE_CRITICAL);
+                                              St[Opposite]->ModifTracker.Set(SecondaryOffset[Opposite]);
+                                              if (! --Ext->VoxelToOutputQuantities[j]) Ext->VoxelToOutput[j]=0;
+                                              TransformationFound = true;
+                                              break;
+                                            }
+                                          }
+                                          if (!TransformationFound) { Ext->MachineState = 2; Reloop = true; }
+                                        }
+                                        break;
+                                case 2: // Purge mode
+                                        bool NoBloc;
+                                        Opposite = BlocOpposite[Ext->LastInDirection];
+                                        cx = x+bp6[Opposite].x ; cy = y+bp6[Opposite].y ; cz = z+bp6[Opposite].z ; SecondaryOffset[Opposite] = If_x[cx]+If_y[cy]+If_z[cz]; St[Opposite] = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ]; Vp[Opposite] = &St[Opposite]->Data[ SecondaryOffset[Opposite] ];
+                                        NoBloc = true;
+                                        if (VoxelTypeManager->VoxelTable[*Vp[Opposite]]->Is_PlayerCanPassThrough)
+                                        {
+                                          for (i=0; i<ZVoxelExtension_FabMachine::Storage_NumSlots ; i++)
+                                          {
+                                            if (Ext->VoxelQuantity[i] >0)
+                                            {
+                                              Ext->VoxelQuantity[i]--;
+                                              World->SetVoxel_WithCullingUpdate(RSx + x + bp6[Opposite].x-1, RSy + y + bp6[Opposite].y - 1, RSz + z + bp6[Opposite].z-1 , Ext->VoxelType[i], ZVoxelSector::CHANGE_CRITICAL);
+                                              if (Ext->VoxelQuantity[i]==0) Ext->VoxelType[i] = 0;
+                                              NoBloc = false;
+                                              break;
+                                            }
+                                          }
+
+                                          if (NoBloc)
+                                          {
+                                            for( j=0 ; j < ZVoxelExtension_FabMachine::Output_NumSlots ; j++ ) { Ext->VoxelToOutput[j]=0; Ext->VoxelToOutputQuantities[j]=0;  }
+                                            Ext->MachineState = 0; Reloop = true;
+                                          }
+                                        }
+                                        break;
+
+
+
+
+
+                              }
+                            }
+
+                            break;
+                          }
+
+
+                 case 283:
+                          {
+                            ZVoxelSector * Sector;
+                            UShort Voxel;
+                            ULong Offset;
+
+                            register Long cx,cy,cz;
+
+                            // Work only on 1/16 of the cycles (slow run)
+                            //if ((CycleNum ^ x ^ y) & 15) break;
+                              cx = x + xbp6[4].x ; cy = y+xbp6[4].y ; cz = z+xbp6[4].z ; // Look over the voxel.
+                              Offset = If_x[cx]+If_y[cy]+If_z[cz];
+                              Sector = SectorTable[ Of_x[cx] + Of_y[cy] + Of_z[cz] ];
+                              Voxel = Sector->Data[ Offset ];
+                              switch(Voxel)
+                              {
+                                case 115:
+                                         {
+                                           ZVoxelExtension_FusionElement * Ext = (ZVoxelExtension_FusionElement *)Sector->OtherInfos[Offset];
+                                           if (Ext->Temperature < 3000.0) Ext->Temperature += 0.003333333 * LastLoopTime * 250.0;
+                                         }
+                                         break;
+                              }
+                          }
+                          break;
+
+
+
 
                  case 254:  // Wireless Transmitter
 
