@@ -101,6 +101,34 @@ class ZStream_SpecialRamStream
     return(Result);
   }
 
+  inline void Put16B(UShort Data)
+  {
+    Buffer[Pointer++]=(char)Data;
+    Buffer[Pointer++]=(char)(Data >> 8);
+  }
+
+  inline void Put32B(ULong Data)
+  {
+    Buffer[Pointer++]=(char)Data;
+    Buffer[Pointer++]=(char)(Data >> 8);
+    Buffer[Pointer++]=(char)(Data >> 16);
+    Buffer[Pointer++]=(char)(Data >> 24);
+  }
+
+  inline void Put64B(ULong Data)
+  {
+    Buffer[Pointer++]=(char)Data; Data>>=8;
+    Buffer[Pointer++]=(char)Data; Data>>=8;
+    Buffer[Pointer++]=(char)Data; Data>>=8;
+    Buffer[Pointer++]=(char)Data; Data>>=8;
+    Buffer[Pointer++]=(char)Data; Data>>=8;
+    Buffer[Pointer++]=(char)Data; Data>>=8;
+    Buffer[Pointer++]=(char)Data; Data>>=8;
+    Buffer[Pointer++]=(char)Data;
+  }
+
+
+
   inline void Put(UByte const Data)
   {
     //if (Pointer >= FlushLimit) FlushBuffer();
@@ -220,6 +248,39 @@ class ZStream_SpecialRamStream
   {
     return( ReadCount - Pointer);
   }
+
+  inline bool Get16B(UShort & Data)
+  {
+    if ( (Pointer + 2) > (ReadCount) ) return(false);
+    Data =  Buffer[Pointer++];
+    Data |= Buffer[Pointer++] << 8;
+    return(true);
+  }
+
+  inline bool Get32B(ULong & Data)
+  {
+    if ( (Pointer + 4) > (ReadCount) ) return(false);
+    Data =  Buffer[Pointer++];
+    Data |= Buffer[Pointer++] << 8;
+    Data |= Buffer[Pointer++] << 16;
+    Data |= Buffer[Pointer++] << 24;
+    return(true);
+  }
+
+  inline bool Get64B(UELong & Data)
+  {
+    if ( (Pointer + 4) > (ReadCount) ) return(false);
+    Data =  Buffer[Pointer++];
+    Data |= Buffer[Pointer++] << 8;
+    Data |= Buffer[Pointer++] << 16;
+    Data |= Buffer[Pointer++] << 24;
+    Data |= ((UELong)Buffer[Pointer++]) << 32;
+    Data |= ((UELong)Buffer[Pointer++]) << 40;
+    Data |= ((UELong)Buffer[Pointer++]) << 48;
+    Data |= ((UELong)Buffer[Pointer++]) << 56;
+    return(true);
+  }
+
 
   inline bool Get(UByte & Data)
   {
