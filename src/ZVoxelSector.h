@@ -201,6 +201,11 @@ public:
       Flag_NotStandardSize = NotStandardSize;
     }
 
+    inline ULong GetOffset(Long x, Long y, Long z)
+    {
+      return(y + (x + z * Size_x) * Size_y);
+    }
+
     inline void SetCube(Long x, Long y, Long z, UShort CubeValue)
     {
       Long Offset;
@@ -210,18 +215,34 @@ public:
       OtherInfos[Offset]=0;
     }
 
-    inline void SetCube_Transfert(Long x,Long y, Long z, ZVoxelLocation * SrcLoc)
+    // Non standard sector size
+    inline void SetCube_Transfert_NSS(Long x,Long y, Long z, ZVoxelLocation * SrcLoc)
     {
             Long Offset;
 
-      Offset =     (y & ZVOXELBLOCMASK_Y)
-                + ((x & ZVOXELBLOCMASK_X) <<  ZVOXELBLOCSHIFT_Y )
-                + ((z & ZVOXELBLOCMASK_Z) << (ZVOXELBLOCSHIFT_Y + ZVOXELBLOCSHIFT_X));
+      Offset =    y
+                + x * Size_y
+                + z * Size_y * Size_x;
 
       Data[Offset]       = SrcLoc->Sector->Data[SrcLoc->Offset];
       OtherInfos[Offset] = SrcLoc->Sector->OtherInfos[SrcLoc->Offset];
       SrcLoc->Sector->Data[SrcLoc->Offset] = 0;
       SrcLoc->Sector->OtherInfos[SrcLoc->Offset]=0;
+    }
+
+    inline void SetCube_TransfertTo_NSS(Long x,Long y, Long z, ZVoxelLocation * SrcLoc)
+    {
+            Long Offset;
+
+      Offset =    y
+                + x * Size_y
+                + z * Size_y * Size_x;
+
+
+      SrcLoc->Sector->Data[SrcLoc->Offset] = Data[Offset];
+      SrcLoc->Sector->OtherInfos[SrcLoc->Offset] = OtherInfos[Offset];
+      Data[Offset] = 0;
+      OtherInfos[Offset] = 0;
     }
 
     inline void SetCube_WithExtension(Long x, Long y, Long z, UShort CubeValue, ZMemSize Extension)
@@ -238,6 +259,11 @@ public:
       Long Offset;
 
       Offset = (y & ZVOXELBLOCMASK_Y) + ( (x & ZVOXELBLOCMASK_X)*Size_y )+ ((z & ZVOXELBLOCMASK_Z) * (Size_y*Size_x));
+      return(Data[Offset]);
+    }
+
+    inline UShort GetCube(ULong Offset)
+    {
       return(Data[Offset]);
     }
 
@@ -261,6 +287,7 @@ public:
       }
     }
 
+    // Don't use with voxels using extensions.
     void Fill(UShort VoxelType)
     {
       ZMemSize i;
@@ -268,6 +295,7 @@ public:
       for ( i=0 ; i<DataSize ; i++ )
       {
         Data[i] = VoxelType;
+        OtherInfos[i]=0;
         FaceCulling[i] = 255;
       }
     }
