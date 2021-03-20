@@ -1897,6 +1897,38 @@ SQInteger function_GetFab_Find(HSQUIRRELVM v)
     if (!Vt) { sq_pushinteger(v,0); return(1); }
     if (Vt->Is_NoType && VoxelTypeIndex!=50) { sq_pushinteger(v,0); return(1); }
 
+    // New FabInfos V2
+    if (Vt->FabInfos2)
+    {
+
+      for (ZFabInfos2::ZTransformation * Transformation = Vt->FabInfos2->GetFirstTransformation(); Transformation != 0; Transformation = Transformation->Next)
+      {
+
+        for (ResultIndex=0; ResultIndex < Transformation->ResultCount; ResultIndex++)
+        {
+          if (!Transformation->Result_VoxelType[ResultIndex]) break;
+          if (Transformation->Result_VoxelType[ResultIndex] == VoxelType)
+          {
+            if (FabCount) {FabCount--;break;}
+            else
+            {
+              Result = VoxelTypeIndex;
+              Result |= (FabEntryIndex<<16);
+
+              //printf("Found : Fab %d Ind %d\n",(int)Result & 0xFFFF, (int)Result >> 16);
+              sq_pushinteger(v,Result);
+              return(1);
+            }
+          }
+
+
+        }
+
+      }
+    }
+
+    // Old FabInfos V1
+
     if (Vt->FabInfos)
     {
       for (FabEntryIndex=0; FabEntryIndex < Vt->FabInfos->TransformationCount; FabEntryIndex++)
@@ -1925,13 +1957,32 @@ SQInteger function_GetFab_Find(HSQUIRRELVM v)
 
       }
     }
+
+
+
+
   }
 
 
-  // Return Success
+  // Error, not a fab machine.
 
   sq_pushinteger(v,0);
   return(1);
+}
+
+bool _GetEntryFromIndex(ZFabInfos2 * Fb2, ULong  EntryIndex, ZFabInfos2::ZTransformation * &Transformation)
+{
+  ULong i;
+
+  i=0;
+  for (  Transformation = Fb2->GetFirstTransformation(); Transformation != 0; Transformation = Transformation->Next)
+  {
+    if (i==EntryIndex) return(true);
+    i++;
+  }
+
+  return(false);
+
 }
 
 SQInteger Function_GetFab_ListType(HSQUIRRELVM v)
@@ -1954,8 +2005,6 @@ SQInteger Function_GetFab_ListType(HSQUIRRELVM v)
   if (sq_gettype(v,3) != OT_INTEGER) return sq_throwerror(v,"invalid parameter type for argument 1"); //throws an exception
   sq_getinteger(v,3, &Index);
 
-
-
   S = (ZStoreSq3 *)sq_getforeignptr(v);
   // Input Validation
 
@@ -1969,16 +2018,37 @@ SQInteger Function_GetFab_ListType(HSQUIRRELVM v)
   // Verification of the machine reference
 
   if (!Vt) {sq_pushinteger(v,0); return(1);}
-  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
-  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
 
-  // Get info
+  // FabMachine V2
 
-  Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
-  if (Index >= Transformation->EntryCount) {sq_pushinteger(v,0);return(1);}
-  VoxelType = Vt->FabInfos->MaterialTable[ Transformation->FabList[Index].Index ].VoxelType;
-  sq_pushinteger(v, VoxelType);
+  if (Vt->FabInfos2)
+  {
+    ZFabInfos2::ZTransformation * Transformation;
 
+    if (!_GetEntryFromIndex(Vt->FabInfos2, EntryIndex, Transformation)) {sq_pushinteger(v,0); return(1);}
+    if (Index >= Transformation->FabListEntryCount) {sq_pushinteger(v,0);return(1);}
+    VoxelType = Transformation->FabList[Index].VoxelType;
+    sq_pushinteger(v, VoxelType);
+    return(1);
+  }
+
+  // FabMachine V1
+
+  if (Vt->FabInfos)
+  {
+    if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+    // Get info
+
+    Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+    if (Index >= Transformation->EntryCount) {sq_pushinteger(v,0);return(1);}
+    VoxelType = Vt->FabInfos->MaterialTable[ Transformation->FabList[Index].Index ].VoxelType;
+    sq_pushinteger(v, VoxelType);
+    return(1);
+  }
+
+  // Error, not a fab machine
+  sq_pushinteger(v,0);
   return(1);
 }
 
@@ -2015,15 +2085,36 @@ SQInteger Function_GetFab_ListQuantity(HSQUIRRELVM v)
   // Verification of the machine reference
 
   if (!Vt) {sq_pushinteger(v,0); return(1);}
-  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
-  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
 
-  // Get info
 
-  Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
-  if (Index >= Transformation->EntryCount) {sq_pushinteger(v,0);return(1);}
-  sq_pushinteger(v,Transformation->FabList[Index].Quantity);
+  // FabMachine V2
 
+  if (Vt->FabInfos2)
+  {
+    ZFabInfos2::ZTransformation * Transformation;
+
+    if (!_GetEntryFromIndex(Vt->FabInfos2, EntryIndex, Transformation)) {sq_pushinteger(v,0); return(1);}
+    if (Index >= Transformation->FabListEntryCount) {sq_pushinteger(v,0);return(1);}
+    sq_pushinteger(v,Transformation->FabList[Index].Quantity);
+    return(1);
+  }
+
+  // FabMachine V1
+  if (Vt->FabInfos)
+  {
+    if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+    // Get info
+
+    Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+    if (Index >= Transformation->EntryCount) {sq_pushinteger(v,0);return(1);}
+    sq_pushinteger(v,Transformation->FabList[Index].Quantity);
+    return(1);
+  }
+
+  // Error, not a Fab machine
+
+  sq_pushinteger(v,0);
   return(1);
 }
 
@@ -2062,16 +2153,43 @@ SQInteger Function_GetFab_ResultType(HSQUIRRELVM v)
   // Verification of the machine reference
 
   if (!Vt) {sq_pushinteger(v,0); return(1);}
-  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
-  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
 
-  // Get info
+  // FabMachine V2
 
-  Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
-  if (Index >= Transformation->Max_ResultVoxels) {sq_pushinteger(v,0);return(1);}
-  VoxelType = Transformation->Result_VoxelType[Index];
-  sq_pushinteger(v, VoxelType);
+  if (Vt->FabInfos2)
+  {
+    ZFabInfos2::ZTransformation * Transformation;
 
+    if (!_GetEntryFromIndex(Vt->FabInfos2, EntryIndex, Transformation)) {sq_pushinteger(v,0); return(1);}
+
+    // Get info
+
+    if (Index >= Transformation->ResultCount) {sq_pushinteger(v,0);return(1);}
+    VoxelType = Transformation->Result_VoxelType[Index];
+    sq_pushinteger(v, VoxelType);
+    return(1);
+  }
+
+  // FabMachine V1
+
+  if (Vt->FabInfos)
+  {
+    if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+    // Get info
+
+    Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+    if (Index >= Transformation->Max_ResultVoxels) {sq_pushinteger(v,0);return(1);}
+    VoxelType = Transformation->Result_VoxelType[Index];
+    sq_pushinteger(v, VoxelType);
+    return(1);
+  }
+
+
+
+  // Not a FabMachine
+
+  sq_pushinteger(v,0);
   return(1);
 }
 
@@ -2108,16 +2226,41 @@ SQInteger Function_GetFab_ResultQuantity(HSQUIRRELVM v)
   // Verification of the machine reference
 
   if (!Vt) {sq_pushinteger(v,0); return(1);}
-  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
-  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
 
-  // Get info
+  // FabMachine V2
 
-  Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
-  if (Index >= Transformation->Max_ResultVoxels) {sq_pushinteger(v,0);return(1);}
-  VoxelType = Transformation->Result_Quantity[Index];
-  sq_pushinteger(v, VoxelType);
+  if (Vt->FabInfos2)
+  {
+    ZFabInfos2::ZTransformation * Transformation;
 
+    if (!_GetEntryFromIndex(Vt->FabInfos2, EntryIndex, Transformation)) {sq_pushinteger(v,0); return(1);}
+
+    // Get info
+
+    if (Index >= Transformation->ResultCount) {sq_pushinteger(v,0);return(1);}
+    VoxelType = Transformation->Result_Quantity[Index];
+    sq_pushinteger(v, VoxelType);
+    return(1);
+  }
+
+  // FabMachine V1
+
+  if (Vt->FabInfos)
+  {
+    if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+    // Get info
+
+    Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+    if (Index >= Transformation->Max_ResultVoxels) {sq_pushinteger(v,0);return(1);}
+    VoxelType = Transformation->Result_Quantity[Index];
+    sq_pushinteger(v, VoxelType);
+    return(1);
+  }
+
+  // Not a FabMachine
+
+  sq_pushinteger(v,0);
   return(1);
 }
 
@@ -2151,15 +2294,38 @@ SQInteger Function_GetFab_ListCount(HSQUIRRELVM v)
   // Verification of the machine reference
 
   if (!Vt) {sq_pushinteger(v,0); return(1);}
-  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
-  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
 
-  // Get info
+  // FabMachine V2
 
-  Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+  if (Vt->FabInfos2)
+  {
+    ZFabInfos2::ZTransformation * Transformation;
 
-  sq_pushinteger(v, Transformation->EntryCount);
+    if (!_GetEntryFromIndex(Vt->FabInfos2, EntryIndex, Transformation)) {sq_pushinteger(v,0); return(1);}
 
+    // Get info
+
+    sq_pushinteger(v, Transformation->FabListEntryCount);
+    return(1);
+  }
+
+  // FabMachine V1
+
+  if (Vt->FabInfos)
+  {
+    if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+    // Get info
+
+    Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+
+    sq_pushinteger(v, Transformation->EntryCount);
+    return(1);
+  }
+
+  // Not a FabMachine
+
+  sq_pushinteger(v,0);
   return(1);
 }
 
@@ -2194,19 +2360,47 @@ SQInteger Function_GetFab_ResultCount(HSQUIRRELVM v)
   // Verification of the machine reference
 
   if (!Vt) {sq_pushinteger(v,0); return(1);}
-  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
-  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
 
-  // Get info
+  // FabMachine V2
 
-  Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
-  for (Index=0;Index < Transformation->Max_ResultVoxels; Index++)
+  if (Vt->FabInfos2)
   {
-    if (Transformation->Result_VoxelType[Index]==0) {sq_pushinteger(v, Index); return(1); }
+    ZFabInfos2::ZTransformation * Transformation;
+
+    if (!_GetEntryFromIndex(Vt->FabInfos2, EntryIndex, Transformation)) {sq_pushinteger(v,0); return(1);}
+
+    // Get info
+
+    for (Index=0;Index < Transformation->ResultCount; Index++)
+    {
+      if (Transformation->Result_VoxelType[Index]==0) {sq_pushinteger(v, Index); return(1); }
+    }
+
+    sq_pushinteger(v,Transformation->ResultCount);
+    return(1);
   }
 
-  sq_pushinteger(v,Transformation->Max_ResultVoxels);
+  // FabMachine V1
 
+  if (Vt->FabInfos)
+  {
+    if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+    // Get info
+
+    Transformation = &Vt->FabInfos->TransformationTable[EntryIndex];
+    for (Index=0;Index < Transformation->Max_ResultVoxels; Index++)
+    {
+      if (Transformation->Result_VoxelType[Index]==0) {sq_pushinteger(v, Index); return(1); }
+    }
+
+    sq_pushinteger(v,Transformation->Max_ResultVoxels);
+    return(1);
+  }
+
+  // Not a FabMachine
+
+  sq_pushinteger(v,0);
   return(1);
 }
 
@@ -2240,12 +2434,34 @@ SQInteger Function_GetFab_Machine(HSQUIRRELVM v)
   // Verification of the machine reference
 
   if (!Vt) {sq_pushinteger(v,0); return(1);}
-  if (!Vt->FabInfos) {sq_pushinteger(v,0); return(1);}
-  if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
 
-  // Return the machine type
+  // FabMachine V2
 
-  sq_pushinteger(v,MachineType);
+  if (Vt->FabInfos2)
+  {
+    ZFabInfos2::ZTransformation * Transformation;
+
+    if (!_GetEntryFromIndex(Vt->FabInfos2, EntryIndex, Transformation)) {sq_pushinteger(v,0); return(1);}
+
+    // Return the machine type
+
+    sq_pushinteger(v,MachineType);
+    return(1);
+  }
+
+  // FabMachine V1
+
+  if (Vt->FabInfos)
+  {
+    if (EntryIndex >= Vt->FabInfos->TransformationCount) {sq_pushinteger(v,0); return(1);}
+
+    // Return the machine type
+
+    sq_pushinteger(v,MachineType);
+    return(1);
+  }
+
+  sq_pushinteger(v,0);
   return(1);
 }
 
@@ -2278,6 +2494,9 @@ SQInteger function_GetFab_Count(HSQUIRRELVM v)
     Vt = Vtm->VoxelTable[VoxelTypeIndex];
     if (!Vt) { sq_pushinteger(v,0); return(1); }
     if (Vt->Is_NoType && VoxelTypeIndex!=50) { sq_pushinteger(v,FabCount); return(1); }
+
+    // FabMachine V1
+
     if (Vt->FabInfos)
     {
       for (FabEntryIndex=0; FabEntryIndex < Vt->FabInfos->TransformationCount; FabEntryIndex++)
@@ -2298,6 +2517,29 @@ SQInteger function_GetFab_Count(HSQUIRRELVM v)
 
       }
     }
+
+    if (Vt->FabInfos2)
+    {
+      ZFabInfos2::ZTransformation * Transformation;
+
+      for (Transformation = Vt->FabInfos2->GetFirstTransformation(); Transformation !=0 ; Transformation = Transformation->Next)
+      {
+        for (ResultIndex=0; ResultIndex < Transformation->ResultCount; ResultIndex++)
+        {
+
+          if (!Transformation->Result_VoxelType[ResultIndex]) break;
+
+          if (Transformation->Result_VoxelType[ResultIndex] == VoxelType)
+          {
+            FabCount++;
+          }
+
+        }
+
+      }
+    }
+
+
   }
 
   // Return Success
