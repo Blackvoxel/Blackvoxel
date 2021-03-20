@@ -31,7 +31,7 @@ class ZHardwareInfo
 
   public:
     enum {CPUTYPE_X86, CPUTYPE_ARM} CpuType;
-    enum {X86_GENERAL_PROFILE, X86_NETBOOK_PROFILE, ARM_GENERAL_PROFILE, ARM_RASPBERRY_PI_1, ARM_RASPBERRY_PI_2, ARM_RASPBERRY_PI_3} HardwareProfile;
+    enum {X86_GENERAL_PROFILE, X86_NETBOOK_PROFILE, ARM_GENERAL_PROFILE, ARM_RASPBERRY_PI_1, ARM_RASPBERRY_PI_2, ARM_RASPBERRY_PI_3, ARM_RASPBERRY_PI_4} HardwareProfile;
 
     char * GetProfileText() { return ((char *)String_Profile[HardwareProfile]);}
 

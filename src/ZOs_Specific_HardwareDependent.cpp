@@ -24,7 +24,8 @@ char const * ZHardwareInfo::String_Profile[] =
   "ARM_GENERAL_PROFILE",
   "ARM_RASPBERRY_PI_1",
   "ARM_RASPBERRY_PI_2",
-  "ARM_RASPBERRY_PI_3"
+  "ARM_RASPBERRY_PI_3",
+  "ARM_RASPBERRY_PI_4"
 };
 
 
@@ -81,6 +82,7 @@ void ZHardwareInfo::Detect_CPU_Linux()
       if (Value == "0xb76") HardwareProfile = ARM_RASPBERRY_PI_1;
       if (Value == "0xc07") HardwareProfile = ARM_RASPBERRY_PI_2;
       if (Value == "0xd03") HardwareProfile = ARM_RASPBERRY_PI_3;
+      if (Value == "0xd08") HardwareProfile = ARM_RASPBERRY_PI_4;
     }
   }
 

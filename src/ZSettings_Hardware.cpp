@@ -263,7 +263,7 @@ void ZSettings_Hardware:: AdjustForRealHardware(ZHardwareInfo * HardwareInfo)
     case ZHardwareInfo::ARM_GENERAL_PROFILE:    RenderingDistance_Horizontal = 3;
                                                 RenderingDistance_Vertical   = 1;
                                                 break;
-    case ZHardwareInfo::ARM_RASPBERRY_PI_1:     RenderingDistance_Horizontal = 1;
+    case ZHardwareInfo::ARM_RASPBERRY_PI_1:     RenderingDistance_Horizontal = 1; // Not supposed to work on PI 1
                                                 RenderingDistance_Vertical   = 1;
                                                 break;
     case ZHardwareInfo::ARM_RASPBERRY_PI_2:     RenderingDistance_Horizontal = 1;
@@ -271,6 +271,9 @@ void ZSettings_Hardware:: AdjustForRealHardware(ZHardwareInfo * HardwareInfo)
                                                 break;
     case ZHardwareInfo::ARM_RASPBERRY_PI_3:     RenderingDistance_Horizontal = 2;
                                                 RenderingDistance_Vertical   = 1;
+                                                break;
+    case ZHardwareInfo::ARM_RASPBERRY_PI_4:     RenderingDistance_Horizontal = 5;
+                                                RenderingDistance_Vertical   = 3;
                                                 break;
   }
 
