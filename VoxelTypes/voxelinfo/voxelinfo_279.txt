@@ -1,0 +1,13 @@
+VoxelTypeName=Z Material
+Draw_TransparentRendering=0
+Draw_FullVoxelOpacity=1
+MiningHardness = 2000
+MiningType=2
+BvProp_Active=0
+BvProp_PlayerCanPassThrough=0
+BvProp_CombinableWith_GreenAcid = 0
+BvProp_AtomicFireResistant = 1
+FrictionCoef=500.0
+BvProp_Liquid = 0
+LiquidDensity = 10.0
+Documentation_PageNum = 0
