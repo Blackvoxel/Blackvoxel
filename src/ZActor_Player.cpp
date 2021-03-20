@@ -26,6 +26,11 @@
 #include "ZActor_Player.h"
 #include "ZGame.h"
 
+#ifndef Z_ZDIRS_H
+#  include "ZDirs.h"
+#endif
+
+
 ZActor_Player::ZActor_Player()
 {
   ActorMode = 0;
@@ -73,6 +78,22 @@ ZActor_Player::ZActor_Player()
 
   Inventory = new ZInventory();
   PreviousVoxelTypes = new UShort[ZInventory::Inventory_SlotCount];
+
+  SteerAngle = 0.0;
+  CarThrust = 0.0;
+  CarEngineSoundHandle = 0;
+
+
+  Train_StoredVoxelCount = 0;
+  TrainThrust = 0.0;
+  TrainSpeed = 0.0;
+  Train_DirPrefGoRight = false;
+  Train_Elements_Engines = 0;
+  TrainEngineSoundHandle = 0;
+
+  Lift_Thrust = 0.0;
+  Lift_Direction = 4;
+  LiftSoundHandle = 0;
 
   Init();
 }
@@ -223,6 +244,77 @@ void ZActor_Player::SetPosition( ZVector3d &NewLocation )
 
 void ZActor_Player::Action_MouseMove(Long Delta_x, Long Delta_y)
 {
+
+  if (ActorMode == 7)
+  {
+    double MouseRatio;
+    double MaxThrust = 100.0;
+    switch(Riding_Voxel)
+    {
+      case 274: MaxThrust = 100.0; break;
+      case 275: MaxThrust = 400.0; break;
+      case 276: MaxThrust = 400.0; break;
+    }
+
+    if (IsDead) return;
+
+    MouseRatio = GameEnv->Settings_Hardware->Setting_MouseFactor;
+    Lift_Thrust-= Delta_y/(1.0 * MouseRatio);
+    if (Lift_Thrust<-MaxThrust) Lift_Thrust = -MaxThrust;
+    if (Lift_Thrust>MaxThrust) Lift_Thrust = MaxThrust;
+    Lift_Direction = (Lift_Thrust > 0) ? 5 : 4;
+  }
+
+
+  if (ActorMode == 6)
+  {
+    double MouseRatio;
+    double MaxThrust = 100.0;
+    switch(Riding_Voxel)
+    {
+      case 269: MaxThrust = 100.0; break;
+      case 270: MaxThrust = 400.0; break;
+      case 271: MaxThrust = 400.0; break;
+    }
+
+    if (IsDead) return;
+
+    MouseRatio = GameEnv->Settings_Hardware->Setting_MouseFactor;
+    TrainThrust+= Delta_y/(1.0 * MouseRatio);
+    if (TrainThrust<0.0) TrainThrust = 0.0;
+    if (TrainThrust>MaxThrust) TrainThrust = MaxThrust;
+  }
+
+  if (ActorMode == 5)
+  {
+    double MouseRatio;
+    double MaxThrust = 100.0;
+    switch(Riding_Voxel)
+    {
+      case 263: MaxThrust = 100.0; break;
+      case 264: MaxThrust = 100.0; break;
+      case 265: MaxThrust = 200.0; break;
+      case 266: MaxThrust = 200.0; break;
+      case 267: MaxThrust = 250.0; break;
+    }
+
+    if (IsDead) return;
+
+    MouseRatio = GameEnv->Settings_Hardware->Setting_MouseFactor;
+    if (IsOnGround) CarThrust+= Delta_y/(1.0 * MouseRatio);
+    if (CarThrust<0.0) CarThrust = 0.0;
+    if (CarThrust>MaxThrust) CarThrust = MaxThrust;
+
+
+    if ( (fabs(Velocity.x) + fabs(Velocity.y) + fabs(Velocity.z)) > 20.0)
+    {
+      SteerAngle += Delta_x / (6.0 * MouseRatio);
+      if (SteerAngle > 50.0 ) SteerAngle = 50.0;
+      if (SteerAngle < -50.0) SteerAngle =-50.0;
+    }
+
+  }
+
   if (ActorMode == 0 || ActorMode == 3)
   {
     double MouseRatio, YMove;
@@ -339,13 +431,52 @@ void ZActor_Player::Action_MouseButtonClick(ULong Button)
 
   if (IsDead) return;
 
-  ToolNum = Inventory->GetSlotRef(ZInventory::Tools_StartSlot)->VoxelType;
-  Tool = PhysicsEngine->GetToolManager()->GetTool(ToolNum);
-
-  if (Tool)
+  switch(ActorMode)
   {
-    Tool->Tool_MouseButtonClick(Button);
+    case 0:
+    case 1:
+    case 3:
+    case 4:
+    default:
+            ToolNum = Inventory->GetSlotRef(ZInventory::Tools_StartSlot)->VoxelType;
+            Tool = PhysicsEngine->GetToolManager()->GetTool(ToolNum);
+
+            if (Tool)
+            {
+              Tool->Tool_MouseButtonClick(Button);
+            }
+
+            break;
+
+    case 5: if (IsDead) return;
+            switch(Button)
+            {
+              case 0: if (!IsOnGround) break;
+                      switch (Riding_Voxel)
+                      {
+                        case 263: break;
+                        case 264: Velocity.y += 2000.0; break;
+                        case 265: Velocity.y += 2000.0; break;
+                        case 266: Velocity.y += 2000.0; break;
+                        case 267: Velocity.y += 2000.0; break;
+                      }
+                      break;
+
+              case 2: if (!IsOnGround) break;
+                      switch (Riding_Voxel)
+                      {
+                        case 263: break;
+                        case 264: break;
+                        case 265: break;
+                        case 266: Velocity.y += 4000.0; break;
+                        case 267: Velocity.y += 4000.0; break;
+                      }
+                      break;
+
+            }
+            break;
   }
+
 
   /*
   MouseButtonMatrix[Button] = 1;
@@ -362,9 +493,27 @@ void ZActor_Player::Action_MouseButtonRelease( ULong Button)
   ToolNum = Inventory->GetSlotRef(ZInventory::Tools_StartSlot)->VoxelType;
   Tool = PhysicsEngine->GetToolManager()->GetTool(ToolNum);
 
-  if (Tool)
+  switch(ActorMode)
   {
-    Tool->Tool_MouseButtonRelease(Button);
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    default:
+             if (Tool)
+             {
+               Tool->Tool_MouseButtonRelease(Button);
+             }
+             break;
+
+    case 5:  if (IsDead) return;
+             switch(Button)
+             {
+               case 0:
+                       break;
+             }
+             break;
   }
 }
 
@@ -411,15 +560,16 @@ void ZActor_Player::Event_Collision(double RelativeVelocity )
       {
         // printf("Collision : %lf\n",RelativeVelocity);
         GameEnv->Sound->PlaySound(1);
-        printf("Player is dead : Fatal Fall\n");
+        //printf("Player is dead : Fatal Fall\n");
         #if COMPILEOPTION_FALLAREFATALS==1
         Event_DeadlyFall();
         #endif
       }
       break;
+
     case 2:
-      double Vl = fabs(RelativeVelocity);
-      if ( (!IsDead) && (Vl > (PlaneTakenOff ? 60.0 : 600.0) ))
+      RelativeVelocity = fabs(RelativeVelocity);
+      if ( (!IsDead) && (RelativeVelocity > (PlaneTakenOff ? 60.0 : 600.0) ))
       {
         // printf("Velocity:%lf CycleTime%lf\n",RelativeVelocity, GameEnv->Time_GameLoop);
         Event_PlaneCrash();
@@ -427,6 +577,24 @@ void ZActor_Player::Event_Collision(double RelativeVelocity )
       }
 
       break;
+
+    case 5:
+      RelativeVelocity = fabs(RelativeVelocity);
+      switch (Riding_Voxel)
+      {
+        case 263: if (RelativeVelocity >50.0)    { Velocity.y = 10000.0; Stop_Riding(false);  GameEnv->Sound->PlaySound(1);}
+                  break;
+        case 264: if (RelativeVelocity > 300.0)  { Velocity.y = 15000.0; Stop_Riding(false);  GameEnv->Sound->PlaySound(1); }
+                  break;
+        case 265: if (RelativeVelocity > 300.0)  { GameEnv->Sound->PlaySound(1); Stop_Riding(); }
+                  break;
+        case 266: if (RelativeVelocity > 300.0)  { GameEnv->Sound->PlaySound(1); Stop_Riding(); }
+                  break;
+        case 267: if (RelativeVelocity > 1000.0) { GameEnv->Sound->PlaySound(1); Stop_Riding(); }
+                  break;
+      }
+      break;
+
   }
 }
 /*
@@ -459,10 +627,10 @@ bool ZActor_Player::Save( ZStream_SpecialRamStream * OutStream )
 
 bool ZActor_Player::Save( ZStream_SpecialRamStream * OutStream )
 {
-  ULong *Size,StartLen,*ExtensionSize,EndLen, StartExtensionLen;
+  ULong *Size,StartLen,*ExtensionSize,EndLen, StartExtensionLen,i;
   OutStream->PutString("BLKPLYR2");
-  OutStream->Put( (UShort)3); // Version
-  OutStream->Put( (UShort)3); // Compatibility Class;
+  OutStream->Put( (UShort)6); // Version
+  OutStream->Put( (UShort)6); // Compatibility Class;
   Size = OutStream->GetPointer_ULong();
   OutStream->Put((ULong)0xA600DBED); // Size of the chunk, will be written later.
   StartLen = OutStream->GetActualBufferLen();
@@ -485,6 +653,10 @@ bool ZActor_Player::Save( ZStream_SpecialRamStream * OutStream )
   OutStream->Put(IsInLiquid);
   OutStream->Put(IsFootInLiquid);
   OutStream->Put(IsHeadInLiquid);
+
+  OutStream->Put(IsOnGround); // V4
+  OutStream->Put(IsDead);     // V4
+
   OutStream->Put(LocationDensity);
 
   OutStream->Put(Riding_IsRiding);
@@ -497,8 +669,23 @@ bool ZActor_Player::Save( ZStream_SpecialRamStream * OutStream )
   OutStream->Put(PlaneTakenOff);
   OutStream->Put(PlaneLandedCounter);
   OutStream->Put(PlaneToohighAlt);
+
+  OutStream->Put(SteerAngle); // V6
+  OutStream->Put(CarThrust);  // V6
+
+  OutStream->Put(Train_Direction);        // V6
+  OutStream->Put(TrainThrust);            // V6
+  OutStream->Put(TrainSpeed);             // V6
+  OutStream->Put(Train_DirPrefGoRight);   // V6
+  OutStream->Put(Train_Weight);           // V6
+  OutStream->Put(Train_Elements_Engines); // V6
+
+  OutStream->Put(Lift_Thrust);            // V6
+  OutStream->Put(Lift_Direction);         // V6
+
   OutStream->Put(Time_TotalGameTime);
   OutStream->Put(Time_ElapsedTimeSinceLastRespawn);
+
   OutStream->PutString("RIDEXTEN");
   ExtensionSize = OutStream->GetPointer_ULong();
   OutStream->Put((ULong) 0xA600DBED );
@@ -509,6 +696,20 @@ bool ZActor_Player::Save( ZStream_SpecialRamStream * OutStream )
     ((ZVoxelExtension * )Riding_VoxelInfo)->Save(OutStream);
   }
   else OutStream->Put((bool)false);
+  *ExtensionSize = OutStream->GetActualBufferLen() - StartExtensionLen;
+
+  // V5 Train voxels extension
+  OutStream->PutString("TRAINVOX");
+  ExtensionSize = OutStream->GetPointer_ULong();
+  OutStream->Put((ULong) 0xA600DBED );
+  StartExtensionLen = OutStream->GetActualBufferLen();
+  OutStream->Put(Train_StoredVoxelCount);  // V5
+
+  bool EmbedVersion = true;
+  for(i=0;i<Train_StoredVoxelCount;i++)
+  {
+    Train_VoxelTable[i].Save(OutStream,EmbedVersion); EmbedVersion = false;
+  }
   *ExtensionSize = OutStream->GetActualBufferLen() - StartExtensionLen;
 
   EndLen = OutStream->GetActualBufferLen();
@@ -522,7 +723,7 @@ bool ZActor_Player::Load( ZStream_SpecialRamStream * InStream)
   ZString Section_Name;
   UShort   Section_Version;
   UShort   Section_CompatibilityClass;
-  ULong   Section_Size, Tmp_UL;
+  ULong   Section_Size, Tmp_UL=0,i;
   bool Ok;
   Section_Name.SetLen(8);
 
@@ -557,6 +758,10 @@ bool ZActor_Player::Load( ZStream_SpecialRamStream * InStream)
     Ok &= InStream->Get(IsInLiquid);
     Ok &= InStream->Get(IsFootInLiquid);
     Ok &= InStream->Get(IsHeadInLiquid);
+  if (Section_Version > 5)
+  { Ok &= InStream->Get(IsOnGround);
+    Ok &= InStream->Get(IsDead);
+  }
     Ok &= InStream->Get(LocationDensity);
 
     Ok &= InStream->Get(Riding_IsRiding);
@@ -569,6 +774,26 @@ bool ZActor_Player::Load( ZStream_SpecialRamStream * InStream)
     Ok &= InStream->Get(PlaneTakenOff);
     Ok &= InStream->Get(PlaneLandedCounter);
     Ok &= InStream->Get(PlaneToohighAlt);
+  if (Section_Version > 5)
+  { Ok &= InStream->Get(SteerAngle);
+    Ok &= InStream->Get(CarThrust);
+  }
+
+  if (Section_Version >5)
+  {
+    Ok &= InStream->Get(Train_Direction);     // V5
+    Ok &= InStream->Get(TrainThrust);         // V5
+    Ok &= InStream->Get(TrainSpeed);          // V5
+    Ok &= InStream->Get(Train_DirPrefGoRight);// V5
+  }
+
+  if (Section_Version >5)
+  {
+    Ok &= InStream->Get(Train_Weight);     // V5
+    Ok &= InStream->Get(Train_Elements_Engines);         // V5
+    Ok &= InStream->Get(Lift_Thrust);          // V5
+    Ok &= InStream->Get(Lift_Direction);// V5
+  }
 
     Ok &= InStream->Get(Time_TotalGameTime); // New for V3
     Ok &= InStream->Get(Time_ElapsedTimeSinceLastRespawn); // New for V3
@@ -588,6 +813,26 @@ bool ZActor_Player::Load( ZStream_SpecialRamStream * InStream)
         ((ZVoxelExtension * )Riding_VoxelInfo)->Load(InStream);
       }
     }
+
+    // V5 Train content
+    if (Section_Version >=5)
+    {
+      Ok &= InStream->GetStringFixedLen(Section_Name.String,8);
+      if (!(Ok && Section_Name == "TRAINVOX" )) return(false);
+      Ok &= InStream->Get(ExtensionBlocSize);
+
+      Ok &= InStream->Get(Train_StoredVoxelCount);  // V5
+      ULong FormatVersion = 0;
+      for(i=0;i<Train_StoredVoxelCount;i++)
+      {
+        Train_VoxelTable[i].Load(InStream, FormatVersion);
+      }
+    }
+
+
+
+
+
     return(true);
   }
 
@@ -633,6 +878,7 @@ bool ZActor_Player::Load( ZStream_SpecialRamStream * InStream)
       Ok &= InStream->Get(Time_ElapsedTimeSinceLastRespawn);
     }
 */
+
     Ok &= InStream->GetStringFixedLen(Section_Name.String,8);
     if (!(Ok && Section_Name == "RIDEXTEN" )) return(false);
 
@@ -648,6 +894,7 @@ bool ZActor_Player::Load( ZStream_SpecialRamStream * InStream)
         ((ZVoxelExtension * )Riding_VoxelInfo)->Load(InStream);
       }
     }
+
     return(true);
   }
 
@@ -662,6 +909,426 @@ void ZActor_Player::DoPhysic(UELong FrameTime)
   // if (ActorMode == 1) { DoPhysic_Plane_Old(CycleTime); return; }
   if (ActorMode == 2) { DoPhysic_Plane(CycleTime); return; }
   if (ActorMode == 3) { DoPhysic_SupermanPlayer(CycleTime); return; }
+  if (ActorMode == 5) { DoPhysic_Car(CycleTime); return; }
+  if (ActorMode == 6) { DoPhysic_Train(CycleTime); return;}
+  if (ActorMode == 7) { DoPhysic_Lift(CycleTime); return;}
+}
+
+void ZActor_Player::DoPhysic_Lift(double CycleTime)
+{
+  // Limit cycle time in order to avoid some system stuttering to cause inconsistant huge displacements.
+
+  double CapedCycleTime, SpeedMult, Liftspeed,ComputedLiftThrust, SoundFactor;
+  ZVector3d NewLocation, Disp;
+  Long ViewDirection;
+
+
+  CapedCycleTime = CycleTime;
+  if (CapedCycleTime > 50.0) CapedCycleTime = 50.0;
+
+  // Sound
+
+
+
+
+  // thrust to speed
+
+  switch(Riding_Voxel)
+  {
+    case 274: SpeedMult = 1.0; break;
+    case 275: SpeedMult = 1.0; break;
+    case 276: SpeedMult = 10.0;break;
+  }
+
+  ComputedLiftThrust = fabs(Lift_Thrust);
+  if (ComputedLiftThrust < 10.0) {ComputedLiftThrust = 0.0; Lift_Thrust /= 1.0 + (CapedCycleTime / 1000.0);}
+
+  Liftspeed = ComputedLiftThrust * SpeedMult * CapedCycleTime / 100.0;
+
+  // Moving
+
+  if(!LiftFollowGuide(Location, Liftspeed, Lift_Direction, NewLocation)) {ComputedLiftThrust = Lift_Thrust = 0.0;}
+
+  Disp = NewLocation - Location;
+  Location = NewLocation;
+
+  // View
+  double ComputedPitch, MaxViewAngle;
+
+  switch(Riding_Voxel)
+  {
+    case 274: MaxViewAngle = 50.0; break;
+    case 275: MaxViewAngle = 50.0; break;
+    case 276: MaxViewAngle = 70.0;break;
+  }
+  ComputedPitch = Lift_Thrust;
+  if (ComputedPitch > MaxViewAngle) ComputedPitch = MaxViewAngle;
+  if (ComputedPitch < -MaxViewAngle)ComputedPitch =-MaxViewAngle;
+  if (fabs(Disp.y)<0.01) ComputedPitch = 0.0;
+  LiftFindRailDirection(Location, ViewDirection);
+  SetViewToCubeDirection_Progressive(ViewDirection, CapedCycleTime * 0.25);
+  this->ViewDirection.pitch = ComputedPitch;
+  if (this->ViewDirection.pitch < 0.0) this->ViewDirection.pitch += 360.0;
+  //SetViewToCubeDirection(Train_Direction);
+  Sync_Camera(640.0); // 448
+
+
+  if (ComputedLiftThrust <10.0 )
+  {
+    if ((LiftSoundHandle))        { GameEnv->Sound->Stop_PlaySound(LiftSoundHandle); LiftSoundHandle = 0; }
+  }
+  else
+  {
+    switch(Riding_Voxel)
+    {
+      case 274: SoundFactor = 0.5; break;
+      case 275: SoundFactor = 0.25; break;
+      case 276: SoundFactor = 1.0; break;
+      default:  SoundFactor = 1.0; break;
+    }
+
+    if (LiftSoundHandle==0) {LiftSoundHandle = GameEnv->Sound->Start_PlaySound(10,true, false, 1.00,0); }
+    else                     GameEnv->Sound->ModifyFrequency(LiftSoundHandle, (ComputedLiftThrust*SoundFactor) / 60.0 + 1.0);
+  }
+}
+
+void ZActor_Player::DoPhysic_Train(double CycleTime)
+{
+  // Limit cycle time in order to avoid some system stuttering to cause inconsistant huge displacements.
+
+  double CapedCycleTime, SpeedMult, SoundFactor;
+  ZVector3d NewLocation;
+  ULong MaxEngines;
+
+  CapedCycleTime = CycleTime;
+  if (CapedCycleTime > 50.0) CapedCycleTime = 50.0;
+
+  // Sound
+
+  switch(Riding_Voxel)
+  {
+    case 269: SoundFactor = 0.5; break;
+    case 270: SoundFactor = 0.25; break;
+    case 271: SoundFactor = 1.0; break;
+    default:  SoundFactor = 1.0; break;
+  }
+
+  if (TrainEngineSoundHandle==0) {TrainEngineSoundHandle = GameEnv->Sound->Start_PlaySound(9,true, false, 1.00,0); }
+  else                          GameEnv->Sound->ModifyFrequency(TrainEngineSoundHandle, (TrainThrust*SoundFactor) / 60.0 + 1.0);
+
+
+  // thrust to speed
+
+  switch(Riding_Voxel)
+  {
+    case 269: SpeedMult = 1.0; MaxEngines = 4; break;
+    case 270: SpeedMult = 1.0; MaxEngines = 8; break;
+    case 271: SpeedMult = 10.0;MaxEngines = 16; break;
+  }
+
+  SpeedMult *= 1.0 + 0.50*(double)((Train_Elements_Engines > MaxEngines) ? MaxEngines : Train_Elements_Engines);
+
+  TrainSpeed = this->TrainThrust * SpeedMult * CapedCycleTime / 100.0;
+
+
+  TrainFollowTrack(Location, TrainSpeed, Train_Direction, NewLocation);
+
+  Location = NewLocation;
+  SetViewToCubeDirection_Progressive(Train_Direction, CapedCycleTime * 0.25);
+  //SetViewToCubeDirection(Train_Direction);
+  Sync_Camera(640.0); // 448
+}
+
+void ZActor_Player::DoPhysic_Car(double CycleTime)
+{
+  ULong i;
+
+
+
+
+    // Sound of the Engine
+
+  if (!IsDead)
+  {
+    double FreqCoef;
+    switch (Riding_Voxel)
+    {
+
+      case 263: FreqCoef = 1.0; break;
+      case 264: FreqCoef = 1.0;  break;
+      case 265: FreqCoef = 1.2;  break;
+      case 266: FreqCoef = 1.5;  break;
+      case 267: FreqCoef = 2.0;  break;
+      default:  FreqCoef = 1.5;  break;
+    }
+
+
+     if (CarEngineSoundHandle==0) {CarEngineSoundHandle = GameEnv->Sound->Start_PlaySound(8,true, false, 1.00,0); }
+     else                          GameEnv->Sound->ModifyFrequency(CarEngineSoundHandle, (CarThrust*FreqCoef) / 60.0 + 1.0);
+
+  }
+  else
+  {
+    if (CarEngineSoundHandle) {GameEnv->Sound->Stop_PlaySound(CarEngineSoundHandle); CarEngineSoundHandle = 0; }
+  }
+
+  // Death
+
+  if (IsDead)
+  {
+    Camera.ColoredVision.Activate = true; Camera.ColoredVision.Red= 0.0f; Camera.ColoredVision.Green = 0.0f; Camera.ColoredVision.Blue = 0.0f; Camera.ColoredVision.Opacity  = 0.5f;
+    ViewDirection.roll += 0.3 * CycleTime * ( DeathChronometer / 5000.0 ); if (ViewDirection.roll > 360) ViewDirection.roll -= 360.0;
+    ViewDirection.pitch+= 0.5 * CycleTime * ( DeathChronometer / 5000.0 ); if (ViewDirection.pitch > 360) ViewDirection.pitch -= 360.0;
+    Camera.Pitch = ViewDirection.pitch;
+    Camera.Roll  = ViewDirection.roll;
+    Camera.Yaw   = ViewDirection.yaw;
+    DeathChronometer-= CycleTime;
+    if (DeathChronometer> 4250.0 && DeathChronometer<4500.0)
+    { DeathChronometer = 4250.0; GameEnv->GameWindow_Advertising->Advertise("YOU ARE DEAD", ZGameWindow_Advertising::VISIBILITY_HIGH, 0, 3000.0, 0.0); }
+    if (DeathChronometer <= 0.0) Event_Death();
+    return;
+  }
+
+  // Limit cycle time in order to avoid some system stuttering to cause inconsistencies
+
+  double CapedCycleTime;
+
+  CapedCycleTime = CycleTime;
+  if (CapedCycleTime > 50.0) CapedCycleTime = 50.0;
+
+  // Define detection points
+
+  ZVector3d P[32];
+
+  enum { SENSOR_CUBECENTER = 5, SENSOR_CUBEUNDER=6 };
+  enum { SENSOR_STARTCOLISION = 0, SENSOR_ENDCOLLISION=4 };
+
+  P[0] = Location + ZVector3d(0,0,0);   // #
+  P[1] = Location + ZVector3d(-128,128,-128);   // #
+  P[2] = Location + ZVector3d(128,128,-128);   // #
+  P[3] = Location + ZVector3d(128,128,128);   // #
+  P[4] = Location + ZVector3d(-128,128,128);   // #
+  P[SENSOR_CUBECENTER] = Location + ZVector3d(0,128,0);   // #
+  P[SENSOR_CUBEUNDER] = Location + ZVector3d(0,-128,0);
+
+  // Fetch Voxels for detection points
+
+  ZVoxelWorld * World;
+  UShort Voxel[32];
+  ZVoxelType * VoxelType[32];
+  bool   IsEmpty[32];
+  bool   IsJumper;
+
+  World = PhysicsEngine->World;
+  for (i=SENSOR_CUBECENTER;i<=SENSOR_CUBEUNDER;i++)
+  {
+    Voxel[i]     = World->GetVoxelPlayerCoord_Secure(P[i].x,P[i].y,P[i].z);
+    VoxelType[i] = GameEnv->VoxelTypeManager.VoxelTable[Voxel[i]];
+    IsEmpty[i]   = VoxelType[i]->Is_PlayerCanPassThrough;
+  }
+  IsOnGround = !IsEmpty[SENSOR_CUBEUNDER];
+  IsJumper = Voxel[SENSOR_CUBECENTER] == 268;
+
+  // Crash
+
+  if (!VoxelType[SENSOR_CUBECENTER]->Is_PlayerCanPassThrough) this->Stop_Riding();
+
+  // Speed Coef
+
+  double SpeedCoef;
+  switch (Riding_Voxel)
+  {
+
+      case 263: SpeedCoef = 0.2; break;
+      case 264: SpeedCoef = 1.0;  break;
+      case 265: SpeedCoef = 1.0;  break;
+      case 266: SpeedCoef = 1.0;  break;
+      case 267: SpeedCoef = 1.0;  break;
+      default:  SpeedCoef = 1.0;  break;
+  }
+
+  // direction
+  double Vel = sqrt(Velocity.x * Velocity.x + Velocity.y*Velocity.y + Velocity.z * Velocity.z);
+  if (   IsOnGround && Vel > 300.0)
+  {
+    ViewDirection.yaw += SteerAngle/100.0 * CycleTime;
+    if (ViewDirection.yaw < 0.0) ViewDirection.yaw += 360.0;
+    if (ViewDirection.yaw > 360.0) ViewDirection.yaw -= 360.0;
+  }
+  ViewDirection.roll = -SteerAngle / 200.0 * CarThrust;
+
+  if (Velocity.y < 0 ) ViewDirection.pitch = Velocity.y / 400.0;
+  else                 ViewDirection.pitch = Velocity.y / 500.0;
+
+  SteerAngle = SteerAngle / (1.0 + (CapedCycleTime / 1000.0));
+
+  // Physics interaction
+
+
+
+
+
+  switch (Riding_Voxel)
+  {
+    default:
+    case 263:
+    case 264:
+    case 265:
+             {
+               ZPolar3d Direction = ViewDirection;
+               Direction.Len = 1.0;
+               ZVector3d CDir = Direction;
+               double FrictionCoef = VoxelType[SENSOR_CUBEUNDER]->FrictionCoef*1000.0;
+               //printf("Friction : %f\n",FrictionCoef);
+               CDir.x = CDir.x * CarThrust * SpeedCoef * 100; CDir.z = CDir.z * CarThrust * 100;
+               double MaxAccel;
+               switch(Riding_Voxel)
+               {
+                 case 263:MaxAccel = CapedCycleTime*1.0*FrictionCoef; break;
+                 case 264:MaxAccel = CapedCycleTime*5.0*FrictionCoef; break;
+                 case 265:MaxAccel = CapedCycleTime*5.0*FrictionCoef; break;
+                 default: MaxAccel = CapedCycleTime*5.0*FrictionCoef; break;
+               }
+               if (IsOnGround)
+               {
+                 CDir.x = CDir.x - Velocity.x; CDir.z = CDir.z - Velocity.z;
+
+                 if (CDir.x > MaxAccel) CDir.x = MaxAccel;
+                 if (CDir.x <-MaxAccel) CDir.x =-MaxAccel;
+                 if (CDir.z > MaxAccel) CDir.z = MaxAccel;
+                 if (CDir.z <-MaxAccel) CDir.z =-MaxAccel;
+
+                 Velocity.x += CDir.x;
+                 Velocity.z += CDir.z;
+               }
+             }
+             break;
+    case 266:
+    case 267:
+             // No Sliding, perfect fit.
+             {
+               ZPolar3d Direction = ViewDirection;
+               Direction.Len = CarThrust * SpeedCoef * 100;
+               ZVector3d CDir = Direction;
+               Velocity.x = CDir.x;
+               Velocity.z = CDir.z;
+             }
+             break;
+  }
+
+  if (!IsOnGround) Velocity.y -= 5.0 * CapedCycleTime;
+  if (IsJumper) Velocity.y = 50.0 * CarThrust;
+
+  // The viscous friction loss...
+
+  ZVector3d Frottement;
+/*
+  FrictionCoef = GameEnv->VoxelTypeManager.VoxelTable[Voxel[0]]->FrictionCoef;
+  CarSCX = 2.0;
+  Frottement = (Velocity * Velocity * FrictionCoef * CarSCX / 10000.0 * CycleTime) + 1.0;
+  Velocity /= Frottement;
+*/
+
+  // Velocity to displacement.
+
+  ZVector3d Dep,Dep2;
+  double DepLen;
+
+  Dep = Velocity * CapedCycleTime / 1000.0;
+  DepLen = sqrt(Dep.x*Dep.x + Dep.y*Dep.y + Dep.z*Dep.z);
+
+
+  // Collision detection loop and displacement correction
+
+  ZRayCast_in In;
+  ZRayCast_out Out[32];
+  double DistanceMin;
+  Long CollisionIndice;
+  Bool Collided;
+  Bool Continue;
+  Bool PEnable[32];
+
+
+  In.Camera = 0;
+  In.MaxCubeIterations = ceil(DepLen / 256)+5; // 6;
+  In.PlaneCubeDiff = In.MaxCubeIterations - 3;
+  In.MaxDetectionDistance = 3000000.0;
+
+  // ****
+  for (i=0;i<24;i++) {PEnable[i] = true;}
+  Continue = true;
+  if ( (Dep.x == 0) && (Dep.y == 0) && (Dep.z == 0.0) ) { Continue = false; }
+
+  while (Continue)
+  {
+
+    Collided = false;
+    DistanceMin = 10000000.0;
+    CollisionIndice = -1;
+    for (i=SENSOR_STARTCOLISION;i<=SENSOR_ENDCOLLISION;i++)
+    {
+
+      if (PEnable[i]) // (PEnable[i])
+      {
+        bool ret;
+        bool Redo;
+
+        do
+        {
+          Redo = false;
+          // Ray Casting ensure very precise collision detection. No misses.
+          ret = World->RayCast_Vector(P[i],Dep , &In, &(Out[i]), false);         // Normal points.
+          if (ret)
+          {
+            if (Out[i].CollisionDistance < DistanceMin )
+            {
+              if ( (Out[i].CollisionDistance <= DepLen) && (65535 == World->GetVoxel( Out[i].PointedVoxel.x, Out[i].PointedVoxel.y, Out[i].PointedVoxel.z )) )
+              {
+                World->GetVoxel_Secure( Out[i].PointedVoxel.x, Out[i].PointedVoxel.y, Out[i].PointedVoxel.z );
+                Redo = true;
+              }
+              else
+              {
+                Collided = true; DistanceMin = Out[i].CollisionDistance; CollisionIndice = i;
+              }
+            }
+
+          }
+        } while (Redo);
+
+
+      }
+    }
+    // printf("\n");
+
+    DepLen = sqrt(Dep.x*Dep.x + Dep.y*Dep.y + Dep.z*Dep.z);
+
+    if (Collided && (DistanceMin < DepLen || DistanceMin <= 1.1) )
+    {
+      switch(Out[CollisionIndice].CollisionAxe)
+      {
+        case 0: Dep.x=0.0; Event_Collision(Velocity.x / CycleTime); Velocity.x = 0.0; break;
+        case 1: Dep.y=0.0; /*Event_Collision(Velocity.y / CycleTime);*/ Velocity.y = 0.0; ;JumpDebounce = 0;break;
+        case 2: Dep.z=0.0; Event_Collision(Velocity.z / CycleTime); Velocity.z = 0.0;  break;
+      }
+    }
+    else
+    {
+
+//
+      Deplacement = 0.0;
+      Continue = false;
+    }
+  }
+
+  Location += Dep;
+  Camera.x = Location.x + 0.0;
+  Camera.y = Location.y + 128.0;
+  Camera.z = Location.z + 0.0;
+  Camera.Pitch = ViewDirection.pitch;
+  Camera.Roll  = ViewDirection.roll;
+  Camera.Yaw   = ViewDirection.yaw;
+
 
 }
 
@@ -678,6 +1345,10 @@ void ZActor_Player::DoPhysic_Plane(double CycleTime)
   ULong i;
 
   double CapedCycleTime;
+
+
+
+
 
   // Sound of the reactor
 
@@ -2088,6 +2759,7 @@ void ZActor_Player::Action_GoLeftStraff()
             Deplacement.x -= cos(ViewDirection.yaw/180.0 * 3.14159265)*Speed_Walk;
             Deplacement.z += sin(ViewDirection.yaw/180.0 * 3.14159265)*Speed_Walk;
             break;
+    case 6: this->Train_DirPrefGoRight = false; break;
   }
 
 
@@ -2122,6 +2794,7 @@ void ZActor_Player::Action_GoRightStraff()
              Deplacement.x +=cos(ViewDirection.yaw/180.0 * 3.14159265)*Speed_Walk;
              Deplacement.z -=sin(ViewDirection.yaw/180.0 * 3.14159265)*Speed_Walk;
              break;
+     case 6: this->Train_DirPrefGoRight = true; break;
 
   }
 }
@@ -2165,6 +2838,8 @@ void ZActor_Player::Start_Riding(Long x, Long y, Long z)
 {
   ZVoxelLocation Loc;
 
+  if(Riding_IsRiding) this->Stop_Riding();
+
   if ( (!Riding_IsRiding) && GameEnv->World->GetVoxelLocation(&Loc, x,y,z))
   {
     if (COMPILEOPTION_ALLOWVEHICLE == 0)
@@ -2183,8 +2858,10 @@ void ZActor_Player::Start_Riding(Long x, Long y, Long z)
       GameEnv->World->SetVoxel_WithCullingUpdate(x,y,z,0,ZVoxelSector::CHANGE_CRITICAL,true,0);
       Riding_IsRiding = true;
 
+      ZVector3d NewPlayerLocation;
       switch(Riding_Voxel)
       {
+                 // Airplane Z0 and Z1
         case 239:
         case 96: ActorMode = 2;
                  ViewDirection.pitch = 0.0;
@@ -2192,11 +2869,122 @@ void ZActor_Player::Start_Riding(Long x, Long y, Long z)
                  ViewDirection.yaw -= 45.0;                                           if (ViewDirection.yaw < 0.0) ViewDirection.yaw += 360.0;
                  ViewDirection.yaw = (floor(ViewDirection.yaw / 90.0) + 1.0) * 90.0;  if (ViewDirection.yaw >= 360.0) ViewDirection.yaw -= 360.0;
 
-                 ZVector3d NewPlayerLocation;
+
                  GameEnv->World->Convert_Coords_VoxelToPlayer(x,y,z,NewPlayerLocation.x,NewPlayerLocation.y, NewPlayerLocation.z);
                  NewPlayerLocation.x += 128.0; NewPlayerLocation.z += 128.0;
                  Location = NewPlayerLocation;
 
+                 break;
+
+                 // Car H0,H1,H2
+
+        case 263:
+        case 264:
+        case 265:
+        case 266:
+        case 267:
+                 ActorMode = 5;
+                 ViewDirection.pitch = 0.0;
+                 ViewDirection.roll  = 0.0;
+                 ViewDirection.yaw -= 45.0;                                           if (ViewDirection.yaw < 0.0) ViewDirection.yaw += 360.0;
+                 ViewDirection.yaw = (floor(ViewDirection.yaw / 90.0) + 1.0) * 90.0;  if (ViewDirection.yaw >= 360.0) ViewDirection.yaw -= 360.0;
+
+                 CarThrust = 0.0;
+                 SteerAngle = 0.0;
+
+                 GameEnv->World->Convert_Coords_VoxelToPlayer(x,y,z,NewPlayerLocation.x,NewPlayerLocation.y, NewPlayerLocation.z);
+                 NewPlayerLocation.x += 128.0; NewPlayerLocation.z += 128.0;
+                 Location = NewPlayerLocation;
+                 break;
+        case 269:
+        case 270:
+        case 271:
+                 {
+                   ZVector3L VoxelLoc(x,y,z);
+                   bool Abort = false;
+                   ULong MaxVoxels;
+
+                   switch(Riding_Voxel)
+                   {
+                     case 269: MaxVoxels = 5;  break;
+                     case 270: MaxVoxels = 17; break;
+                     case 271:
+                     default:  MaxVoxels = ZACTORPLAYER_TRAINMAXLEN-1; break;
+                   }
+
+                   Train_StoredVoxelCount = StoreTrainElements(&VoxelLoc, Train_VoxelTable, Train_Direction);
+                   if (Train_StoredVoxelCount<1)
+                   {
+                     Abort = true;
+                     GameEnv->GameWindow_Advertising->Clear();
+                     GameEnv->GameWindow_Advertising->Advertise("MALFORMED TRAIN", ZGameWindow_Advertising::VISIBILITY_HIGH, 1, 2000.0, 0.0);
+                   }
+                   if (Train_StoredVoxelCount>MaxVoxels)
+                   {
+                     GameEnv->GameWindow_Advertising->Clear();
+                     GameEnv->GameWindow_Advertising->Advertise("TRAIN TOO LONG", ZGameWindow_Advertising::VISIBILITY_HIGH, 1, 2000.0, 0.0);
+                     Abort = true;
+                     UnstoreTrainElements(this->Train_StoredVoxelCount, &VoxelLoc, Train_VoxelTable, Train_Direction);
+                   }
+
+                   if (Abort)
+                   {
+                     if (GameEnv->World->SetVoxel_WithCullingUpdate(x, y, z, Riding_Voxel, ZVoxelSector::CHANGE_CRITICAL, false, &Loc))
+                     { Loc.Sector->OtherInfos[Loc.Offset] = Riding_VoxelInfo; Riding_Voxel = 0; Riding_VoxelInfo = 0; Riding_IsRiding = false; ActorMode = 0; }
+                     return;
+                   }
+
+                   // Compute the train weight and count functionnal blocs.
+
+                   TrainComputeWeightAndFunctions(Train_VoxelTable);
+
+                   // Engage train actormode and initialize view, trust and speed.
+
+                   ActorMode = 6;
+                   TrainSpeed = 0.0;
+                   TrainThrust = 0.0;
+                   ViewDirection.pitch = ZDirs::Dir_Vector[ZDirs::Opposite_Dir[Train_Direction]].pitch;
+                   ViewDirection.roll  = ZDirs::Dir_Vector[ZDirs::Opposite_Dir[Train_Direction]].roll;
+                   ViewDirection.yaw   = ZDirs::Dir_Vector[ZDirs::Opposite_Dir[Train_Direction]].yaw;
+
+                   // Set player location and view to the train
+
+                   GameEnv->World->Convert_Coords_VoxelToPlayer(x,y,z,NewPlayerLocation.x,NewPlayerLocation.y, NewPlayerLocation.z);
+                   NewPlayerLocation.x += 128.0; NewPlayerLocation.z += 128.0;
+                   Location = NewPlayerLocation;
+
+                   Sync_Camera(128.0);
+                 }
+                 break;
+
+        case 274:
+        case 275:
+        case 276:
+                 {
+                   Long RailDirection;
+                   // Engage the lift actormode and initialize view, and speed.
+
+                   ActorMode = 7;
+                   Lift_Thrust = 0.0;
+                   ViewDirection.pitch = ZDirs::Dir_Vector[ZDirs::Opposite_Dir[Train_Direction]].pitch;
+                   ViewDirection.roll  = ZDirs::Dir_Vector[ZDirs::Opposite_Dir[Train_Direction]].roll;
+                   ViewDirection.yaw   = ZDirs::Dir_Vector[ZDirs::Opposite_Dir[Train_Direction]].yaw;
+
+                   // Set player location and view to the train
+
+                   GameEnv->World->Convert_Coords_VoxelToPlayer(x,y,z,NewPlayerLocation.x,NewPlayerLocation.y, NewPlayerLocation.z);
+                   NewPlayerLocation.x += 128.0; NewPlayerLocation.y += 128.0; NewPlayerLocation.z += 128.0;
+                   Location = NewPlayerLocation;
+
+                   if (!LiftFindRailDirection(NewPlayerLocation,RailDirection))
+                   {
+                     this->Stop_Riding(true);
+                   }
+
+                   this->SetViewToCubeDirection_Progressive(RailDirection,1000.0);
+
+                   Sync_Camera(128.0);
+                 }
                  break;
 
       }
@@ -2207,22 +2995,67 @@ void ZActor_Player::Start_Riding(Long x, Long y, Long z)
       {
         case 239: Vehicle_Subtype = 1; break;
         case 96:  Vehicle_Subtype = 0; break;
+
+        case 263: Vehicle_Subtype = 0; break;
+        case 264: Vehicle_Subtype = 1; break;
+        case 265: Vehicle_Subtype = 2; break;
+        case 266: Vehicle_Subtype = 3; break;
+        case 267: Vehicle_Subtype = 4; break;
+
+        case 269: Vehicle_Subtype = 0; break;
+        case 270: Vehicle_Subtype = 1; break;
+        case 271: Vehicle_Subtype = 2; break;
+
+        case 274: Vehicle_Subtype = 0; break;
+        case 275: Vehicle_Subtype = 1; break;
+        case 276: Vehicle_Subtype = 2; break;
       }
 
     }
   }
 }
 
-void ZActor_Player::Stop_Riding()
+void ZActor_Player::Stop_Riding(Bool RegiveVoxel)
 {
   ZVector3L VLoc;
   ZVoxelLocation Loc;
 
   if (Riding_IsRiding)
   {
+
+
+    if ((LiftSoundHandle))        { GameEnv->Sound->Stop_PlaySound(LiftSoundHandle); LiftSoundHandle = 0; }
+    if ((CarEngineSoundHandle))   { GameEnv->Sound->Stop_PlaySound(CarEngineSoundHandle); CarEngineSoundHandle = 0;    }
+    if ((TrainEngineSoundHandle)) { GameEnv->Sound->Stop_PlaySound(TrainEngineSoundHandle); TrainEngineSoundHandle = 0;  }
+    if ((PlaneReactorSoundHandle)){ GameEnv->Sound->Stop_PlaySound(PlaneReactorSoundHandle); PlaneReactorSoundHandle = 0; }
+
     GameEnv->World->Convert_Coords_PlayerToVoxel(Location.x, Location.y, Location.z, VLoc.x, VLoc.y, VLoc.z);
+
+
+    switch(Riding_Voxel)
+    {
+      case 239: break;
+      case 96:  break;
+
+      case 263: break;
+      case 264: break;
+      case 265: break;
+      case 266: break;
+      case 267: break;
+
+      case 269:
+      case 270:
+      case 271: UnstoreTrainElements(Train_StoredVoxelCount,&VLoc,Train_VoxelTable,Train_Direction);
+                Train_StoredVoxelCount = 0;
+                break;
+
+    }
+
+
     if (GameEnv->World->SetVoxel_WithCullingUpdate(VLoc.x, VLoc.y, VLoc.z, Riding_Voxel, ZVoxelSector::CHANGE_CRITICAL, false, &Loc))
     {
+
+
       Loc.Sector->OtherInfos[Loc.Offset] = Riding_VoxelInfo;
       Riding_Voxel = 0;
       Riding_VoxelInfo = 0;
@@ -2231,6 +3064,7 @@ void ZActor_Player::Stop_Riding()
       Location.y += 256.0;
       ActorMode = 0;
     }
+    if (!RegiveVoxel) GameEnv->World->SetVoxel_WithCullingUpdate(VLoc.x, VLoc.y, VLoc.z, 0, ZVoxelSector::CHANGE_CRITICAL, false, &Loc);
   }
 }
 
@@ -2289,4 +3123,415 @@ void ZActor_Player::Process_Powers()
     PreviousVoxelTypes[SlotNum] = InventoryEntry->VoxelType;
   }
 
+}
+
+void ZActor_Player::Sync_Camera(double VerticalOffset)
+{
+  Camera.x = Location.x + 0.0; Camera.y = Location.y + VerticalOffset; Camera.z = Location.z;
+  Camera.Pitch = ViewDirection.pitch; Camera.Roll  = ViewDirection.roll; Camera.Yaw   = ViewDirection.yaw;
+}
+
+void ZActor_Player::SetViewToCubeDirection(Long Direction)
+{
+  ViewDirection.pitch = ZDirs::Dir_Vector[ZDirs::Opposite_Dir[Direction]].pitch;
+  ViewDirection.roll  = ZDirs::Dir_Vector[ZDirs::Opposite_Dir[Direction]].roll;
+  ViewDirection.yaw   = ZDirs::Dir_Vector[ZDirs::Opposite_Dir[Direction]].yaw;
+}
+
+void ZActor_Player::SetViewToCubeDirection_Progressive(Long Direction, double MaxTurn)
+{
+  double diff, NewDirection, ActualDirection;
+
+  ActualDirection = ViewDirection.yaw;
+  NewDirection = ZDirs::Dir_Vector[ZDirs::Opposite_Dir[Direction]].yaw;
+  diff = NewDirection - ActualDirection;
+
+  if (diff > 180) ActualDirection+=360.0;
+  if (diff <-180) NewDirection+=360.0;
+  diff = NewDirection - ActualDirection;
+
+  if (diff>MaxTurn) diff = MaxTurn;
+  if (diff<-MaxTurn) diff = -MaxTurn;
+
+  ViewDirection.yaw += diff;
+
+  if (ViewDirection.yaw < 0.0) ViewDirection.yaw+=360.0;
+  if (ViewDirection.yaw > 360.0) ViewDirection.yaw-=360.0;
+}
+
+
+void ZActor_Player::TrainComputeWeightAndFunctions(ZVoxel * VoxelTable)
+{
+  ULong i;
+  UShort VoxelType;
+
+  Train_Weight = 0.0;
+  Train_Elements_Engines = 0;
+
+  for (i=0;i<this->Train_StoredVoxelCount;i++)
+  {
+    VoxelType = Train_VoxelTable[i].VoxelType;
+    Train_Weight += GameEnv->VoxelTypeManager.VoxelTable[VoxelType]->GetWeightIncludingContent(Train_VoxelTable[i].OtherInfos);
+
+    switch(VoxelType)
+    {
+      case 273: Train_Elements_Engines++; break;
+      default: break;
+    }
+  }
+}
+
+Long ZActor_Player::StoreTrainElements(ZVector3L * HeadLoc, ZVoxel * VoxelTable, Long & TrainDirection)
+{
+  ZVector3L NewLocation;
+  Long Dir;
+  UShort VoxelType;
+
+  // Check if there is track behind the train head as it should be
+
+  NewLocation = *HeadLoc + ZVector3L(0,-1,0);
+  VoxelType = GameEnv->World->GetVoxel(&NewLocation);
+  if (VoxelType != 272) return(0);
+
+  // Now check in the 4 directions for the remains of the train
+
+  for (Dir=0; Dir<4; Dir++)
+  {
+    // Compute points coordinates
+    NewLocation = *HeadLoc + ZDirs::Std_Dir[Dir];
+
+    // Check if there is some tracks behind
+
+    NewLocation.y--;
+    VoxelType = GameEnv->World->GetVoxel(&NewLocation);
+    if (VoxelType != 272) continue; // No tracks ? If so, try another direction.
+
+    // Check if there is a block on the track.
+
+    NewLocation.y++;
+    VoxelType = GameEnv->World->GetVoxel(&NewLocation);
+    if (VoxelType == 0) continue; // No block on the track ? Not the right direction, just try another one.
+
+    // Ok, now we know the direction, let's pick train wagons until the end.
+
+    TrainDirection = Dir;
+    return(_GetTrainElement(Dir, 0, &NewLocation, VoxelTable));
+
+  }
+
+  return(0); // Train is not well formed
+}
+
+// Search and store train "wagons" until the end is found.
+// return -1 if something wrong. And the number of elements.
+
+Long ZActor_Player::_GetTrainElement(Long ActualDirection, ULong ElementCount, ZVector3L * ElementCoords, ZVoxel * VoxelTable)
+{
+  int Dir;
+  ZVector3L NewLocation;
+  UShort VoxelType;
+  Long RetElements;
+
+  if (ElementCount > ZACTORPLAYER_TRAINMAXLEN) return(0);
+
+  // Pick the element from world and put it in the table.
+
+  if (!GameEnv->World->ExtractToVoxel(ElementCoords,&VoxelTable[ElementCount], ZVoxelSector::CHANGE_CRITICAL)) return(0);
+
+  VoxelType = VoxelTable[ElementCount].VoxelType;
+
+  // If this is the tail of the train, terminate.
+
+  if (VoxelType == 269 || VoxelType == 270 || VoxelType == 271) return(ElementCount+1);
+
+  // Now look arround for other wagons of the train
+
+  for (Dir=0; Dir<4; Dir++)
+  {
+    // Don't try the direction we are comming from
+
+    if (Dir == ZDirs::Opposite_Dir[ActualDirection]) continue;
+
+    // Compute coordinates of the next try
+
+    NewLocation = *ElementCoords + ZDirs::Std_Dir[Dir];
+
+    // Now look if there is tracks
+
+    NewLocation.y --; // Look under the block
+    VoxelType = GameEnv->World->GetVoxel(&NewLocation);
+    if (VoxelType != 272) continue;
+
+    // Check if there is a block on the track.
+
+    NewLocation.y++;
+    VoxelType = GameEnv->World->GetVoxel(&NewLocation);
+    if (VoxelType == 0) continue; // No block on the track ? Not the right direction, just try another one.
+
+    // Block is ok, go to get it and continue.
+
+    RetElements = _GetTrainElement(Dir, ElementCount+1, &NewLocation, VoxelTable);
+
+    // If all is ok, return
+
+    if (RetElements != 0) return(RetElements);
+
+  }
+
+  // Something goes wrong, put back the voxel
+  GameEnv->World->PlaceFromVoxel(ElementCoords, &VoxelTable[ElementCount], ZVoxelSector::CHANGE_CRITICAL );
+  return(0);
+}
+
+Long ZActor_Player::UnstoreTrainElements(ULong StoredVoxels, ZVector3L * HeadLoc, ZVoxel * VoxelTable, Long TrainDirection)
+{
+  ZVector3L NewLocation;
+
+  NewLocation = *HeadLoc + ZDirs::Std_Dir[TrainDirection];
+
+  return(_PutTrainElement(0, StoredVoxels, &NewLocation, VoxelTable, TrainDirection));
+
+}
+
+bool ZActor_Player::_PutTrainElement(ULong Index, ULong StoredVoxels, ZVector3L * Location, ZVoxel * VoxelTable, Long TrainDirection)
+{
+  UShort VoxelType;
+  ZVector3L NewLocation;
+
+  if (StoredVoxels==0) return(true);
+
+  // Check if the space is clear to unload voxel. If not, throw the voxel away.
+
+  VoxelType = GameEnv->World->GetVoxel(Location);
+  if (VoxelType!=0) VoxelTable[Index].Clear();
+
+  // Put back voxel
+
+  GameEnv->World->PlaceFromVoxel(Location, &VoxelTable[Index], ZVoxelSector::CHANGE_CRITICAL);
+
+  // Search direction for next foxel
+
+  for (int Dir=0; Dir<4; Dir++)
+  {
+    // Don't try the direction we are comming from
+    if (Dir==ZDirs::Opposite_Dir[TrainDirection]) continue;
+
+    // Compute the new direction
+    NewLocation = * Location + ZDirs::Std_Dir[Dir];
+
+    // Look for track under
+
+    NewLocation.y --;
+    VoxelType = GameEnv->World->GetVoxel(&NewLocation);
+    if (VoxelType!=272) continue;
+
+    // Ok, just call next step
+
+    NewLocation.y++;
+    return(_PutTrainElement(Index+1, StoredVoxels-1, &NewLocation, VoxelTable, Dir));
+  }
+
+  // Track have a problem, but unstore voxels anyway to avoid any loss.
+  NewLocation = * Location + ZDirs::Std_Dir[TrainDirection];
+  return(_PutTrainElement(Index+1, StoredVoxels-1, &NewLocation, VoxelTable, TrainDirection));
+}
+
+bool ZActor_Player::TrainFollowTrack(ZVector3d & ActualLocation, double LinearAdvance, Long &Direction, ZVector3d & NewLocation)
+{
+
+  Long i;
+  double LinPos, StopPoint,FracAdvance, FirstAdvance;
+  int Factor;
+
+  // Compute first move to the next point
+
+  switch(Direction)
+  {
+    case 0: LinPos = ActualLocation.z; Factor = LinPos / 256.0; StopPoint = Factor * 256.0 + 128.0; FirstAdvance = fabs(StopPoint - LinPos); break;
+    case 1: LinPos = ActualLocation.x; Factor = LinPos / 256.0; StopPoint = Factor * 256.0 + 128.0; FirstAdvance = fabs(StopPoint - LinPos); break;
+    case 2: LinPos = ActualLocation.z; Factor = LinPos / 256.0; StopPoint = Factor * 256.0 - 128.0; FirstAdvance = fabs(StopPoint - LinPos); break;
+    case 3: LinPos = ActualLocation.x; Factor = LinPos / 256.0; StopPoint = Factor * 256.0 - 128.0; FirstAdvance = fabs(StopPoint - LinPos); break;
+    default: break;
+  }
+
+  ZVector3d NewLoc, OldLoc, TestLoc;
+  ZVector3L VoxLoc;
+  UShort VoxelType;
+  bool Clear, Found;
+  Long T1,T2,T3;
+
+  NewLoc = ActualLocation;
+
+  for(bool First=true;LinearAdvance>0.0;First=false)
+  {
+    if (First)  FracAdvance = (LinearAdvance > FirstAdvance) ? FirstAdvance : LinearAdvance;
+    else        FracAdvance = (LinearAdvance > 256.0) ? 256.0 : LinearAdvance;
+
+    LinearAdvance -= FracAdvance;
+
+    NewLoc = ActualLocation - ZDirs::Std_DirD[Direction] * FracAdvance;
+
+
+
+      // Test if direction is clear.
+      TestLoc = NewLoc - ZDirs::Std_DirD[Direction] * 129.0;
+
+      Clear = true;
+
+      // Does we have track ?
+
+      GameEnv->World->Convert_Coords_PlayerToVoxel(&TestLoc, &VoxLoc);
+      VoxLoc.y--;
+      VoxelType = GameEnv->World->GetVoxel_Secure(&VoxLoc);
+      if (VoxelType!=272) Clear = false;
+
+      // Is there some sufficient space to let the train to passe through ?
+      for (i=0;i<3;i++)
+      {
+        VoxLoc.y++;
+        VoxelType = GameEnv->World->GetVoxel_Secure(&VoxLoc);
+        if (VoxelType!=0) Clear = false;
+      }
+
+      if(!Clear && false)
+      {
+        Clear = true;
+        GameEnv->World->SetVoxel_WithCullingUpdate(VoxLoc.x, VoxLoc.y,VoxLoc.z, 272, ZVoxelSector::CHANGE_CRITICAL,false,0);
+        GameEnv->World->SetVoxel_WithCullingUpdate(VoxLoc.x, VoxLoc.y+1,VoxLoc.z, 0, ZVoxelSector::CHANGE_CRITICAL,false,0);
+        GameEnv->World->SetVoxel_WithCullingUpdate(VoxLoc.x, VoxLoc.y+2,VoxLoc.z, 0, ZVoxelSector::CHANGE_CRITICAL,false,0);
+        GameEnv->World->SetVoxel_WithCullingUpdate(VoxLoc.x, VoxLoc.y+3,VoxLoc.z, 0, ZVoxelSector::CHANGE_CRITICAL,false,0);
+      }
+
+
+      if (!Clear)
+      {
+        Found = false;
+        if (Train_DirPrefGoRight) {T1= 1;T2=-3;T3=-2;}
+        else                      {T1=-1;T2=3;T3=2;}
+        for (Long NewDir=T1; NewDir!=T2;NewDir+=T3)
+        {
+          //if (NewDir == ZDirs::Opposite_Dir[Direction]) continue;
+
+          TestLoc = NewLoc - ZDirs::Std_DirD[ (Direction+NewDir) & 3] * 256.0;
+
+          Clear = true;
+
+          GameEnv->World->Convert_Coords_PlayerToVoxel(&TestLoc, &VoxLoc);
+          VoxLoc.y--;
+          VoxelType = GameEnv->World->GetVoxel_Secure(&VoxLoc);
+          if (VoxelType!=272) Clear=false;
+
+          for (i=0;i<3;i++)
+          {
+            VoxLoc.y++;
+            VoxelType = GameEnv->World->GetVoxel_Secure(&VoxLoc);
+            if (VoxelType!=0) Clear = false;
+          }
+
+
+          // The new direction is found
+          if (Clear) {Direction = (Direction+NewDir) & 3; Found = true; break;}
+        }
+
+        // No suitable direction was found
+        if (!Found) {LinearAdvance = false; NewLocation = ActualLocation; return(false);}
+      }
+
+  }
+
+  NewLocation = NewLoc;
+
+  return(true);
+}
+
+bool ZActor_Player::LiftFindRailDirection(ZVector3d & ActualLocation, Long & ViewDirectionOut)
+{
+  ZVector3L VoxLoc, RailLocation;
+  UShort VoxelType;
+  Long i;
+
+
+ GameEnv->World->Convert_Coords_PlayerToVoxel(&ActualLocation, &VoxLoc);
+  for (i=0;i<4;i++)
+  {
+    RailLocation = VoxLoc + ZDirs::Std_Dir[i];
+    VoxelType = GameEnv->World->GetVoxel_Secure(&RailLocation);
+    if (VoxelType==277) {ViewDirectionOut = i; return(true);}
+  }
+  return(false);
+}
+
+bool ZActor_Player::LiftFollowGuide(ZVector3d & ActualLocation, double LinearAdvance, Long &Direction, ZVector3d & NewLocation)
+{
+
+  Long i;
+  double LinPos, StopPoint,FracAdvance, FirstAdvance;
+  int Factor;
+
+  // Compute first move to the next point
+
+  switch(Direction)
+  {
+    case 4: LinPos = ActualLocation.y; Factor = LinPos / 256.0; StopPoint = Factor * 256.0 - 128.0; FirstAdvance = fabs(StopPoint - LinPos); break;
+    case 5: LinPos = ActualLocation.y; Factor = LinPos / 256.0; StopPoint = Factor * 256.0 + 128.0; FirstAdvance = fabs(StopPoint - LinPos); break;
+
+    default: return(false); // Other directions not implemented.
+  }
+
+  ZVector3d NewLoc, OldLoc, TestLoc;
+  ZVector3L VoxLoc;
+  UShort VoxelType;
+  bool Clear;
+
+  NewLocation = ActualLocation;
+  NewLoc = ActualLocation;
+
+  for(bool First=true;LinearAdvance>0.0;First=false)
+  {
+    if (First)  FracAdvance = (LinearAdvance > FirstAdvance) ? FirstAdvance : LinearAdvance;
+    else        FracAdvance = (LinearAdvance > 256.0) ? 256.0 : LinearAdvance;
+
+    LinearAdvance -= FracAdvance;
+
+    NewLoc = ActualLocation - ZDirs::Std_DirD[Direction] * FracAdvance;
+
+    // Test if we are clear.
+
+    GameEnv->World->Convert_Coords_PlayerToVoxel(&NewLoc, &VoxLoc);
+    for (i=0,Clear=false;i<4;i++)
+    {
+      ZVector3L RailLocation;
+      RailLocation = VoxLoc + ZDirs::Std_Dir[i];
+      VoxelType = GameEnv->World->GetVoxel_Secure(&RailLocation);
+      if (VoxelType==277) {Clear = true; break;}
+    }
+    VoxelType = GameEnv->World->GetVoxel_Secure(&VoxLoc);
+    if (VoxelType!=0) Clear = false;
+
+    if (!Clear) return(false);
+    NewLocation = NewLoc; // Location change is validated
+
+    // Test if direction is clear.
+    TestLoc = NewLoc - ZDirs::Std_DirD[Direction] * 129.0;
+
+    // Lift track detection
+    Clear = false;
+    GameEnv->World->Convert_Coords_PlayerToVoxel(&TestLoc, &VoxLoc);
+    for (i=0;i<4;i++)
+    {
+      ZVector3L RailLocation;
+      RailLocation = VoxLoc + ZDirs::Std_Dir[i];
+      VoxelType = GameEnv->World->GetVoxel_Secure(&RailLocation);
+      if (VoxelType==277) {Clear = true; break;}
+    }
+
+    // Air space detection
+    VoxelType = GameEnv->World->GetVoxel_Secure(&VoxLoc);
+    if (VoxelType!=0) Clear = false;
+
+    if (!Clear) return(false);
+  }
+
+
+  return(true);
 }

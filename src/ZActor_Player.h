@@ -38,7 +38,11 @@
 #  include "ZCamera.h"
 #endif
 
+#ifndef Z_ZVOXEL_H
+#  include "ZVoxel.h"
+#endif
 
+#define ZACTORPLAYER_TRAINMAXLEN 34
 
 class ZActor_Player : public ZActor
 {
@@ -57,6 +61,8 @@ class ZActor_Player : public ZActor
     double    PlayerDensity;
     ZVector3d PlayerSurface;
 
+    // Airplane
+
     double    PlaneMinThrust[4];
     double    PlaneMaxThrust[4];
     double    PlaneSpeed;                  // s
@@ -70,6 +76,35 @@ class ZActor_Player : public ZActor
     ZString   PlaneFreeFallMessage;
     bool      PlaneWaitForRectorStartSound;
     void *    PlaneReactorSoundHandle;
+
+    // Car
+
+    double    SteerAngle;
+    double    CarThrust;
+    void *    CarEngineSoundHandle;
+
+    // Train
+
+    Long      Train_Direction;
+    double    TrainThrust;
+    double    TrainSpeed;
+    bool      Train_DirPrefGoRight;
+
+    ULong     Train_StoredVoxelCount;
+    ZVoxel    Train_VoxelTable[ZACTORPLAYER_TRAINMAXLEN];
+
+    double    Train_Weight;
+    ULong     Train_Elements_Engines;
+
+    void    * TrainEngineSoundHandle;
+
+    // Lift
+
+    double    Lift_Thrust;
+    Long      Lift_Direction;
+    void    * LiftSoundHandle;
+
+    // Misc
 
     ZVector3L LastHelpVoxel;
     double    LastHelpTime;
@@ -95,6 +130,10 @@ class ZActor_Player : public ZActor
 
     virtual ~ZActor_Player();
     virtual void SetPosition( ZVector3d &NewLocation );
+    virtual void Sync_Camera(double VerticalOffset);
+    virtual void SetViewToCubeDirection(Long Direction); // Use Sync_Camera() After.
+    virtual void SetViewToCubeDirection_Progressive(Long Direction, double MaxTurn); // Use Sync_Camera() After.
+
     virtual void Action_MouseMove( Long Delta_x, Long Delta_y);
     virtual void Action_MouseButtonClick( ULong Button);
     virtual void Action_MouseButtonRelease( ULong Button);
@@ -110,6 +149,9 @@ class ZActor_Player : public ZActor
     virtual void DoPhysic_Plane(double CycleTime);
     virtual void DoPhysic_Plane_Old(double CycleTime);
     virtual void DoPhysic_SupermanPlayer(double CycleTime);
+    virtual void DoPhysic_Car(double CycleTime);
+    virtual void DoPhysic_Train(double CycleTime);
+    virtual void DoPhysic_Lift(double CycleTime);
 
     virtual bool Save( ZStream_SpecialRamStream * OutStream );
     virtual bool Load( ZStream_SpecialRamStream * InStream  );
@@ -125,14 +167,38 @@ class ZActor_Player : public ZActor
 
 
     virtual void Start_Riding(Long x, Long y, Long z);
-    virtual void Stop_Riding();
+    virtual void Stop_Riding(bool RegiveVoxel=true);
+
     virtual void Action_GetInOutOfVehicle()
     {
-      if ( Riding_IsRiding
-           && (Velocity.x<1.0 && Velocity.x>-1.0)
-           && (Velocity.y<1.0 && Velocity.y>-1.0)
-           && (Velocity.z<1.0 && Velocity.z>-1.0)
-          ) Stop_Riding();
+      if ( !Riding_IsRiding) return;
+
+      switch(ActorMode)
+      {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        default:
+                 if (    (Velocity.x<1.0 && Velocity.x>-1.0)
+                      && (Velocity.y<1.0 && Velocity.y>-1.0)
+                      && (Velocity.z<1.0 && Velocity.z>-1.0)
+                     ) Stop_Riding();
+                 break;
+
+        case 5:
+                 if (    (Velocity.x<1000.0 && Velocity.x>-1000.0)
+                      && (Velocity.y<1000.0 && Velocity.y>-1000.0)
+                      && (Velocity.z<1000.0 && Velocity.z>-1000.0)
+                    ) Stop_Riding();
+                 break;
+        case 6:
+                 if (TrainSpeed < 10.0) Stop_Riding();
+                 break;
+        case 7:  if (Lift_Thrust >-10.0 && Lift_Thrust<10.0) Stop_Riding();
+                 break;
+      }
     }
 
     virtual void Event_Death();
@@ -140,6 +206,20 @@ class ZActor_Player : public ZActor
     virtual void Event_DeadlyFall();
 
     virtual void Process_Powers();
+
+    // Train specific functions
+
+    void TrainComputeWeightAndFunctions(ZVoxel * VoxelTable);
+
+    Long StoreTrainElements(ZVector3L * HeadLoc, ZVoxel * VoxelTable, Long & TrainDirection);
+      Long  _GetTrainElement(Long ActualDirection, ULong ElementCount, ZVector3L * ElementCoords, ZVoxel * VoxelTable);
+    Long UnstoreTrainElements(ULong StoredVoxels, ZVector3L * HeadLoc, ZVoxel * VoxelTable, Long TrainDirection);
+      bool _PutTrainElement(ULong Index, ULong StoredVoxels, ZVector3L * Location, ZVoxel * VoxelTable, Long TrainDirection);
+
+    bool TrainFollowTrack(ZVector3d & ActualLocation, double LinearAdvance, Long &Direction, ZVector3d & NewLocation);
+
+    bool LiftFollowGuide(ZVector3d & ActualLocation, double LinearAdvance, Long &Direction, ZVector3d & NewLocation);
+    bool LiftFindRailDirection(ZVector3d & ActualLocation, Long & ViewDirectionOut);
 };
 
 #endif /* ZACTOR_PLAYER_H_ */
