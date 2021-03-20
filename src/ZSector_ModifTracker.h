@@ -85,6 +85,11 @@ class ZSectorModifTracker
       this->ActualCycleNum = ActualCycleNum;
     }
 
+    inline void BumpActualCycleNum()
+    {
+      ActualCycleNum++;
+    }
+
     inline void Clear() // Warning, before using this funcion, you must SetActualCycleNum(...)
     {
       ULong i;
@@ -104,6 +109,21 @@ class ZSectorModifTracker
       Offset = Index >> 5;
       Remain &= 0x1f;
       Storage[Offset] |= 1<<Remain;
+    }
+
+    inline void SetEx(ULong Index, bool State)
+    {
+
+      UByte Remain;
+      ULong Offset;
+
+      if (LastUpdateCycleNum != ActualCycleNum) { Clear(); }
+
+      Remain = Index;
+      Offset = Index >> 5;
+      Remain &= 0x1f;
+      if (State) Storage[Offset] |= 1<<Remain;
+      else       Storage[Offset] &= 0xFFFFFFFF ^ 1<<Remain;
     }
 
     inline bool Get(ULong Index)
