@@ -1,0 +1,7 @@
+VoxelTypeName=Lift Rail
+Draw_TransparentRendering=0
+Draw_FullVoxelOpacity=1
+MiningHardness = 2000
+MiningType     = 1
+BvProp_UseInventoryImage = 1
+Documentation_PageNum = 0
