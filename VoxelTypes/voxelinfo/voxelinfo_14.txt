@@ -5,4 +5,7 @@ Grip_Horizontal=0.0002
 FrictionCoef = 0.0001
 BvProp_KeepControlOnJumping=0
 BvProp_AccelerateOnFall=1
+BvProp_CombinableWith_GreenAcid = 0
+MiningHardness = 4000;
+MiningType     = 1;
 Documentation_PageNum = 0

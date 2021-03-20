@@ -1,6 +1,7 @@
 VoxelTypeName=Optical Fiber
 Draw_TransparentRendering=1
 Draw_FullVoxelOpacity=0
+BvProp_CombinableWith_GreenAcid = 0
 MiningHardness = 2000
 MiningType=1
 BvProp_Active=0
