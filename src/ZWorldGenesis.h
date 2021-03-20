@@ -114,6 +114,8 @@ class ZWorldGenesis
       for (i=0;i<=9;i++)  ConvCN[i+'0']=i;
       for (i=0;i<26;i++)  ConvCN[i+'A']=10+i;
       for (i=0;i<26;i++)  ConvCN[i+'a']=36+i;
+
+      WorldType = 0;
     }
 
     ~ZWorldGenesis()
@@ -285,6 +287,10 @@ class ZWorldGenesis
           case 16:Generate_Terrain_1538( VoxelSector, HeightOffset, x,y,z );
                   AddTreeOn(VoxelSector, TreeTable, 3, 232);
                   break;
+          case 17:Generate_Terrain_GreenEyes( VoxelSector, HeightOffset, x,y,z, -81);
+                  break;
+          case 18:Generate_Terrain_1541( VoxelSector, HeightOffset, x,y,z, 0);
+                  break;
 
         }
 
@@ -322,6 +328,10 @@ class ZWorldGenesis
     void Generate_Terrain_1537(ZVoxelSector * VoxelSector, Long HeightOffset, Long Sector_x, Long Sector_y, Long Sector_z);
     void Generate_Terrain_1538(ZVoxelSector * VoxelSector, Long HeightOffset, Long Sector_x, Long Sector_y, Long Sector_z);
     void AddTreeOn(ZVoxelSector * Sector, ZVoxelSector * TemplateTable[], ULong ModelCount, UShort VoxelType);
+
+    void Generate_Terrain_GreenEyes(ZVoxelSector * VoxelSector, Long HeightOffset, Long Sector_x, Long Sector_y, Long Sector_z, Long Offset);
+    void Generate_Terrain_1540(ZVoxelSector * VoxelSector, Long HeightOffset, Long Sector_x, Long Sector_y, Long Sector_z, Long Offset);
+    void Generate_Terrain_1541(ZVoxelSector * VoxelSector, Long HeightOffset, Long Sector_x, Long Sector_y, Long Sector_z, Long Offset);
 
 
     void GenerateBigTrees(ZVoxelSector * Sector);
