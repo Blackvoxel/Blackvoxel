@@ -9,4 +9,4 @@ BvProp_CombinableWith_GreenAcid = 1
 BvProp_AtomicFireResistant = 1
 FrictionCoef=500.0
 BvProp_Liquid = 0
-Documentation_PageNum = 0
+Documentation_PageNum = 1743

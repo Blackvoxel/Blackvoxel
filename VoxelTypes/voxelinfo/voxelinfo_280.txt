@@ -18,3 +18,4 @@ BvProp_Loadable_ByLoader_L1 = 0
 Documentation_PageNum = 0
 BvProp_Harming=0
 HarmingLifePointsPerSecond=0.0
+Documentation_PageNum = 1741
