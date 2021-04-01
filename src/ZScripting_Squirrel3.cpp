@@ -444,6 +444,10 @@ SQInteger function_UnofficialFastPlot(HSQUIRRELVM v)
   sq_getinteger(v,4, &z);
   sq_getinteger(v,5, &tmp); VoxelType = tmp;
 
+  // Avoid killing ourself as it will make nasty things
+
+  if ( (x==0) && (y==0) && (z==0) ) { sq_pushbool(v,SQFalse); return(1); }
+
   // Test if we can do that operation.
   S = (ZStoreSq3 *)sq_getforeignptr(v);
   if ( (!S->Allow_WorldManipulations)) { sq_pushbool(v,SQFalse); return(1); }
