@@ -43,7 +43,9 @@
 #  include "ZToolsPointer.h"
 #endif
 
-
+#ifndef Z_ZFABMACHINEINFOS2_H
+#  include "ZFabMachineInfos2.h"
+#endif
 
 
 
