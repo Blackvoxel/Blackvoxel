@@ -35,7 +35,7 @@
 #endif
 
 #ifndef Z_ZFASTBIT_ARRAY_H
-#  include "ZFastBit_Array.h"
+#  include "z/ZFastBit_Array.h"
 #endif
 
 #define ZFABINFO2_MAXFABRESULT 16
