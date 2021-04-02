@@ -306,12 +306,21 @@ void ZActor_Player::Action_MouseMove(Long Delta_x, Long Delta_y)
     if (CarThrust>MaxThrust) CarThrust = MaxThrust;
 
 
-    if ( (fabs(Velocity.x) + fabs(Velocity.y) + fabs(Velocity.z)) > 20.0)
+    if ( (fabs(Velocity.x) + fabs(Velocity.y) + fabs(Velocity.z)) > 5.0)
     {
-      SteerAngle += Delta_x / (6.0 * MouseRatio);
+        switch(Riding_Voxel)
+        {
+          default:
+          case 263:
+          case 264:
+          case 265: SteerAngle += Delta_x / (6.0 * MouseRatio); break;
+          case 266:
+          case 267: SteerAngle += Delta_x / (6.0 * MouseRatio) * (1.0 / ( (10.0+CarThrust) / 10.0) ); break;
+        }
       if (SteerAngle > 50.0 ) SteerAngle = 50.0;
       if (SteerAngle < -50.0) SteerAngle =-50.0;
     }
+
 
   }
 
@@ -468,7 +477,7 @@ void ZActor_Player::Action_MouseButtonClick(ULong Button)
                         case 263: break;
                         case 264: break;
                         case 265: break;
-                        case 266: Velocity.y += 4000.0; break;
+                        case 266: break;
                         case 267: Velocity.y += 4000.0; break;
                       }
                       break;
@@ -539,6 +548,13 @@ bool ZActor_Player::Action_StillEvents( bool * MouseMatrix, UByte * KeyboardMatr
   if (ActorMode == 0 && IsInLiquid && KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_Jump])
   {
     Velocity.y += 5.0*FrameTime;
+  }
+
+
+  if (ActorMode == 5 || ActorMode == 6 )
+  {
+    if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveForward]) Action_MouseMove(0,0.5*FrameTime);
+    if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveBackward]) Action_MouseMove(0,-0.5*FrameTime);
   }
 
   return(true);
@@ -1088,6 +1104,22 @@ void ZActor_Player::DoPhysic_Car(double CycleTime)
     if (DeathChronometer <= 0.0) Event_Death();
     return;
   }
+
+  if (Riding_Voxel==267) // Direction stabilizer
+  {
+    double Correction = 0.001* CycleTime;
+    if (Correction > 0.1) Correction = 0.1;
+
+     if      (ViewDirection.yaw >90.0 && ViewDirection.yaw<95.0)   ViewDirection.yaw-=Correction;
+     else if (ViewDirection.yaw >85.0 && ViewDirection.yaw<90.0)   ViewDirection.yaw+=Correction;
+     else if (ViewDirection.yaw >180.0 && ViewDirection.yaw<185.0) ViewDirection.yaw-=Correction;
+     else if (ViewDirection.yaw >175.0 && ViewDirection.yaw<180.0) ViewDirection.yaw+=Correction;
+     else if (ViewDirection.yaw >270.0 && ViewDirection.yaw<275.0) ViewDirection.yaw-=Correction;
+     else if (ViewDirection.yaw >265.0 && ViewDirection.yaw<270.0) ViewDirection.yaw+=Correction;
+     else if (ViewDirection.yaw >0.0 &&   ViewDirection.yaw<5.0)  {ViewDirection.yaw-=Correction; if (ViewDirection.yaw < 0.0)   ViewDirection.yaw+=360.0;}
+     else if (ViewDirection.yaw >355.0 && ViewDirection.yaw<360.0){ViewDirection.yaw+=Correction; if (ViewDirection.yaw >=360.0) ViewDirection.yaw-=360.0;}
+  }
+
 
   // Limit cycle time in order to avoid some system stuttering to cause inconsistencies
 
