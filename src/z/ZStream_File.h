@@ -78,6 +78,12 @@ class ZStream_File : public ZStream
     ZStream & operator << (char const * const Data);
     ZStream & operator << (ZString const * const Data);
     ZStream & operator << (ZString const & Data);
+    ZStream & operator << (double const Data);
+    ZStream & operator << (float  const Data);
+    ZStream & operator << (ZVector3d const & Data);
+    ZStream & operator << (ZVector3L const & Data);
+    ZStream & operator << (bool const Data);
+
 
     ZStream & operator >> (ULong  &Data);
     ZStream & operator >> (Long   &Data);
@@ -88,7 +94,11 @@ class ZStream_File : public ZStream
     ZStream & operator >> (char * Data);
     ZStream & operator >> (ZString * Data);
     ZStream & operator >> (ZString & Data);
-
+    ZStream & operator >> (double  & Data);
+    ZStream & operator >> (float   & Data);
+    ZStream & operator >> (ZVector3d & Data);
+    ZStream & operator >> (ZVector3L & Data);
+    ZStream & operator >> (bool      & Data);
 
     bool CopyFileFrom(ZStream &SrcStream);
     bool AppendToOpenedFileFrom(ZStream &SrcStream);

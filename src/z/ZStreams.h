@@ -67,6 +67,11 @@ class ZStream
     virtual ZStream & operator << (char const * const Data)=0;
     virtual ZStream & operator << (ZString const * const Data)=0;
     virtual ZStream & operator << (ZString const & Data)=0;
+    virtual ZStream & operator << (double const Data)=0;
+    virtual ZStream & operator << (float  const Data)=0;
+    virtual ZStream & operator << (ZVector3d const & Data)=0;
+    virtual ZStream & operator << (ZVector3L const & Data)=0;
+    virtual ZStream & operator << (bool const data)=0;
 
     virtual ZStream & operator >> (ULong  &Data)=0;
     virtual ZStream & operator >> (Long   &Data)=0;
@@ -77,6 +82,11 @@ class ZStream
     virtual ZStream & operator >> (char * Data)=0;
     virtual ZStream & operator >> (ZString * Data)=0;
     virtual ZStream & operator >> (ZString & Data)=0;
+    virtual ZStream & operator >> (double  & Data)=0;
+    virtual ZStream & operator >> (float   & Data)=0;
+    virtual ZStream & operator >> (ZVector3d & Data)=0;
+    virtual ZStream & operator >> (ZVector3L & Data)=0;
+    virtual ZStream & operator >> (bool      & Data)=0;
 
     virtual bool CopyFileFrom(ZStream &SrcStream)= 0;
     virtual bool AppendToOpenedFileFrom(ZStream &SrcStream) = 0;

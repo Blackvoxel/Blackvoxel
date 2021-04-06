@@ -239,7 +239,55 @@ ZStream & ZStream_File::operator << (ZString const & Data)
   return(*this);
 }
 
+ZStream & ZStream_File::operator << (double const Data)
+{
+  if (Fl && WriteOk)
+  {
+    if (1!=fwrite(&Data,sizeof(double),1,(FILE *)Fl)) Error = true;
+  }
+  else Error = true;
+  return(*this);
+}
 
+ZStream & ZStream_File::operator << (float  const Data)
+{
+  if (Fl && WriteOk)
+  {
+    if (1!=fwrite(&Data,sizeof(float),1,(FILE *)Fl)) Error = true;
+  }
+  else Error = true;
+  return(*this);
+}
+
+ZStream & ZStream_File::operator << (ZVector3d const & Data)
+{
+  if (Fl && WriteOk)
+  {
+    if (1!=fwrite(&Data,sizeof(ZVector3d),1,(FILE *)Fl)) Error = true;
+  }
+  else Error = true;
+  return(*this);
+}
+
+ZStream & ZStream_File::operator << (ZVector3L const & Data)
+{
+  if (Fl && WriteOk)
+  {
+    if (1!=fwrite(&Data,sizeof(ZVector3L),1,(FILE *)Fl)) Error = true;
+  }
+  else Error = true;
+  return(*this);
+}
+
+ZStream & ZStream_File::operator << (bool const Data)
+{
+  if (Fl && WriteOk)
+  {
+    if (1!=fwrite(&Data,sizeof(bool),1,(FILE *)Fl)) Error = true;
+  }
+  else Error = true;
+  return(*this);
+}
 
 ZStream & ZStream_File::operator >> (ULong  &Data)
 {
@@ -342,6 +390,55 @@ ZStream & ZStream_File::operator >> (ZString & Data)
     if (Len)
       if (1!=fread(Data.String,Len,1,(FILE *)Fl)) {Error = true;return(*this);}
     Data.String[Len] = 0;
+  }
+  else Error = true;
+  return(*this);
+}
+
+ZStream & ZStream_File::operator >> (double  & Data)
+{
+  if (Fl && ReadOk)
+  {
+    if (1!=fread(&Data,sizeof(double),1,(FILE *)Fl)) Error = true;
+  }
+  else Error = true;
+  return(*this);
+}
+ZStream & ZStream_File::operator >> (float   & Data)
+{
+  if (Fl && ReadOk)
+  {
+    if (1!=fread(&Data,sizeof(float),1,(FILE *)Fl)) Error = true;
+  }
+  else Error = true;
+  return(*this);
+}
+
+ZStream & ZStream_File::operator >> (ZVector3d & Data)
+{
+  if (Fl && ReadOk)
+  {
+    if (1!=fread(&Data,sizeof(ZVector3d),1,(FILE *)Fl)) Error = true;
+  }
+  else Error = true;
+  return(*this);
+}
+
+ZStream & ZStream_File::operator >> (ZVector3L & Data)
+{
+  if (Fl && ReadOk)
+  {
+    if (1!=fread(&Data,sizeof(ZVector3L),1,(FILE *)Fl)) Error = true;
+  }
+  else Error = true;
+  return(*this);
+}
+
+ZStream & ZStream_File::operator >> (bool & Data)
+{
+  if (Fl && ReadOk)
+  {
+    if (1!=fread(&Data,sizeof(bool),1,(FILE *)Fl)) Error = true;
   }
   else Error = true;
   return(*this);
