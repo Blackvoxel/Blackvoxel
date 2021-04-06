@@ -30,6 +30,14 @@
 #  include "ZDirs.h"
 #endif
 
+#ifndef Z_ZSTREAM_SPECIALRAMSTREAM_H
+#  include "z/ZStream_SpecialRamStream.h"
+#endif
+
+#ifndef Z_ZSTREAMS_FILE_H
+#  include "z/ZStream_File.h"
+#endif
+
 
 ZActor_Player::ZActor_Player()
 {
@@ -94,6 +102,13 @@ ZActor_Player::ZActor_Player()
   Lift_Thrust = 0.0;
   Lift_Direction = 4;
   LiftSoundHandle = 0;
+
+  Spinner_Origin = 0.0;
+  Spinner_Angle  = 0.0;
+  Spinner_Distance = 1000.0;
+  Spinner_Height   = 512.0;
+  Spinner_Speed    = 10.0;
+  Spinner_VomitMode = false;
 
   Init();
 }
@@ -320,8 +335,6 @@ void ZActor_Player::Action_MouseMove(Long Delta_x, Long Delta_y)
       if (SteerAngle > 50.0 ) SteerAngle = 50.0;
       if (SteerAngle < -50.0) SteerAngle =-50.0;
     }
-
-
   }
 
   if (ActorMode == 0 || ActorMode == 3)
@@ -427,6 +440,12 @@ void ZActor_Player::Action_MouseMove(Long Delta_x, Long Delta_y)
     Camera.Roll = ViewDirection.roll;
   }
 
+  if (ActorMode == 8 && 0)
+  {
+    Spinner_Speed += ((double)Delta_x) * 0.1;
+    Spinner_Height += ((double)Delta_y) * 0.1;
+    printf("Spinner_Speed %f\n",Spinner_Speed);
+  }
 
   Camera.Yaw = ViewDirection.yaw;
   Camera.Pitch = ViewDirection.pitch;
@@ -557,6 +576,92 @@ bool ZActor_Player::Action_StillEvents( bool * MouseMatrix, UByte * KeyboardMatr
     if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveBackward]) Action_MouseMove(0,-0.5*FrameTime);
   }
 
+  if (ActorMode == 8)
+  {
+
+    if (KeyboardMatrix[SDLK_AMPERSAND]) { KeyboardMatrix[SDLK_AMPERSAND]=0; Spinner_VomitMode = !Spinner_VomitMode; }
+    if (!KeyboardMatrix[SDLK_LCTRL])
+    {
+      if (!KeyboardMatrix[SDLK_LSHIFT])
+      {
+        if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveForward])  Spinner_Distance -= 0.1 * FrameTime;
+        if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveBackward]) Spinner_Distance += 0.1 * FrameTime;
+        if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveLeft])     Spinner_Speed    += 0.01 * FrameTime;
+        if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveRight])    Spinner_Speed    -= 0.01 * FrameTime;
+        if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveUp])       Spinner_Height   += 0.1 * FrameTime;
+        if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveDown])     Spinner_Height   -= 0.1 * FrameTime;
+      }
+      else
+      {
+        if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveForward])  Spinner_Origin.x += 0.1 * FrameTime;
+        if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveBackward]) Spinner_Origin.x -= 0.1 * FrameTime;
+        if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveLeft])     Spinner_Origin.z += 0.1 * FrameTime;
+        if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveRight])    Spinner_Origin.z -= 0.1 * FrameTime;
+        if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveUp])       Spinner_Origin.y += 0.1 * FrameTime;
+        if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveDown])     Spinner_Origin.y -= 0.1 * FrameTime;
+      }
+    }
+    else
+    {
+       if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveLeft]) Spinner_Origin = 0.0;
+       if (KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveBackward])
+       {
+         KeyboardMatrix[GameEnv->Settings_Hardware->Setting_Key_MoveBackward] = 0;
+         if (KeyboardMatrix[SDLK_LSHIFT])
+         {
+           ZString FileSpec;
+           ZStream_File Stream;
+           FileSpec = GameEnv->Path_UserData;
+           FileSpec.AddToPath("Spinner_").Append_ULong(BuildingMaterial).Append_CStringUpToEOL(".dat");
+           printf("Saving Spinner : %s\n",FileSpec.String);
+           Stream.SetFileName(FileSpec.String);
+           if (Stream.OpenWrite())
+           {
+             Stream << (ULong)1;
+             Stream << Spinner_Origin;
+             Stream << Spinner_Angle;
+             Stream << Spinner_Distance;
+             Stream << Spinner_Height;
+             Stream << Spinner_Speed;
+             Stream << Spinner_VomitMode;
+             Stream << Spinner_Origin;
+             Stream << Spinner_Origin;
+             Stream.Close();
+           }
+         }
+         else
+         {
+           ZString FileSpec;
+           ZStream_File Stream;
+           ULong Version;
+           FileSpec = GameEnv->Path_UserData;
+           FileSpec.AddToPath("Spinner_").Append_ULong(BuildingMaterial).Append_CStringUpToEOL(".dat");
+
+           printf("Loading Spinner : %s ... ",FileSpec.String);
+           Stream.SetFileName(FileSpec.String);
+           if (Stream.OpenRead())
+           {
+             Stream >> Version;
+             if (Version <= 1)
+             {
+               Stream >> Spinner_Origin;
+               Stream >> Spinner_Angle;
+               Stream >> Spinner_Distance;
+               Stream >> Spinner_Height;
+               Stream >> Spinner_Speed;
+               Stream >> Spinner_VomitMode;
+               Stream >> Spinner_Origin;
+               Stream >> Spinner_Origin;
+               Stream.Close();
+             } else printf("incompatible file version.\n");
+             printf("ok\n");
+           }else {printf("error\n");}
+         }
+       }
+    }
+
+  }
+
   return(true);
 }
 
@@ -645,8 +750,8 @@ bool ZActor_Player::Save( ZStream_SpecialRamStream * OutStream )
 {
   ULong *Size,StartLen,*ExtensionSize,EndLen, StartExtensionLen,i;
   OutStream->PutString("BLKPLYR2");
-  OutStream->Put( (UShort)6); // Version
-  OutStream->Put( (UShort)6); // Compatibility Class;
+  OutStream->Put( (UShort)7); // Version
+  OutStream->Put( (UShort)7); // Compatibility Class;
   Size = OutStream->GetPointer_ULong();
   OutStream->Put((ULong)0xA600DBED); // Size of the chunk, will be written later.
   StartLen = OutStream->GetActualBufferLen();
@@ -698,6 +803,15 @@ bool ZActor_Player::Save( ZStream_SpecialRamStream * OutStream )
 
   OutStream->Put(Lift_Thrust);            // V6
   OutStream->Put(Lift_Direction);         // V6
+
+  OutStream->Put(Spinner_Origin.x); // V7
+  OutStream->Put(Spinner_Origin.x); // V7
+  OutStream->Put(Spinner_Origin.x); // V7
+  OutStream->Put(Spinner_Angle);    // V7
+  OutStream->Put(Spinner_Distance); // V7
+  OutStream->Put(Spinner_Height);   // V7
+  OutStream->Put(Spinner_Speed);    // V7
+  OutStream->Put(Spinner_VomitMode);// V7
 
   OutStream->Put(Time_TotalGameTime);
   OutStream->Put(Time_ElapsedTimeSinceLastRespawn);
@@ -809,6 +923,18 @@ bool ZActor_Player::Load( ZStream_SpecialRamStream * InStream)
     Ok &= InStream->Get(Train_Elements_Engines);         // V5
     Ok &= InStream->Get(Lift_Thrust);          // V5
     Ok &= InStream->Get(Lift_Direction);// V5
+  }
+
+  if (Section_Version > 6)
+  {
+    Ok &= InStream->Get(Spinner_Origin.x); // V7
+    Ok &= InStream->Get(Spinner_Origin.x); // V7
+    Ok &= InStream->Get(Spinner_Origin.x); // V7
+    Ok &= InStream->Get(Spinner_Angle);    // V7
+    Ok &= InStream->Get(Spinner_Distance); // V7
+    Ok &= InStream->Get(Spinner_Height);   // V7
+    Ok &= InStream->Get(Spinner_Speed);    // V7
+    Ok &= InStream->Get(Spinner_VomitMode);// V7
   }
 
     Ok &= InStream->Get(Time_TotalGameTime); // New for V3
@@ -928,6 +1054,7 @@ void ZActor_Player::DoPhysic(UELong FrameTime)
   if (ActorMode == 5) { DoPhysic_Car(CycleTime); return; }
   if (ActorMode == 6) { DoPhysic_Train(CycleTime); return;}
   if (ActorMode == 7) { DoPhysic_Lift(CycleTime); return;}
+  if (ActorMode == 8) { DoPhysic_Spinner(CycleTime); return;}
 }
 
 void ZActor_Player::DoPhysic_Lift(double CycleTime)
@@ -1006,6 +1133,30 @@ void ZActor_Player::DoPhysic_Lift(double CycleTime)
     if (LiftSoundHandle==0) {LiftSoundHandle = GameEnv->Sound->Start_PlaySound(10,true, false, 1.00,0); }
     else                     GameEnv->Sound->ModifyFrequency(LiftSoundHandle, (ComputedLiftThrust*SoundFactor) / 60.0 + 1.0);
   }
+}
+
+void ZActor_Player::DoPhysic_Spinner(double CycleTime)
+{
+  ZVector3d Point;
+  double ViewAngle, VertViewAngle;
+
+  Point.x = Location.x + Spinner_Origin.x + sin(Spinner_Angle / 57.295779513) * Spinner_Distance;
+  Point.z = Location.z + Spinner_Origin.z + cos(Spinner_Angle / 57.295779513) * Spinner_Distance;
+  Point.y = Location.y + Spinner_Origin.y + Spinner_Height - 256.0;
+
+  ViewAngle = Spinner_Angle + 180.0; if (ViewAngle>=360.0) ViewAngle-=360.0;
+  VertViewAngle = -atan(Spinner_Height / Spinner_Distance )* 57.295779513;
+  if (Spinner_VomitMode) VertViewAngle += (sin(Spinner_Angle/5.0) * 15.0);
+
+  if (VertViewAngle < 0.0) VertViewAngle += 360.0;
+  if (VertViewAngle > 360.0) VertViewAngle -= 360.0;
+
+  Camera.x = Point.x; Camera.y = Point.y; Camera.z = Point.z;
+  Camera.Yaw = ViewAngle;
+  Camera.Pitch = VertViewAngle;
+  Camera.Roll  = ViewDirection.roll;
+
+  Spinner_Angle += Spinner_Speed * CycleTime * 0.001;
 }
 
 void ZActor_Player::DoPhysic_Train(double CycleTime)
@@ -1128,38 +1279,50 @@ void ZActor_Player::DoPhysic_Car(double CycleTime)
   CapedCycleTime = CycleTime;
   if (CapedCycleTime > 50.0) CapedCycleTime = 50.0;
 
-  // Define detection points
 
-  ZVector3d P[32];
-
-  enum { SENSOR_CUBECENTER = 5, SENSOR_CUBEUNDER=6 };
-  enum { SENSOR_STARTCOLISION = 0, SENSOR_ENDCOLLISION=4 };
-
-  P[0] = Location + ZVector3d(0,0,0);   // #
-  P[1] = Location + ZVector3d(-128,128,-128);   // #
-  P[2] = Location + ZVector3d(128,128,-128);   // #
-  P[3] = Location + ZVector3d(128,128,128);   // #
-  P[4] = Location + ZVector3d(-128,128,128);   // #
-  P[SENSOR_CUBECENTER] = Location + ZVector3d(0,128,0);   // #
-  P[SENSOR_CUBEUNDER] = Location + ZVector3d(0,-128,0);
-
-  // Fetch Voxels for detection points
+  // Detection points variables
 
   ZVoxelWorld * World;
   UShort Voxel[32];
   ZVoxelType * VoxelType[32];
   bool   IsEmpty[32];
   bool   IsJumper;
+  bool   IsMiniJumper;
+  ZVector3d P[32];
 
-  World = PhysicsEngine->World;
-  for (i=SENSOR_CUBECENTER;i<=SENSOR_CUBEUNDER;i++)
+  enum { SENSOR_CUBECENTER = 5, SENSOR_CUBEUNDER=6 };
+  enum { SENSOR_STARTCOLISION = 0, SENSOR_ENDCOLLISION=4 };
+
+  bool RedoDetect = false;
+  do
   {
-    Voxel[i]     = World->GetVoxelPlayerCoord_Secure(P[i].x,P[i].y,P[i].z);
-    VoxelType[i] = GameEnv->VoxelTypeManager.VoxelTable[Voxel[i]];
-    IsEmpty[i]   = VoxelType[i]->Is_PlayerCanPassThrough;
-  }
-  IsOnGround = !IsEmpty[SENSOR_CUBEUNDER];
-  IsJumper = Voxel[SENSOR_CUBECENTER] == 268;
+    IsMiniJumper = false;
+    RedoDetect = false;
+    // Define detection points
+
+    P[0] = Location + ZVector3d(0,0,0);   // #
+    P[1] = Location + ZVector3d(-128,128,-128);   // #
+    P[2] = Location + ZVector3d(128,128,-128);   // #
+    P[3] = Location + ZVector3d(128,128,128);   // #
+    P[4] = Location + ZVector3d(-128,128,128);   // #
+    P[SENSOR_CUBECENTER] = Location + ZVector3d(0,128,0);   // #
+    P[SENSOR_CUBEUNDER] = Location + ZVector3d(0,-128,0);
+
+    // Fetch Voxels for detection points
+
+    World = PhysicsEngine->World;
+    for (i=1;i<=SENSOR_CUBEUNDER;i++)
+    {
+      Voxel[i]     = World->GetVoxelPlayerCoord_Secure(P[i].x,P[i].y,P[i].z);
+      VoxelType[i] = GameEnv->VoxelTypeManager.VoxelTable[Voxel[i]];
+      IsEmpty[i]   = VoxelType[i]->Is_PlayerCanPassThrough;
+      if (Voxel[i]==285) IsMiniJumper = true;
+    }
+    IsOnGround = !IsEmpty[SENSOR_CUBEUNDER];
+    IsJumper = Voxel[SENSOR_CUBECENTER] == 268;
+    //IsMiniJumper = Voxel[SENSOR_CUBECENTER] == 285;
+    if (IsMiniJumper && CarThrust > 20.0) {Location.y += 272.0; RedoDetect = true; }
+  } while(RedoDetect);
 
   // Crash
 
@@ -3019,6 +3182,28 @@ void ZActor_Player::Start_Riding(Long x, Long y, Long z)
                  }
                  break;
 
+        case 284:
+                 {
+                   ActorMode = 8;
+                   Spinner_Angle = 0;
+                   Spinner_Distance = 1000.0;
+                   Spinner_Height = 512.0;
+                   Spinner_Speed = 10.0;
+                   Spinner_Origin = 0.0;
+                   Spinner_VomitMode = false;
+
+                   // Set player location to the spinner
+
+                   GameEnv->World->Convert_Coords_VoxelToPlayer(x,y,z,NewPlayerLocation.x,NewPlayerLocation.y, NewPlayerLocation.z);
+
+                   // Set player location to the center of the cube
+
+                   NewPlayerLocation.x += 128.0; NewPlayerLocation.y += 128.0; NewPlayerLocation.z += 128.0;
+
+                   // Update player coordinates
+                   Location = NewPlayerLocation;
+                 }
+                 break;
       }
 
       // Subtype

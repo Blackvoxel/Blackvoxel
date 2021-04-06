@@ -104,6 +104,15 @@ class ZActor_Player : public ZActor
     Long      Lift_Direction;
     void    * LiftSoundHandle;
 
+    // Spinner
+
+    ZVector3d Spinner_Origin;
+    double    Spinner_Angle;
+    double    Spinner_Distance;
+    double    Spinner_Height;
+    double    Spinner_Speed;
+    bool      Spinner_VomitMode;
+
     // Misc
 
     ZVector3L LastHelpVoxel;
@@ -152,6 +161,7 @@ class ZActor_Player : public ZActor
     virtual void DoPhysic_Car(double CycleTime);
     virtual void DoPhysic_Train(double CycleTime);
     virtual void DoPhysic_Lift(double CycleTime);
+    virtual void DoPhysic_Spinner(double CycleTime);
 
     virtual bool Save( ZStream_SpecialRamStream * OutStream );
     virtual bool Load( ZStream_SpecialRamStream * InStream  );
@@ -197,6 +207,8 @@ class ZActor_Player : public ZActor
                  if (TrainSpeed < 10.0) Stop_Riding();
                  break;
         case 7:  if (Lift_Thrust >-10.0 && Lift_Thrust<10.0) Stop_Riding();
+                 break;
+        case 8:  Stop_Riding();
                  break;
       }
     }
