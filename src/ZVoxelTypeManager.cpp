@@ -147,6 +147,10 @@
 #  include "ZVoxelType_LiftL.h"
 #endif
 
+#ifndef Z_ZVOXELTYPE_SPINNER_H
+#  include "ZVoxelType_Spinner.h"
+#endif
+
 
 ZVoxelTypeManager::ZVoxelTypeManager()
 {
@@ -2096,12 +2100,6 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                 VoxelType->FabInfos2 = new ZFabInfos2;
                 VoxelType->FabInfos2->SetValidator(1);
 
-                // Test
-                tr = VoxelType->FabInfos2->AddTransformation();
-                 tr->AddCondition(2,8);
-                 tr->AddCondition(1,1);
-                 tr->AddResult(3,2);
-
                 // Lifts L0 (Validated)
                 tr = VoxelType->FabInfos2->AddTransformation();
                  tr->AddCondition(118,128); // 128 Stainless Steel Bar
@@ -2197,6 +2195,14 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  tr->AddCondition(1,1);     // 1  Blackrock Blue (Validator)
                  tr->AddResult(268,20);     // Jump Block
 
+                // Car Mini Jump Block
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(117,5);   // 5  Iron Bar
+                 tr->AddCondition(119,1);   // 1  Copper Bar
+                 tr->AddCondition(3,3);     // 3  Blackrock Green
+                 tr->AddCondition(1,1);     // 1  Blackrock Blue (Validator)
+                 tr->AddResult(285,40);     // Jump Block
+
                 // Train T0
                 tr = VoxelType->FabInfos2->AddTransformation();
                  tr->AddCondition(117,512);  // 512  Iron Bar
@@ -2250,7 +2256,18 @@ Bool ZVoxelTypeManager::LoadVoxelTypes()
                  tr->AddCondition(1,1);     // 1   Blackrock Blue (Validator)
                  tr->AddResult(283,1);      // Heater plate
 
+                // Spinner
+                tr = VoxelType->FabInfos2->AddTransformation();
+                 tr->AddCondition(117,2);   // 2  Iron Bar
+                 tr->AddCondition(119,2);   // 1  Copper Bar
+                 tr->AddCondition(3,7);     // 7  Blackrock Green
+                 tr->AddCondition(1,1);     // 1  Blackrock Blue (Validator)
+                 tr->AddResult(284,40);     // Spinner
+
                 VoxelType->FabInfos2->UpdateAll();
+                break;
+
+      case 284: VoxelType = new ZVoxelType_Spinner(i);
                 break;
 
       default:  VoxelType = new ZVoxelType(i);                       break;
