@@ -339,7 +339,7 @@ void ZVoxelTypeManager::OutFabInfos()
 
     // FabInfos Version 1
 
-    if ( (FabInfos = VoxelTable[VoxelType]->FabInfos) && false )
+    if ( (FabInfos = VoxelTable[VoxelType]->FabInfos) )
     {
       //printf("Voxel %d has fabinfos\n", VoxelType);
 
