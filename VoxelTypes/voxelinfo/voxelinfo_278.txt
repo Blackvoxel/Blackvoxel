@@ -1,4 +1,4 @@
-VoxelTypeName=Y Material
+VoxelTypeName=Tzyrium
 Draw_TransparentRendering=0
 Draw_FullVoxelOpacity=1
 MiningHardness = 2000

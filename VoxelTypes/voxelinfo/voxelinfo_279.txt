@@ -1,4 +1,4 @@
-VoxelTypeName=Z Material
+VoxelTypeName=Strynadium
 Draw_TransparentRendering=0
 Draw_FullVoxelOpacity=1
 MiningHardness = 2000
