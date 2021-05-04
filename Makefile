@@ -94,11 +94,11 @@ installable: BV_DATA_LOCATION_DIR=$(BV_DATA_INSTALL_DIR)
 installable: all
 
 squirrel: 
-	cd src/sc_Squirrel3 ; make sq$(CPU_BITS)
+	cd src/sc_Squirrel3 ; $(MAKE) sq$(CPU_BITS)
 
 clean:
 	@rm -rf obj
-	@cd src/sc_Squirrel3 ; make clean
+	@cd src/sc_Squirrel3 ; $(MAKE) clean
 	@rm -f $(PROGNAME)
 
 mrproper: clean
