@@ -1,6 +1,5 @@
 
 SQUIRREL=.
-MAKE=make
 
 sq32:
 	cd squirrel; $(MAKE) 

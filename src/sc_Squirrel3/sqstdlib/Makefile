@@ -26,23 +26,23 @@ SRCS= \
 	
 	
 sq32:
-	gcc -O2 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ)
-	ar rc $(OUT) *.o
+	$(CC) -O2 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ)
+	$(AR) rc $(OUT) *.o
 	rm *.o
 
 sqprof:
-	gcc -O2 -pg -fno-exceptions -fno-rtti -pie -gstabs -g3 -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ)
-	ar rc $(OUT) *.o
+	$(CC) -O2 -pg -fno-exceptions -fno-rtti -pie -gstabs -g3 -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ)
+	$(AR) rc $(OUT) *.o
 	rm *.o
 	
 sq64:
-	gcc -O2 -m64 -fno-exceptions -D_SQ64 -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ)
-	ar rc $(OUT) *.o
+	$(CC) -O2 -m64 -fno-exceptions -D_SQ64 -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ)
+	$(AR) rc $(OUT) *.o
 	rm *.o
 	
 sq64d:
-	gcc -O0 -g3 -m64 -fno-exceptions -D_SQ64 -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ)
-	ar rc $(OUT) *.o
+	$(CC) -O0 -g3 -m64 -fno-exceptions -D_SQ64 -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ)
+	$(AR) rc $(OUT) *.o
 
 .PHONY: clean mrproper
 	
