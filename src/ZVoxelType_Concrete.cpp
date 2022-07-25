@@ -37,10 +37,17 @@
 
 ZVoxelExtension * ZVoxelType_Concrete::CreateVoxelExtension(bool IsLoadingPhase)
 {
-  float Pressure = 0.0;
-  ZMemSize Ms = *((ULong *)&Pressure);
+  union
+  {
+    float             Pressure;
+    ZVoxelExtension * Extension;
+  };
 
-  return( (ZVoxelExtension *)Ms);
+  Extension = 0;
+  Pressure  = 0.0;
+
+  return( Extension );
+
 }
 
 void  ZVoxelType_Concrete::GetBlockInformations(ZVoxelLocation * DestLocation, ZString & Infos)
