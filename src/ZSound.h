@@ -38,6 +38,10 @@
 #  include "z/ZString.h"
 #endif
 
+#ifndef Z_ZSTREAMS_FILE_H
+#  include "z/ZStream_File.h"
+#endif
+
 #ifndef _SDL_audio_h
 #  include <SDL/SDL_audio.h>
 #endif
@@ -208,6 +212,11 @@ class ZSound
         FileSpec = COMPILEOPTION_DATAFILESPATH;
         FileSpec.AddToPath("Sound").AddToPath(FileName);
         // sprintf(FileName, "Sound/%lu.wav",i);
+
+        // Test for file existence before trying to load the file with SDL.
+        // This prevent crash with some version of SDL12-compat.
+
+        if (!ZStream_File::File_IsExists( FileSpec.String )) break;
 
         if ( SDL_LoadWAV(FileSpec.String, &SndSpec, &SndData, &DataLen) == NULL ) break;
 
